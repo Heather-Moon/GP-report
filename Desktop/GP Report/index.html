@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>평가 관리 대시보드 | code.presso</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1565C0;
+      --primary-light: #1976D2;
+      --primary-dark: #0D47A1;
+      --primary-bg: #E3F0FF;
+      --bg: #F4F7FC;
+      --card: #FFFFFF;
+      --text: #1A1A2E;
+      --text-sub: #6B7280;
+      --text-light: #9CA3AF;
+      --border: #E5E7EB;
+      --success: #10B981;
+      --success-bg: #D1FAE5;
+      --danger: #EF4444;
+      --danger-bg: #FEE2E2;
+      --warning: #F59E0B;
+      --warning-bg: #FEF3C7;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── 레이아웃 ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── 사이드바 ── */
+    .sidebar {
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo-icon {
+      width: 28px; height: 28px;
+      background: var(--primary);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 16px; height: 16px; fill: white; }
+    .logo-text { font-size: 1.05rem; font-weight: 700; color: var(--primary); }
+    .logo-text span { font-weight: 400; color: var(--text-sub); }
+
+    .sidebar-nav { flex: 1; padding: 16px 10px; }
+    .nav-section-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 8px 10px 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--bg); color: var(--text); }
+    .nav-item.active { background: var(--primary-bg); color: var(--primary); font-weight: 600; }
+    .nav-item .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+
+    /* ── 메인 콘텐츠 ── */
+    .main-content {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── 탑바 ── */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 1rem; font-weight: 700; }
+    .breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.82rem; color: var(--text-sub);
+    }
+    .breadcrumb span.sep { color: var(--text-light); }
+    .breadcrumb .crumb-link {
+      color: var(--primary); cursor: pointer; font-weight: 500;
+    }
+    .breadcrumb .crumb-link:hover { text-decoration: underline; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700; color: var(--primary);
+    }
+
+    /* ── 페이지 콘텐츠 ── */
+    .page-content {
+      padding: 28px 32px 60px;
+      flex: 1;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── 섹션 타이틀 ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 0.95rem; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px; height: 16px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    /* ── 통계 카드 ── */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .stat-card-label {
+      font-size: 0.78rem; color: var(--text-sub); font-weight: 500;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .stat-card-icon { font-size: 0.95rem; }
+    .stat-card-value {
+      font-size: 1.8rem; font-weight: 800; color: var(--text);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-card-value span { font-size: 1rem; font-weight: 500; color: var(--text-sub); }
+    .stat-card-sub {
+      font-size: 0.75rem; color: var(--text-light);
+    }
+    .stat-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .stat-badge.up { background: var(--success-bg); color: var(--success); }
+    .stat-badge.down { background: var(--danger-bg); color: var(--danger); }
+
+    /* ── 차트 그리드 ── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .chart-card-title {
+      font-size: 0.85rem; font-weight: 600; color: var(--text-sub);
+      margin-bottom: 16px;
+    }
+    .chart-center { display: flex; justify-content: center; align-items: center; }
+
+    /* ── 테이블 섹션 ── */
+    .table-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .table-controls {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1; min-width: 180px; max-width: 280px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .filter-tabs {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .filter-tab {
+      padding: 6px 14px;
+      font-size: 0.8rem; font-weight: 500;
+      cursor: pointer;
+      background: #fff; color: var(--text-sub);
+      border: none; outline: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .filter-tab.active { background: var(--primary); color: #fff; }
+    .sort-select {
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-size: 0.82rem;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+    }
+    .sort-btn {
+      height: 36px;
+      width: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff; color: var(--text-sub);
+      font-size: 1rem; cursor: pointer;
+      transition: background 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sort-btn:hover { background: var(--bg); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 2px solid var(--border); }
+    th {
+      text-align: left;
+      font-size: 0.78rem; font-weight: 600; color: var(--text-sub);
+      padding: 8px 12px 10px;
+    }
+    td {
+      padding: 13px 12px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #F9FAFB;
+    }
+    tbody tr { cursor: pointer; transition: background 0.12s; }
+    tbody tr:hover { background: #F9FBFF; }
+    tbody tr:last-child td { border-bottom: none; }
+    .td-name { font-weight: 600; color: var(--text); }
+    .td-email { color: var(--text-sub); font-size: 0.8rem; }
+    .td-score { font-weight: 700; font-size: 0.95rem; }
+    .td-subjects { display: flex; gap: 4px; flex-wrap: wrap; }
+
+    /* ── 배지 ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .badge-complete { background: var(--success-bg); color: var(--success); }
+    .badge-incomplete { background: #F3F4F6; color: var(--text-sub); }
+    .badge-acquired { background: var(--success-bg); color: var(--success); }
+    .badge-not-acquired { background: var(--danger-bg); color: var(--danger); }
+    .badge-primary { background: var(--primary-bg); color: var(--primary); }
+
+    /* ── 페이지네이션 ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .pagination-info { font-size: 0.8rem; color: var(--text-sub); }
+    .pagination-btns { display: flex; gap: 4px; align-items: center; }
+    .page-btn {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff; color: var(--text-sub);
+      font-size: 0.82rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s;
+    }
+    .page-btn:hover { background: var(--bg); }
+    .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+    .rows-select {
+      height: 32px; font-size: 0.78rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 8px; background: #fff;
+      color: var(--text-sub); cursor: pointer; outline: none;
+    }
+
+    /* ── 개인 페이지 헤더 ── */
+    .person-header {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .person-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 700; color: var(--primary);
+      flex-shrink: 0;
+    }
+    .person-info { flex: 1; }
+    .person-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
+    .person-meta { font-size: 0.83rem; color: var(--text-sub); display: flex; align-items: center; gap: 12px; }
+    .person-meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* ── 요약 카드 4열 ── */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .summary-card-icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .summary-card-value {
+      font-size: 2rem; font-weight: 900; color: var(--primary);
+      line-height: 1; margin-bottom: 6px;
+    }
+    .summary-card-value small { font-size: 1rem; color: var(--text-sub); font-weight: 500; }
+    .summary-card-label { font-size: 0.78rem; color: var(--text-sub); font-weight: 500; margin-bottom: 6px; }
+    .summary-card-sub { font-size: 0.75rem; color: var(--text-light); }
+
+    /* ── 2열 그리드 ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .three-col { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+    /* ── 총평 박스 ── */
+    .assessment-box {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .assessment-text {
+      font-size: 0.9rem; line-height: 1.8; color: var(--text-sub);
+      margin-bottom: 16px;
+    }
+    .tag-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag {
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .tag-strength { background: var(--success-bg); color: var(--success); }
+    .tag-improve { background: var(--warning-bg); color: var(--warning); }
+    .tag-label { font-size: 0.75rem; color: var(--text-light); margin-right: 4px; }
+
+    /* ── 진행바 ── */
+    .prog-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .prog-label { width: 100px; font-size: 0.83rem; font-weight: 500; flex-shrink: 0; }
+    .prog-bg {
+      flex: 1; height: 10px;
+      background: #F3F4F6;
+      border-radius: 99px; overflow: hidden;
+    }
+    .prog-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+    .prog-value { width: 40px; text-align: right; font-size: 0.82rem; font-weight: 700; flex-shrink: 0; }
+
+    /* ── 평가 카드 목록 ── */
+    .eval-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .eval-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+    .eval-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .eval-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .eval-card-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      background: var(--primary-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .eval-card-name { font-weight: 700; font-size: 0.9rem; }
+    .eval-card-score { font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-bottom: 4px; }
+    .eval-card-meta { font-size: 0.78rem; color: var(--text-sub); margin-bottom: 14px; }
+    .eval-card-btn {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-sm);
+      background: transparent; color: var(--primary);
+      font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .eval-card-btn:hover { background: var(--primary); color: #fff; }
+
+    /* ── 아코디언 ── */
+    .accordion-item {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .accordion-header {
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .accordion-header:hover { background: #FAFBFF; }
+    .accordion-header.open { background: #FAFBFF; }
+    .accordion-title { flex: 1; font-size: 0.9rem; font-weight: 600; }
+    .accordion-meta { display: flex; align-items: center; gap: 10px; }
+    .accordion-score { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); }
+    .accordion-arrow { font-size: 0.7rem; color: var(--text-light); transition: transform 0.2s; }
+    .accordion-header.open .accordion-arrow { transform: rotate(180deg); }
+    .accordion-body {
+      padding: 0 20px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s;
+    }
+    .accordion-body.open {
+      padding: 0 20px 20px;
+      max-height: 400px;
+    }
+    .accordion-comment {
+      font-size: 0.85rem; line-height: 1.7; color: var(--text-sub);
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    /* ── 비교 바 차트 ── */
+    .compare-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .compare-label { width: 90px; font-size: 0.8rem; color: var(--text-sub); flex-shrink: 0; }
+    .compare-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .compare-bar-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; }
+    .compare-bar-item .bar-label { width: 28px; color: var(--text-light); }
+    .compare-bar-bg { flex: 1; height: 8px; background: #F3F4F6; border-radius: 99px; overflow: hidden; }
+    .compare-bar-fill { height: 100%; border-radius: 99px; }
+    .compare-val { width: 28px; text-align: right; font-weight: 600; }
+
+    /* ── 백 버튼 ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff; color: var(--text-sub);
+      font-size: 0.82rem; font-weight: 500;
+      cursor: pointer; transition: background 0.12s, color 0.12s;
+      margin-bottom: 20px;
+    }
+    .back-btn:hover { background: var(--bg); color: var(--text); }
+
+    /* ── 도넛 차트 ── */
+    .donut-center {
+      font-size: 1.4rem; font-weight: 800; color: var(--primary);
+    }
+    .donut-legend {
+      display: flex; gap: 16px; justify-content: center;
+      margin-top: 12px;
+    }
+    .donut-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-sub); }
+    .donut-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── 히스토그램 ── */
+    .histogram-marker-line { stroke: var(--danger); stroke-width: 2; stroke-dasharray: 4 3; }
+
+    /* ── 푸터 ── */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.75rem;
+      color: var(--text-light);
+      border-top: 1px solid var(--border);
+      background: #fff;
+      margin-left: 220px;
+    }
+
+    /* ── 스크롤바 ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 99px; }
+
+    /* ── 반응형 768px ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; }
+      footer { margin-left: 0; }
+      .stat-cards { grid-template-columns: repeat(2, 1fr); }
+      .chart-grid { grid-template-columns: 1fr; }
+      .summary-cards { grid-template-columns: repeat(2, 1fr); }
+      .two-col, .three-col { grid-template-columns: 1fr; }
+      .eval-cards { grid-template-columns: 1fr 1fr; }
+      .page-content { padding: 16px 16px 40px; }
+      .topbar { padding: 0 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .stat-cards { grid-template-columns: 1fr 1fr; }
+      .summary-cards { grid-template-columns: 1fr 1fr; }
+      .eval-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ─── 사이드바 ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3zm0 5h14v2H3zm0 5h9v2H3z"/></svg>
+      </div>
+      <span class="logo-text">code<span>.presso</span></span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">메뉴</div>
+      <div class="nav-item active" data-page="main" onclick="navigate('main')">
+        <span class="nav-icon">📊</span> 평가 개요
+      </div>
+      <div class="nav-item" data-page="person" onclick="navigate('person')">
+        <span class="nav-icon">👤</span> 평가자 상세
+      </div>
+      <div class="nav-item" data-page="detail" onclick="navigate('detail')">
+        <span class="nav-icon">🔍</span> 평가 세부 내용
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ─── 메인 콘텐츠 ─── -->
+  <div class="main-content">
+
+    <!-- 탑바 -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div id="topbar-title" class="topbar-title">평가 개요 대시보드</div>
+        <div id="breadcrumb" class="breadcrumb" style="display:none;"></div>
+      </div>
+      <div class="topbar-right">
+        <span style="font-size:0.82rem; color:var(--text-sub);">ABC 기업 담당자</span>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+
+    <!-- 페이지 콘텐츠 -->
+    <div class="page-content">
+
+      <!-- ══════════════════════════════════
+           📄 메인 페이지 (평가 개요)
+      ══════════════════════════════════ -->
+      <div id="page-main" class="page active">
+
+        <!-- 통계 카드 -->
+        <div class="section-header" style="margin-bottom:12px;">
+          <div class="section-title">전체 통계</div>
+          <span style="font-size:0.78rem; color:var(--text-light);">2026년 상반기 역량 평가</span>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-card-label"><span class="stat-card-icon">👥</span> 전체 응시자</div>
+            <div class="stat-card-value">24<span>명</span></div>
+            <div class="stat-card-sub">전체 대상자 24명</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label"><span class="stat-card-icon">✅</span> 응시 완료</div>
+            <div class="stat-card-value">18<span>명</span></div>
+            <div class="stat-card-sub">완료율 <strong>75%</strong> | 미완료 6명</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label"><span class="stat-card-icon">🏆</span> 평균 총점</div>
+            <div class="stat-card-value">72.4<span>점</span></div>
+            <div class="stat-card-sub">최고 94점 | 최저 41점</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label"><span class="stat-card-icon">⏱</span> 평균 소요시간</div>
+            <div class="stat-card-value">01:28<span></span></div>
+            <div class="stat-card-sub">제한시간 02:00 기준</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label"><span class="stat-card-icon">💡</span> 역량 평균 획득</div>
+            <div class="stat-card-value">6.2<span>개</span></div>
+            <div class="stat-card-sub">전체 9개 역량 중</div>
+          </div>
+        </div>
+
+        <!-- 차트 섹션 -->
+        <div class="section-header">
+          <div class="section-title">시각화 분석</div>
+        </div>
+        <div class="chart-grid">
+          <!-- 도넛 차트 -->
+          <div class="chart-card">
+            <div class="chart-card-title">응시 완료 비율</div>
+            <div class="chart-center" style="flex-direction:column; gap:4px;">
+              <svg id="donut-svg" width="160" height="160" viewBox="0 0 160 160"></svg>
+              <div class="donut-legend">
+                <div class="donut-legend-item">
+                  <div class="donut-legend-dot" style="background:var(--primary);"></div>완료 (75%)
+                </div>
+                <div class="donut-legend-item">
+                  <div class="donut-legend-dot" style="background:#E5E7EB;"></div>미완료 (25%)
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 히스토그램 -->
+          <div class="chart-card">
+            <div class="chart-card-title">점수 분포 (히스토그램)</div>
+            <svg id="histogram-svg" width="100%" height="160" viewBox="0 0 260 160"></svg>
+          </div>
+          <!-- 과목별 평균 레이더 -->
+          <div class="chart-card">
+            <div class="chart-card-title">과목별 평균 점수</div>
+            <div class="chart-center">
+              <svg id="avg-radar-svg" width="180" height="180" viewBox="0 0 200 200"></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 평가자 목록 테이블 -->
+        <div class="section-header">
+          <div class="section-title">평가자 목록</div>
+        </div>
+        <div class="table-card">
+          <div class="table-controls">
+            <input type="text" class="search-input" placeholder="🔍  이름, 이메일 검색..." id="search-input" oninput="renderTable()" />
+            <div class="filter-tabs">
+              <button class="filter-tab active" onclick="setFilter('all', this)">전체</button>
+              <button class="filter-tab" onclick="setFilter('completed', this)">완료</button>
+              <button class="filter-tab" onclick="setFilter('incomplete', this)">미완료</button>
+            </div>
+            <select class="sort-select" id="sort-select" onchange="renderTable()">
+              <option value="name">이름순</option>
+              <option value="score">총점수</option>
+              <option value="time">소요시간</option>
+            </select>
+            <button class="sort-btn" id="sort-dir-btn" onclick="toggleSortDir()" title="정렬 방향">↑</button>
+            <select class="rows-select" id="rows-select" onchange="renderTable()">
+              <option value="10">10행</option>
+              <option value="20" selected>20행</option>
+              <option value="50">50행</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>이름</th>
+                <th>이메일</th>
+                <th>응시 상태</th>
+                <th>총점수</th>
+                <th>과목별 점수</th>
+                <th>소요시간</th>
+                <th>상세</th>
+              </tr>
+            </thead>
+            <tbody id="examinee-tbody"></tbody>
+          </table>
+          <div class="pagination">
+            <div class="pagination-info" id="pagination-info"></div>
+            <div class="pagination-btns" id="pagination-btns"></div>
+          </div>
+        </div>
+      </div><!-- /page-main -->
+
+
+      <!-- ══════════════════════════════════
+           📄 평가자 개인 페이지
+      ══════════════════════════════════ -->
+      <div id="page-person" class="page">
+        <button class="back-btn" onclick="navigate('main')">← 목록으로</button>
+
+        <!-- 헤더 -->
+        <div class="person-header">
+          <div class="person-avatar" id="person-avatar">K</div>
+          <div class="person-info">
+            <div class="person-name" id="person-name">김민준</div>
+            <div class="person-meta">
+              <span>✉️ <span id="person-email"></span></span>
+              <span id="person-status-badge"></span>
+              <span>📅 <span id="person-date"></span></span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.78rem; color:var(--text-light); margin-bottom:4px;">백분위</div>
+            <div style="font-size:1.6rem; font-weight:900; color:var(--primary);" id="person-percentile">-</div>
+            <div style="font-size:0.75rem; color:var(--text-sub);">전체 기준</div>
+          </div>
+        </div>
+
+        <!-- 요약 카드 4개 -->
+        <div class="section-header"><div class="section-title">시험 결과 요약</div></div>
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="summary-card-icon">🏆</div>
+            <div class="summary-card-value" id="sc-score">87<small>/100</small></div>
+            <div class="summary-card-label">총점</div>
+            <div class="summary-card-sub" id="sc-pass"></div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-icon">💡</div>
+            <div class="summary-card-value" id="sc-comp">7<small>/9</small></div>
+            <div class="summary-card-label">획득 역량 수</div>
+            <div class="summary-card-sub" id="sc-comp-rate"></div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-icon">⏱</div>
+            <div class="summary-card-value" id="sc-time" style="font-size:1.4rem;">01:23:45</div>
+            <div class="summary-card-label">총 소요시간</div>
+            <div class="summary-card-sub">제한시간 02:00:00</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-icon">📈</div>
+            <div class="summary-card-value" id="sc-pct">상위 12%</div>
+            <div class="summary-card-label">전체 순위</div>
+            <div class="summary-card-sub">18명 응시 기준</div>
+          </div>
+        </div>
+
+        <!-- 과목별 점수 + 레이더 -->
+        <div class="two-col">
+          <div class="chart-card">
+            <div class="section-title" style="margin-bottom:16px;">과목별 점수</div>
+            <div id="person-subject-bars"></div>
+          </div>
+          <div class="chart-card">
+            <div class="section-title" style="margin-bottom:12px;">역량 레이더</div>
+            <div class="chart-center">
+              <svg id="person-radar-svg" width="180" height="180" viewBox="0 0 200 200"></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 전체 평균 대비 비교 -->
+        <div class="chart-card" style="margin-bottom:24px;">
+          <div class="section-title" style="margin-bottom:16px;">전체 평균 대비 비교</div>
+          <div id="compare-section"></div>
+        </div>
+
+        <!-- 총평 -->
+        <div class="section-header"><div class="section-title">시험 결과 총평</div></div>
+        <div class="assessment-box">
+          <div class="assessment-text" id="person-assessment"></div>
+          <div style="margin-bottom:8px;">
+            <span class="tag-label">강점</span>
+            <div class="tag-group" id="person-strengths"></div>
+          </div>
+          <div style="margin-top:10px;">
+            <span class="tag-label">개선 필요</span>
+            <div class="tag-group" id="person-improvements"></div>
+          </div>
+        </div>
+
+        <!-- 평가 카드 목록 -->
+        <div class="section-header"><div class="section-title">평가별 세부 내용</div></div>
+        <div class="eval-cards" id="eval-cards"></div>
+      </div><!-- /page-person -->
+
+
+      <!-- ══════════════════════════════════
+           📄 평가 세부 내용 페이지
+      ══════════════════════════════════ -->
+      <div id="page-detail" class="page">
+        <button class="back-btn" onclick="navigate('person')">← 개인 페이지로</button>
+
+        <!-- 평가 요약 카드 4개 -->
+        <div class="section-header"><div class="section-title">평가 요약</div></div>
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="summary-card-icon">📝</div>
+            <div class="summary-card-value" id="ds-score">85<small>/100</small></div>
+            <div class="summary-card-label">평가 점수</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-icon">💡</div>
+            <div class="summary-card-value" id="ds-comp">3<small>/3</small></div>
+            <div class="summary-card-label">역량 획득 수</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-icon">⏱</div>
+            <div class="summary-card-value" id="ds-time" style="font-size:1.4rem;">00:28:12</div>
+            <div class="summary-card-label">소요시간</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-icon">📊</div>
+            <div class="summary-card-value" id="ds-avg">상위 18%</div>
+            <div class="summary-card-label">전체 대비</div>
+          </div>
+        </div>
+
+        <!-- 통계 비교 차트 -->
+        <div class="two-col">
+          <div class="chart-card">
+            <div class="section-title" style="margin-bottom:16px;">점수 분포 내 내 위치</div>
+            <svg id="detail-histogram-svg" width="100%" height="150" viewBox="0 0 260 150"></svg>
+          </div>
+          <div class="chart-card">
+            <div class="section-title" style="margin-bottom:16px;">평균 대비 비교</div>
+            <div id="detail-compare"></div>
+          </div>
+        </div>
+
+        <!-- 평가 총평 -->
+        <div class="section-header"><div class="section-title">평가 총평</div></div>
+        <div class="assessment-box" style="margin-bottom:24px;">
+          <div class="assessment-text" id="detail-assessment"></div>
+          <div class="tag-group" id="detail-comp-tags"></div>
+        </div>
+
+        <!-- 역량 전체 요약 -->
+        <div class="two-col">
+          <div class="chart-card">
+            <div class="section-title" style="margin-bottom:12px;">역량 획득 현황</div>
+            <div class="chart-center" style="flex-direction:column; gap:8px;">
+              <svg id="detail-donut-svg" width="140" height="140" viewBox="0 0 160 160"></svg>
+              <div class="donut-legend" id="detail-donut-legend"></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="section-title" style="margin-bottom:16px;">역량별 점수 비교</div>
+            <div id="detail-comp-bars"></div>
+          </div>
+        </div>
+
+        <!-- 역량별 상세 아코디언 -->
+        <div class="section-header"><div class="section-title">역량별 상세</div></div>
+        <div id="competency-accordion"></div>
+      </div><!-- /page-detail -->
+
+    </div><!-- /page-content -->
+
+    <footer>© 2026 Codepresso, Inc. All Rights Reserved.</footer>
+  </div><!-- /main-content -->
+
+</div><!-- /layout -->
+
+
+<script>
+/* ════════════════════════════════════════
+   DATA
+════════════════════════════════════════ */
+const SUBJECTS = ['HTML/CSS', 'JavaScript', 'React', 'Node.js', '데이터베이스'];
+const SUBJECT_KEYS = ['html_css', 'javascript', 'react', 'nodejs', 'db'];
+const SUBJECT_ICONS = ['🎨', '⚡', '⚛️', '🖥️', '🗄️'];
+const SUBJECT_COLORS = ['#1565C0', '#F59E0B', '#10B981', '#6366F1', '#EF4444'];
+const SUBJECT_MAX = [30, 30, 20, 10, 10];
+
+const ALL_COMPETENCIES = [
+  { id:'c1', name:'HTML 시맨틱 마크업',    subject:'HTML/CSS',     subjectIdx:0, maxScore:15, avgRate:72 },
+  { id:'c2', name:'CSS 레이아웃 (Flex/Grid)', subject:'HTML/CSS',  subjectIdx:0, maxScore:15, avgRate:68 },
+  { id:'c3', name:'JS 변수와 타입',         subject:'JavaScript',  subjectIdx:1, maxScore:10, avgRate:80 },
+  { id:'c4', name:'비동기 프로그래밍',       subject:'JavaScript',  subjectIdx:1, maxScore:10, avgRate:55 },
+  { id:'c5', name:'함수형 프로그래밍',       subject:'JavaScript',  subjectIdx:1, maxScore:10, avgRate:60 },
+  { id:'c6', name:'React 컴포넌트 설계',    subject:'React',       subjectIdx:2, maxScore:10, avgRate:65 },
+  { id:'c7', name:'React 상태 관리',        subject:'React',       subjectIdx:2, maxScore:10, avgRate:58 },
+  { id:'c8', name:'Node.js API 개발',      subject:'Node.js',     subjectIdx:3, maxScore:10, avgRate:50 },
+  { id:'c9', name:'SQL 쿼리 작성',          subject:'데이터베이스', subjectIdx:4, maxScore:10, avgRate:62 },
+];
+
+const AVG_SUBJECTS = { html_css:68, javascript:65, react:62, nodejs:55, db:60 };
+
+const EXAMINEES = [
+  { id:1,  name:'김민준', email:'minjun.kim@abc.com',    status:'completed',   date:'2026.04.02 09:15',
+    totalScore:87, subjects:{ html_css:26, javascript:24, react:18, nodejs:9, db:10 },
+    time:'01:23:45', percentile:12,
+    competencies:[
+      {id:'c1',acquired:true, score:13,maxScore:15,comment:'시맨틱 태그를 적절히 활용하였습니다. 접근성 속성 추가가 권장됩니다.'},
+      {id:'c2',acquired:true, score:13,maxScore:15,comment:'Flexbox와 Grid 모두 잘 활용했습니다.'},
+      {id:'c3',acquired:true, score:9, maxScore:10,comment:'타입 시스템에 대한 이해가 뛰어납니다.'},
+      {id:'c4',acquired:true, score:8, maxScore:10,comment:'Promise 체인을 잘 다루며 async/await도 능숙합니다.'},
+      {id:'c5',acquired:true, score:7, maxScore:10,comment:'고차 함수 활용이 우수합니다.'},
+      {id:'c6',acquired:true, score:9, maxScore:10,comment:'컴포넌트 설계 원칙을 잘 이해하고 있습니다.'},
+      {id:'c7',acquired:true, score:9, maxScore:10,comment:'Redux와 Context API 모두 능숙하게 활용합니다.'},
+      {id:'c8',acquired:false,score:4, maxScore:10,comment:'REST API 설계 경험이 부족합니다. 미들웨어 개념 학습을 권장합니다.'},
+      {id:'c9',acquired:true, score:8, maxScore:10,comment:'복잡한 JOIN 쿼리도 잘 작성합니다.'},
+    ],
+    assessment:'전반적으로 우수한 역량을 보유하고 있습니다. 프론트엔드 전 영역에서 고른 강점을 보였으며, 특히 React 상태 관리에서 탁월한 실력을 발휘했습니다. Node.js 백엔드 영역에서 추가 학습이 필요합니다.',
+    strengths:['HTML/CSS','React','JavaScript'], improvements:['Node.js'] },
+
+  { id:2,  name:'이수연', email:'sooyeon.lee@abc.com',   status:'completed',   date:'2026.04.02 10:30',
+    totalScore:79, subjects:{ html_css:22, javascript:22, react:17, nodejs:8, db:10 },
+    time:'01:41:20', percentile:25,
+    competencies:[
+      {id:'c1',acquired:true, score:12,maxScore:15,comment:'전반적으로 양호합니다.'},
+      {id:'c2',acquired:true, score:10,maxScore:15,comment:'Grid 레이아웃 이해가 더 필요합니다.'},
+      {id:'c3',acquired:true, score:9, maxScore:10,comment:'우수합니다.'},
+      {id:'c4',acquired:true, score:7, maxScore:10,comment:'비동기 흐름 이해는 있으나 에러 처리가 미흡합니다.'},
+      {id:'c5',acquired:false,score:6, maxScore:10,comment:'함수형 패턴 학습이 더 필요합니다.'},
+      {id:'c6',acquired:true, score:9, maxScore:10,comment:'양호합니다.'},
+      {id:'c7',acquired:true, score:8, maxScore:10,comment:'상태 관리 이해가 좋습니다.'},
+      {id:'c8',acquired:false,score:4, maxScore:10,comment:'백엔드 경험 부족합니다.'},
+      {id:'c9',acquired:true, score:9, maxScore:10,comment:'SQL 작성 능력이 우수합니다.'},
+    ],
+    assessment:'균형잡힌 역량을 보유하고 있으며, 특히 데이터베이스와 HTML/CSS에서 강점을 보였습니다.',
+    strengths:['데이터베이스','HTML/CSS'], improvements:['Node.js','JavaScript'] },
+
+  { id:3,  name:'박지훈', email:'jihoon.park@abc.com',   status:'completed',   date:'2026.04.02 09:45',
+    totalScore:94, subjects:{ html_css:28, javascript:28, react:19, nodejs:9, db:10 },
+    time:'01:05:30', percentile:5,
+    competencies:[
+      {id:'c1',acquired:true, score:14,maxScore:15,comment:'탁월합니다.'},
+      {id:'c2',acquired:true, score:14,maxScore:15,comment:'모든 레이아웃 기법을 완벽히 구사합니다.'},
+      {id:'c3',acquired:true, score:10,maxScore:10,comment:'만점입니다.'},
+      {id:'c4',acquired:true, score:9, maxScore:10,comment:'비동기 처리 능력이 매우 뛰어납니다.'},
+      {id:'c5',acquired:true, score:9, maxScore:10,comment:'함수형 프로그래밍에 능숙합니다.'},
+      {id:'c6',acquired:true, score:10,maxScore:10,comment:'만점입니다.'},
+      {id:'c7',acquired:true, score:9, maxScore:10,comment:'복잡한 상태도 잘 다룹니다.'},
+      {id:'c8',acquired:true, score:9, maxScore:10,comment:'API 설계 능력이 우수합니다.'},
+      {id:'c9',acquired:true, score:10,maxScore:10,comment:'만점입니다.'},
+    ],
+    assessment:'최상위 역량을 보유하고 있습니다. 전 영역에서 탁월한 성과를 보였으며 팀 리더십 역할에 적합합니다.',
+    strengths:['전 영역'], improvements:[] },
+
+  { id:4,  name:'최유리', email:'yuri.choi@abc.com',     status:'completed',   date:'2026.04.03 14:20',
+    totalScore:63, subjects:{ html_css:18, javascript:17, react:13, nodejs:6, db:9 },
+    time:'01:52:10', percentile:60,
+    competencies:[
+      {id:'c1',acquired:true, score:10,maxScore:15,comment:'기본기는 갖추었습니다.'},
+      {id:'c2',acquired:false,score:8, maxScore:15,comment:'Grid 학습이 필요합니다.'},
+      {id:'c3',acquired:true, score:9, maxScore:10,comment:'양호합니다.'},
+      {id:'c4',acquired:false,score:5, maxScore:10,comment:'비동기 처리 이해가 부족합니다.'},
+      {id:'c5',acquired:false,score:3, maxScore:10,comment:'함수형 패턴 학습이 필요합니다.'},
+      {id:'c6',acquired:true, score:7, maxScore:10,comment:'기본 설계는 가능합니다.'},
+      {id:'c7',acquired:false,score:6, maxScore:10,comment:'상태 관리 패턴 심화가 필요합니다.'},
+      {id:'c8',acquired:false,score:3, maxScore:10,comment:'백엔드 역량 강화가 필요합니다.'},
+      {id:'c9',acquired:true, score:8, maxScore:10,comment:'SQL 기본은 잘 갖추었습니다.'},
+    ],
+    assessment:'기본적인 역량은 갖추었으나 심화 학습이 전반적으로 필요합니다.',
+    strengths:['데이터베이스'], improvements:['JavaScript','Node.js','React'] },
+
+  { id:5,  name:'정도현', email:'dohyun.jung@abc.com',   status:'completed',   date:'2026.04.03 11:00',
+    totalScore:81, subjects:{ html_css:24, javascript:23, react:16, nodejs:8, db:10 },
+    time:'01:30:00', percentile:20,
+    competencies:[
+      {id:'c1',acquired:true, score:12,maxScore:15,comment:'양호합니다.'},
+      {id:'c2',acquired:true, score:12,maxScore:15,comment:'레이아웃 능력이 좋습니다.'},
+      {id:'c3',acquired:true, score:9, maxScore:10,comment:'우수합니다.'},
+      {id:'c4',acquired:true, score:8, maxScore:10,comment:'비동기 이해가 좋습니다.'},
+      {id:'c5',acquired:false,score:6, maxScore:10,comment:'함수형 패턴 학습 권장.'},
+      {id:'c6',acquired:true, score:8, maxScore:10,comment:'컴포넌트 설계 능력 양호.'},
+      {id:'c7',acquired:true, score:8, maxScore:10,comment:'상태 관리 능력 우수.'},
+      {id:'c8',acquired:false,score:5, maxScore:10,comment:'API 설계 경험 보강 필요.'},
+      {id:'c9',acquired:true, score:9, maxScore:10,comment:'SQL 작성 능력 우수.'},
+    ],
+    assessment:'전반적으로 균형잡힌 역량을 보유합니다. 함수형 프로그래밍과 Node.js 학습을 권장합니다.',
+    strengths:['데이터베이스','JavaScript'], improvements:['Node.js','JavaScript'] },
+
+  { id:6,  name:'강서현', email:'seohyun.kang@abc.com',  status:'completed',   date:'2026.04.04 09:00',
+    totalScore:55, subjects:{ html_css:16, javascript:14, react:11, nodejs:5, db:9 },
+    time:'01:58:30', percentile:75,
+    competencies:[
+      {id:'c1',acquired:false,score:8, maxScore:15,comment:'시맨틱 태그 활용 미흡.'},
+      {id:'c2',acquired:false,score:8, maxScore:15,comment:'레이아웃 전반 보강 필요.'},
+      {id:'c3',acquired:true, score:8, maxScore:10,comment:'기본 타입은 이해합니다.'},
+      {id:'c4',acquired:false,score:4, maxScore:10,comment:'비동기 학습 필요.'},
+      {id:'c5',acquired:false,score:2, maxScore:10,comment:'함수형 프로그래밍 기초부터 학습 권장.'},
+      {id:'c6',acquired:true, score:6, maxScore:10,comment:'기본 컴포넌트 작성 가능.'},
+      {id:'c7',acquired:false,score:5, maxScore:10,comment:'상태 관리 패턴 학습 필요.'},
+      {id:'c8',acquired:false,score:2, maxScore:10,comment:'백엔드 전반 학습 필요.'},
+      {id:'c9',acquired:true, score:8, maxScore:10,comment:'기본 SQL은 양호.'},
+    ],
+    assessment:'기초 역량이 부족하며 전반적인 역량 개발 계획을 수립하는 것을 권장합니다.',
+    strengths:['데이터베이스'], improvements:['Node.js','JavaScript','HTML/CSS'] },
+
+  { id:7,  name:'윤재원', email:'jaewon.yoon@abc.com',   status:'completed',   date:'2026.04.04 14:00',
+    totalScore:71, subjects:{ html_css:20, javascript:20, react:15, nodejs:7, db:9 },
+    time:'01:37:00', percentile:42,
+    competencies:[
+      {id:'c1',acquired:true, score:11,maxScore:15,comment:'양호합니다.'},
+      {id:'c2',acquired:true, score:9, maxScore:15,comment:'Grid 추가 학습 권장.'},
+      {id:'c3',acquired:true, score:8, maxScore:10,comment:'양호합니다.'},
+      {id:'c4',acquired:true, score:7, maxScore:10,comment:'비동기 처리 이해 양호.'},
+      {id:'c5',acquired:false,score:5, maxScore:10,comment:'함수형 학습 필요.'},
+      {id:'c6',acquired:true, score:8, maxScore:10,comment:'컴포넌트 설계 양호.'},
+      {id:'c7',acquired:false,score:7, maxScore:10,comment:'상태 관리 심화 필요.'},
+      {id:'c8',acquired:false,score:4, maxScore:10,comment:'API 경험 부족.'},
+      {id:'c9',acquired:true, score:8, maxScore:10,comment:'SQL 능력 양호.'},
+    ],
+    assessment:'평균 이상의 역량을 보유합니다. Node.js와 함수형 프로그래밍 학습을 권장합니다.',
+    strengths:['HTML/CSS','React'], improvements:['Node.js','JavaScript'] },
+
+  { id:8,  name:'한소미', email:'somi.han@abc.com',      status:'completed',   date:'2026.04.05 10:30',
+    totalScore:76, subjects:{ html_css:22, javascript:21, react:15, nodejs:8, db:10 },
+    time:'01:28:15', percentile:32,
+    competencies:[
+      {id:'c1',acquired:true, score:11,maxScore:15,comment:'양호합니다.'},
+      {id:'c2',acquired:true, score:11,maxScore:15,comment:'레이아웃 능력 양호.'},
+      {id:'c3',acquired:true, score:9, maxScore:10,comment:'우수합니다.'},
+      {id:'c4',acquired:true, score:7, maxScore:10,comment:'비동기 이해 양호.'},
+      {id:'c5',acquired:false,score:5, maxScore:10,comment:'함수형 개념 보강 필요.'},
+      {id:'c6',acquired:true, score:7, maxScore:10,comment:'컴포넌트 설계 양호.'},
+      {id:'c7',acquired:true, score:8, maxScore:10,comment:'상태 관리 이해 좋음.'},
+      {id:'c8',acquired:false,score:5, maxScore:10,comment:'Node.js 경험 보강 필요.'},
+      {id:'c9',acquired:true, score:9, maxScore:10,comment:'SQL 능력 우수.'},
+    ],
+    assessment:'전반적으로 안정적인 역량을 보유합니다. 함수형 프로그래밍 및 Node.js 학습을 권장합니다.',
+    strengths:['데이터베이스','JavaScript'], improvements:['Node.js'] },
+
+  { id:9,  name:'임태양', email:'taeyang.lim@abc.com',   status:'incomplete',  date:'-', totalScore:null, subjects:{}, time:'-', percentile:null, competencies:[], assessment:'', strengths:[], improvements:[] },
+  { id:10, name:'조은별', email:'eunbyul.jo@abc.com',    status:'incomplete',  date:'-', totalScore:null, subjects:{}, time:'-', percentile:null, competencies:[], assessment:'', strengths:[], improvements:[] },
+  { id:11, name:'송민호', email:'minho.song@abc.com',    status:'incomplete',  date:'-', totalScore:null, subjects:{}, time:'-', percentile:null, competencies:[], assessment:'', strengths:[], improvements:[] },
+  { id:12, name:'권나희', email:'nahee.kwon@abc.com',    status:'incomplete',  date:'-', totalScore:null, subjects:{}, time:'-', percentile:null, competencies:[], assessment:'', strengths:[], improvements:[] },
+  { id:13, name:'오준서', email:'junseo.oh@abc.com',     status:'incomplete',  date:'-', totalScore:null, subjects:{}, time:'-', percentile:null, competencies:[], assessment:'', strengths:[], improvements:[] },
+  { id:14, name:'백채린', email:'chaerin.baek@abc.com',  status:'incomplete',  date:'-', totalScore:null, subjects:{}, time:'-', percentile:null, competencies:[], assessment:'', strengths:[], improvements:[] },
+];
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+let currentPage = 'main';
+let selectedExaminee = null;
+let selectedSubjectIdx = 0;
+let tableFilter = 'all';
+let tableSortDir = 'desc';
+let tableCurrentPage = 1;
+
+/* ════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════ */
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  document.getElementById('page-' + page).classList.add('active');
+  const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (navItem) navItem.classList.add('active');
+
+  currentPage = page;
+
+  const titleEl = document.getElementById('topbar-title');
+  const bcEl = document.getElementById('breadcrumb');
+
+  if (page === 'main') {
+    titleEl.textContent = '평가 개요 대시보드';
+    bcEl.style.display = 'none';
+    titleEl.style.display = '';
+  } else if (page === 'person') {
+    titleEl.style.display = 'none';
+    bcEl.style.display = 'flex';
+    bcEl.innerHTML = `<span class="crumb-link" onclick="navigate('main')">평가 개요</span>
+      <span class="sep">›</span>
+      <span>${selectedExaminee ? selectedExaminee.name : '평가자 상세'}</span>`;
+  } else if (page === 'detail') {
+    titleEl.style.display = 'none';
+    bcEl.style.display = 'flex';
+    const subjName = SUBJECTS[selectedSubjectIdx];
+    bcEl.innerHTML = `<span class="crumb-link" onclick="navigate('main')">평가 개요</span>
+      <span class="sep">›</span>
+      <span class="crumb-link" onclick="navigate('person')">${selectedExaminee ? selectedExaminee.name : ''}</span>
+      <span class="sep">›</span>
+      <span>${subjName}</span>`;
+  }
+
+  window.scrollTo(0, 0);
+}
+
+/* ════════════════════════════════════════
+   TABLE (메인 페이지)
+════════════════════════════════════════ */
+function setFilter(f, el) {
+  tableFilter = f;
+  tableCurrentPage = 1;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function toggleSortDir() {
+  tableSortDir = tableSortDir === 'asc' ? 'desc' : 'asc';
+  document.getElementById('sort-dir-btn').textContent = tableSortDir === 'asc' ? '↑' : '↓';
+  renderTable();
+}
+
+function renderTable() {
+  const search  = document.getElementById('search-input').value.toLowerCase();
+  const sortBy  = document.getElementById('sort-select').value;
+  const rowsPer = parseInt(document.getElementById('rows-select').value);
+
+  let data = EXAMINEES.filter(e => {
+    if (tableFilter === 'completed'  && e.status !== 'completed')  return false;
+    if (tableFilter === 'incomplete' && e.status !== 'incomplete') return false;
+    if (search && !e.name.toLowerCase().includes(search) && !e.email.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  data.sort((a, b) => {
+    let va, vb;
+    if (sortBy === 'score') { va = a.totalScore ?? -1; vb = b.totalScore ?? -1; }
+    else if (sortBy === 'time') {
+      va = a.time === '-' ? 999999 : timeToSec(a.time);
+      vb = b.time === '-' ? 999999 : timeToSec(b.time);
+    } else { va = a.name; vb = b.name; }
+    if (va < vb) return tableSortDir === 'asc' ? -1 : 1;
+    if (va > vb) return tableSortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const total = data.length;
+  const pages = Math.ceil(total / rowsPer);
+  if (tableCurrentPage > pages) tableCurrentPage = Math.max(1, pages);
+  const slice = data.slice((tableCurrentPage - 1) * rowsPer, tableCurrentPage * rowsPer);
+
+  const tbody = document.getElementById('examinee-tbody');
+  tbody.innerHTML = slice.map(e => `
+    <tr onclick="openPerson(${e.id})">
+      <td>
+        <div class="td-name">${e.name}</div>
+        <div class="td-email">${e.email}</div>
+      </td>
+      <td class="td-email">${e.email}</td>
+      <td>${e.status === 'completed'
+        ? '<span class="badge badge-complete">완료</span>'
+        : '<span class="badge badge-incomplete">미완료</span>'}</td>
+      <td class="td-score" style="color:var(--primary);">${e.totalScore !== null ? e.totalScore + '점' : '-'}</td>
+      <td>
+        <div class="td-subjects">
+          ${e.status === 'completed' ? SUBJECTS.map((s, i) =>
+            `<span class="badge badge-primary" title="${s}">${s.substring(0,4)} ${e.subjects[SUBJECT_KEYS[i]]}</span>`
+          ).join('') : '-'}
+        </div>
+      </td>
+      <td>${e.time}</td>
+      <td><button class="eval-card-btn" style="width:auto; padding:4px 12px;" onclick="event.stopPropagation(); openPerson(${e.id})">상세 ›</button></td>
+    </tr>`).join('');
+
+  document.getElementById('pagination-info').textContent = `총 ${total}명 중 ${(tableCurrentPage - 1) * rowsPer + 1}–${Math.min(tableCurrentPage * rowsPer, total)}명 표시`;
+
+  const btns = document.getElementById('pagination-btns');
+  btns.innerHTML = `<button class="page-btn" onclick="setTablePage(${tableCurrentPage - 1})" ${tableCurrentPage === 1 ? 'disabled style="opacity:.4"' : ''}>‹</button>`;
+  for (let i = 1; i <= pages; i++) {
+    btns.innerHTML += `<button class="page-btn ${i === tableCurrentPage ? 'active' : ''}" onclick="setTablePage(${i})">${i}</button>`;
+  }
+  btns.innerHTML += `<button class="page-btn" onclick="setTablePage(${tableCurrentPage + 1})" ${tableCurrentPage === pages ? 'disabled style="opacity:.4"' : ''}>›</button>`;
+}
+
+function setTablePage(p) {
+  const rowsPer = parseInt(document.getElementById('rows-select').value);
+  const pages = Math.ceil(EXAMINEES.length / rowsPer);
+  if (p < 1 || p > pages) return;
+  tableCurrentPage = p;
+  renderTable();
+}
+
+function timeToSec(t) {
+  const p = t.split(':').map(Number);
+  return p[0] * 3600 + p[1] * 60 + (p[2] || 0);
+}
+
+/* ════════════════════════════════════════
+   개인 페이지
+════════════════════════════════════════ */
+function openPerson(id) {
+  selectedExaminee = EXAMINEES.find(e => e.id === id);
+  const e = selectedExaminee;
+
+  // 헤더
+  const initials = e.name.substring(0, 1);
+  document.getElementById('person-avatar').textContent = initials;
+  document.getElementById('person-name').textContent = e.name;
+  document.getElementById('person-email').textContent = e.email;
+  document.getElementById('person-date').textContent = e.date;
+  document.getElementById('person-percentile').textContent = e.percentile ? '상위 ' + e.percentile + '%' : '-';
+  document.getElementById('person-status-badge').innerHTML = e.status === 'completed'
+    ? '<span class="badge badge-complete">완료</span>'
+    : '<span class="badge badge-incomplete">미완료</span>';
+
+  if (e.status !== 'completed') {
+    document.getElementById('sc-score').innerHTML = '-';
+    document.getElementById('sc-comp').innerHTML = '-';
+    document.getElementById('sc-time').innerHTML = '-';
+    document.getElementById('sc-pct').innerHTML = '-';
+    document.getElementById('person-subject-bars').innerHTML = '<div style="color:var(--text-light); font-size:0.85rem;">응시 미완료</div>';
+    document.getElementById('person-assessment').textContent = '아직 응시를 완료하지 않았습니다.';
+    document.getElementById('eval-cards').innerHTML = '';
+    navigate('person');
+    return;
+  }
+
+  // 요약 카드
+  document.getElementById('sc-score').innerHTML = `${e.totalScore}<small>/100</small>`;
+  document.getElementById('sc-pass').textContent = e.totalScore >= 70 ? '✅ 합격' : '❌ 불합격';
+  const compCount = e.competencies.filter(c => c.acquired).length;
+  document.getElementById('sc-comp').innerHTML = `${compCount}<small>/${e.competencies.length}</small>`;
+  document.getElementById('sc-comp-rate').textContent = `획득률 ${Math.round(compCount/e.competencies.length*100)}%`;
+  document.getElementById('sc-time').innerHTML = e.time;
+  document.getElementById('sc-pct').textContent = '상위 ' + e.percentile + '%';
+
+  // 과목별 진행바
+  const subBars = document.getElementById('person-subject-bars');
+  subBars.innerHTML = SUBJECTS.map((s, i) => {
+    const sc = e.subjects[SUBJECT_KEYS[i]] || 0;
+    const pct = Math.round(sc / SUBJECT_MAX[i] * 100);
+    return `<div class="prog-row">
+      <div class="prog-label">${SUBJECT_ICONS[i]} ${s}</div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${pct}%; background:${SUBJECT_COLORS[i]};"></div></div>
+      <div class="prog-value" style="color:${SUBJECT_COLORS[i]};">${sc}</div>
+    </div>`;
+  }).join('');
+
+  // 레이더 차트
+  const radarData = SUBJECTS.map((_, i) => ({
+    label: SUBJECTS[i],
+    value: Math.round((e.subjects[SUBJECT_KEYS[i]] || 0) / SUBJECT_MAX[i] * 100)
+  }));
+  renderRadar('person-radar-svg', radarData, '#1565C0');
+
+  // 비교 섹션
+  const compareEl = document.getElementById('compare-section');
+  compareEl.innerHTML = SUBJECTS.map((s, i) => {
+    const my  = Math.round((e.subjects[SUBJECT_KEYS[i]] || 0) / SUBJECT_MAX[i] * 100);
+    const avg = AVG_SUBJECTS[SUBJECT_KEYS[i]];
+    return `<div class="compare-row">
+      <div class="compare-label">${s}</div>
+      <div class="compare-bars">
+        <div class="compare-bar-item">
+          <div class="bar-label" style="color:var(--primary); font-weight:700;">나</div>
+          <div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${my}%; background:var(--primary);"></div></div>
+          <div class="compare-val" style="color:var(--primary);">${my}</div>
+        </div>
+        <div class="compare-bar-item">
+          <div class="bar-label">평균</div>
+          <div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${avg}%; background:#D1D5DB;"></div></div>
+          <div class="compare-val">${avg}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 총평
+  document.getElementById('person-assessment').textContent = e.assessment;
+  document.getElementById('person-strengths').innerHTML = e.strengths.map(t =>
+    `<span class="tag tag-strength">✅ ${t}</span>`).join('');
+  document.getElementById('person-improvements').innerHTML = e.improvements.map(t =>
+    `<span class="tag tag-improve">📈 ${t}</span>`).join('');
+
+  // 평가 카드
+  const evalCardsEl = document.getElementById('eval-cards');
+  evalCardsEl.innerHTML = SUBJECTS.map((s, i) => {
+    const sc = e.subjects[SUBJECT_KEYS[i]] || 0;
+    const comps = e.competencies.filter(c => c.subject === s || ALL_COMPETENCIES.find(a => a.id === c.id)?.subjectIdx === i);
+    const acquired = comps.filter(c => c.acquired).length;
+    const pct = Math.round(sc / SUBJECT_MAX[i] * 100);
+    return `<div class="eval-card" onclick="openDetail(${i})">
+      <div class="eval-card-header">
+        <div class="eval-card-icon">${SUBJECT_ICONS[i]}</div>
+        <div class="eval-card-name">${s}</div>
+      </div>
+      <div class="eval-card-score" style="color:${SUBJECT_COLORS[i]};">${sc}<span style="font-size:1rem; color:var(--text-sub); font-weight:400;">/${SUBJECT_MAX[i]}</span></div>
+      <div class="eval-card-meta">역량 ${acquired}/${comps.length}개 획득 &nbsp;|&nbsp; ${pct}%</div>
+      <button class="eval-card-btn" onclick="event.stopPropagation(); openDetail(${i})">세부 내용 보기 ›</button>
+    </div>`;
+  }).join('');
+
+  navigate('person');
+}
+
+/* ════════════════════════════════════════
+   세부 페이지
+════════════════════════════════════════ */
+function openDetail(subjectIdx) {
+  selectedSubjectIdx = subjectIdx;
+  const e = selectedExaminee;
+  const subjName = SUBJECTS[subjectIdx];
+  const subjKey  = SUBJECT_KEYS[subjectIdx];
+  const subjMax  = SUBJECT_MAX[subjectIdx];
+  const subjColor = SUBJECT_COLORS[subjectIdx];
+  const sc = e.subjects[subjKey] || 0;
+  const pct = Math.round(sc / subjMax * 100);
+
+  // 해당 과목 역량만
+  const subjectComps = e.competencies.filter((c, idx) => {
+    const def = ALL_COMPETENCIES.find(a => a.id === c.id);
+    return def && def.subjectIdx === subjectIdx;
+  });
+  const acqCount = subjectComps.filter(c => c.acquired).length;
+
+  // 요약 카드
+  document.getElementById('ds-score').innerHTML = `${sc}<small>/${subjMax}</small>`;
+  document.getElementById('ds-comp').innerHTML = `${acqCount}<small>/${subjectComps.length}</small>`;
+  document.getElementById('ds-time').textContent = e.time;
+  document.getElementById('ds-avg').textContent = '상위 ' + e.percentile + '%';
+
+  // 히스토그램 (점수 분포 + 내 위치)
+  renderDetailHistogram(pct);
+
+  // 비교 바
+  const avgSc = Math.round(AVG_SUBJECTS[subjKey]);
+  const detailCompare = document.getElementById('detail-compare');
+  detailCompare.innerHTML = `
+    <div style="margin-bottom:20px;">
+      <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px;">총점 비교</div>
+      <div class="compare-bar-item" style="margin-bottom:6px;">
+        <div class="bar-label" style="color:${subjColor}; font-weight:700; width:40px;">나</div>
+        <div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${pct}%; background:${subjColor};"></div></div>
+        <div class="compare-val" style="color:${subjColor};">${pct}</div>
+      </div>
+      <div class="compare-bar-item">
+        <div class="bar-label" style="width:40px;">평균</div>
+        <div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${avgSc}%; background:#D1D5DB;"></div></div>
+        <div class="compare-val">${avgSc}</div>
+      </div>
+      <div style="margin-top:8px; font-size:0.8rem; color:${pct >= avgSc ? 'var(--success)' : 'var(--danger)'};">
+        평균 대비 ${pct >= avgSc ? '+' : ''}${pct - avgSc}점
+      </div>
+    </div>
+    ${subjectComps.map(c => {
+      const def = ALL_COMPETENCIES.find(a => a.id === c.id);
+      const cPct = Math.round(c.score / c.maxScore * 100);
+      const cAvg = def ? def.avgRate : 60;
+      return `<div style="margin-bottom:12px;">
+        <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:4px;">${def ? def.name : c.id}</div>
+        <div class="compare-bar-item" style="margin-bottom:4px;">
+          <div class="bar-label" style="color:${subjColor}; font-weight:700; width:40px;">나</div>
+          <div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${cPct}%; background:${subjColor};"></div></div>
+          <div class="compare-val" style="color:${subjColor};">${cPct}</div>
+        </div>
+        <div class="compare-bar-item">
+          <div class="bar-label" style="width:40px;">평균</div>
+          <div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${cAvg}%; background:#D1D5DB;"></div></div>
+          <div class="compare-val">${cAvg}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+
+  // 총평
+  const assessments = {
+    0: `HTML/CSS 영역에서 ${pct >= 80 ? '우수한 성과를 거두었습니다. 접근성 향상을 위한 추가 학습을 권장합니다.' : '기본기는 갖추었으나 심화 학습이 필요합니다.'}`,
+    1: `JavaScript 영역에서 ${pct >= 80 ? '높은 숙련도를 보였습니다. 최신 ES 스펙 학습을 권장합니다.' : '기초는 양호하나 비동기 및 함수형 패턴 학습이 필요합니다.'}`,
+    2: `React 영역에서 ${pct >= 80 ? '컴포넌트 설계와 상태 관리 모두 우수합니다.' : 'React 패턴에 대한 심화 학습이 필요합니다.'}`,
+    3: `Node.js 영역에서 ${pct >= 80 ? 'API 설계 능력이 우수합니다.' : '백엔드 개발 경험을 더 쌓는 것을 권장합니다.'}`,
+    4: `데이터베이스 영역에서 ${pct >= 80 ? '복잡한 쿼리도 잘 작성합니다.' : 'SQL 기초 학습이 더 필요합니다.'}`,
+  };
+  document.getElementById('detail-assessment').textContent = assessments[subjectIdx] || '';
+
+  // 역량 태그
+  const tagsEl = document.getElementById('detail-comp-tags');
+  tagsEl.innerHTML = subjectComps.map(c => {
+    const def = ALL_COMPETENCIES.find(a => a.id === c.id);
+    return `<span class="tag ${c.acquired ? 'tag-strength' : 'tag-improve'}">${c.acquired ? '✅' : '❌'} ${def ? def.name : c.id}</span>`;
+  }).join('');
+
+  // 도넛 차트 (역량 획득)
+  renderDonut('detail-donut-svg', acqCount, subjectComps.length - acqCount, subjColor);
+  document.getElementById('detail-donut-legend').innerHTML = `
+    <div class="donut-legend-item"><div class="donut-legend-dot" style="background:${subjColor};"></div>획득 (${acqCount})</div>
+    <div class="donut-legend-item"><div class="donut-legend-dot" style="background:#E5E7EB;"></div>미획득 (${subjectComps.length - acqCount})</div>
+  `;
+
+  // 역량별 수평 바
+  const compBarsEl = document.getElementById('detail-comp-bars');
+  compBarsEl.innerHTML = subjectComps.map(c => {
+    const def = ALL_COMPETENCIES.find(a => a.id === c.id);
+    const cPct = Math.round(c.score / c.maxScore * 100);
+    return `<div class="prog-row">
+      <div class="prog-label" style="width:120px; font-size:0.78rem;">${def ? def.name : c.id}</div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${cPct}%; background:${c.acquired ? subjColor : '#EF4444'};"></div></div>
+      <div class="prog-value" style="color:${c.acquired ? subjColor : '#EF4444'};">${c.score}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text-light); font-size:0.85rem;">해당 역량 없음</div>';
+
+  // 아코디언
+  const accEl = document.getElementById('competency-accordion');
+  accEl.innerHTML = subjectComps.map((c, idx) => {
+    const def = ALL_COMPETENCIES.find(a => a.id === c.id);
+    return `<div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAccordion(this)" id="acc-${idx}">
+        <div class="accordion-title">${def ? def.name : c.id}</div>
+        <div class="accordion-meta">
+          <span class="badge ${c.acquired ? 'badge-acquired' : 'badge-not-acquired'}">${c.acquired ? '획득' : '미획득'}</span>
+          <span class="accordion-score">${c.score} / ${c.maxScore}점</span>
+        </div>
+        <span class="accordion-arrow">▼</span>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-comment">${c.comment}</div>
+        <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:6px;">전체 응시자 획득률</div>
+        <div class="prog-row" style="margin-bottom:0;">
+          <div class="prog-label" style="width:60px;">획득률</div>
+          <div class="prog-bg"><div class="prog-fill" style="width:${def ? def.avgRate : 60}%; background:${subjColor};"></div></div>
+          <div class="prog-value" style="color:${subjColor};">${def ? def.avgRate : 60}%</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text-light); font-size:0.85rem; padding:16px;">해당 과목의 역량 상세 정보가 없습니다.</div>';
+
+  navigate('detail');
+}
+
+function toggleAccordion(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+/* ════════════════════════════════════════
+   SVG CHARTS
+════════════════════════════════════════ */
+
+// 도넛 차트
+function renderDonut(svgId, filled, total_extra, color) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+  const cx = 80, cy = 80, R = 55, strokeW = 18;
+  const total = filled + total_extra;
+  const pct = total > 0 ? filled / total : 0;
+  const circ = 2 * Math.PI * R;
+  const dash = circ * pct;
+  const gap  = circ * (1 - pct);
+
+  // 배경 원
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  bg.setAttribute('cx', cx); bg.setAttribute('cy', cy); bg.setAttribute('r', R);
+  bg.setAttribute('fill', 'none'); bg.setAttribute('stroke', '#E5E7EB');
+  bg.setAttribute('stroke-width', strokeW);
+  svg.appendChild(bg);
+
+  // 채움 원
+  const fg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  fg.setAttribute('cx', cx); fg.setAttribute('cy', cy); fg.setAttribute('r', R);
+  fg.setAttribute('fill', 'none'); fg.setAttribute('stroke', color);
+  fg.setAttribute('stroke-width', strokeW);
+  fg.setAttribute('stroke-linecap', 'round');
+  fg.setAttribute('stroke-dasharray', `${dash} ${gap}`);
+  fg.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
+  svg.appendChild(fg);
+
+  // 중앙 텍스트
+  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t.setAttribute('x', cx); t.setAttribute('y', cy + 6);
+  t.setAttribute('text-anchor', 'middle');
+  t.setAttribute('font-size', '18'); t.setAttribute('font-weight', '800');
+  t.setAttribute('fill', color);
+  t.textContent = Math.round(pct * 100) + '%';
+  svg.appendChild(t);
+}
+
+// 완료율 도넛 (메인)
+function renderMainDonut() {
+  renderDonut('donut-svg', 75, 25, '#1565C0');
+}
+
+// 히스토그램 (메인)
+function renderHistogram() {
+  const svg = document.getElementById('histogram-svg');
+  svg.innerHTML = '';
+  const bins = [
+    { range:'0~20',  count:0 },
+    { range:'20~40', count:1 },
+    { range:'40~60', count:3 },
+    { range:'60~80', count:8 },
+    { range:'80~100',count:6 },
+  ];
+  const maxCount = Math.max(...bins.map(b => b.count));
+  const w = 260, h = 160, padL = 28, padB = 30, padT = 10, padR = 10;
+  const chartW = w - padL - padR;
+  const chartH = h - padB - padT;
+  const barW = chartW / bins.length * 0.6;
+  const gap  = chartW / bins.length;
+
+  bins.forEach((b, i) => {
+    const bh = maxCount > 0 ? b.count / maxCount * chartH : 0;
+    const x = padL + i * gap + gap * 0.2;
+    const y = padT + chartH - bh;
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y);
+    rect.setAttribute('width', barW); rect.setAttribute('height', bh);
+    rect.setAttribute('fill', '#1565C0'); rect.setAttribute('rx', '3');
+    rect.setAttribute('opacity', '0.8');
+    svg.appendChild(rect);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', x + barW / 2); label.setAttribute('y', h - 8);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('font-size', '9'); label.setAttribute('fill', '#9CA3AF');
+    label.textContent = b.range;
+    svg.appendChild(label);
+
+    if (b.count > 0) {
+      const cnt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      cnt.setAttribute('x', x + barW / 2); cnt.setAttribute('y', y - 4);
+      cnt.setAttribute('text-anchor', 'middle');
+      cnt.setAttribute('font-size', '9'); cnt.setAttribute('fill', '#1565C0'); cnt.setAttribute('font-weight', '700');
+      cnt.textContent = b.count;
+      svg.appendChild(cnt);
+    }
+  });
+
+  // Y축
+  const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  yAxis.setAttribute('x1', padL); yAxis.setAttribute('y1', padT);
+  yAxis.setAttribute('x2', padL); yAxis.setAttribute('y2', padT + chartH);
+  yAxis.setAttribute('stroke', '#E5E7EB'); yAxis.setAttribute('stroke-width', '1');
+  svg.appendChild(yAxis);
+}
+
+// 히스토그램 with 내 위치 마커 (세부 페이지)
+function renderDetailHistogram(myPct) {
+  const svg = document.getElementById('detail-histogram-svg');
+  svg.innerHTML = '';
+  const bins = [
+    { range:'0~20',  count:0 },
+    { range:'20~40', count:1 },
+    { range:'40~60', count:3 },
+    { range:'60~80', count:8 },
+    { range:'80~100',count:6 },
+  ];
+  const myBinIdx = Math.min(Math.floor(myPct / 20), 4);
+  const maxCount = Math.max(...bins.map(b => b.count));
+  const w = 260, h = 150, padL = 28, padB = 30, padT = 10, padR = 10;
+  const chartW = w - padL - padR;
+  const chartH = h - padB - padT;
+  const barW = chartW / bins.length * 0.6;
+  const gap  = chartW / bins.length;
+
+  bins.forEach((b, i) => {
+    const bh = maxCount > 0 ? b.count / maxCount * chartH : 0;
+    const x = padL + i * gap + gap * 0.2;
+    const y = padT + chartH - bh;
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y);
+    rect.setAttribute('width', barW); rect.setAttribute('height', bh);
+    rect.setAttribute('fill', i === myBinIdx ? '#EF4444' : '#1565C0');
+    rect.setAttribute('rx', '3'); rect.setAttribute('opacity', i === myBinIdx ? '1' : '0.5');
+    svg.appendChild(rect);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', x + barW / 2); label.setAttribute('y', h - 8);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('font-size', '9'); label.setAttribute('fill', '#9CA3AF');
+    label.textContent = b.range;
+    svg.appendChild(label);
+  });
+
+  // 내 위치 마커
+  const markerX = padL + myBinIdx * gap + gap * 0.2 + barW / 2;
+  const markerLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  markerLine.setAttribute('x1', markerX); markerLine.setAttribute('y1', padT);
+  markerLine.setAttribute('x2', markerX); markerLine.setAttribute('y2', padT + chartH);
+  markerLine.setAttribute('stroke', '#EF4444'); markerLine.setAttribute('stroke-width', '2');
+  markerLine.setAttribute('stroke-dasharray', '4 3');
+  svg.appendChild(markerLine);
+
+  const markerLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  markerLabel.setAttribute('x', markerX + 4); markerLabel.setAttribute('y', padT + 10);
+  markerLabel.setAttribute('font-size', '9'); markerLabel.setAttribute('fill', '#EF4444'); markerLabel.setAttribute('font-weight', '700');
+  markerLabel.textContent = '나 ' + myPct + '%';
+  svg.appendChild(markerLabel);
+}
+
+// 레이더 차트 (공통)
+function renderRadar(svgId, axes, color) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+  const cx = 100, cy = 100, R = 70, n = axes.length;
+  const step = (2 * Math.PI) / n;
+  const start = -Math.PI / 2;
+
+  function pt(i, r) {
+    const a = start + i * step;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+
+  // 격자
+  [20, 40, 60, 80, 100].forEach((pct, idx) => {
+    const r = R * pct / 100;
+    const pts = Array.from({ length: n }, (_, i) => pt(i, r).join(',')).join(' ');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', pts);
+    poly.setAttribute('fill', idx % 2 === 0 ? '#F8F9FC' : 'none');
+    poly.setAttribute('stroke', '#E5E7EB'); poly.setAttribute('stroke-width', '1');
+    svg.appendChild(poly);
+  });
+
+  // 축
+  axes.forEach((_, i) => {
+    const [x, y] = pt(i, R);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', x); line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#E5E7EB'); line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  });
+
+  // 데이터
+  const dpts = axes.map((a, i) => pt(i, R * Math.max(0, a.value) / 100).join(',')).join(' ');
+  const dpoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  dpoly.setAttribute('points', dpts);
+  dpoly.setAttribute('fill', hexToRgba(color, 0.15));
+  dpoly.setAttribute('stroke', color); dpoly.setAttribute('stroke-width', '2');
+  svg.appendChild(dpoly);
+
+  // 점 & 라벨
+  axes.forEach((a, i) => {
+    const [dx, dy] = pt(i, R * Math.max(0, a.value) / 100);
+    const circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circ.setAttribute('cx', dx); circ.setAttribute('cy', dy); circ.setAttribute('r', '4');
+    circ.setAttribute('fill', color); circ.setAttribute('stroke', 'white'); circ.setAttribute('stroke-width', '2');
+    svg.appendChild(circ);
+
+    const [lx, ly] = pt(i, R + 20);
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', lx); t.setAttribute('y', ly + 4);
+    t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', '9');
+    t.setAttribute('fill', '#6B7280'); t.setAttribute('font-weight', '600');
+    t.textContent = a.label;
+    svg.appendChild(t);
+  });
+}
+
+// 평균 레이더 (메인)
+function renderAvgRadar() {
+  const data = SUBJECTS.map((s, i) => ({ label: s, value: AVG_SUBJECTS[SUBJECT_KEYS[i]] }));
+  renderRadar('avg-radar-svg', data, '#1565C0');
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderTable();
+  renderMainDonut();
+  renderHistogram();
+  renderAvgRadar();
+});
+</script>
+</body>
+</html>
