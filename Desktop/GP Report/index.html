@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>평가 관리 대시보드 | code.presso</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:       #1565C0;
+      --primary-light: #1976D2;
+      --primary-bg:    #EBF3FF;
+      --acquired:      #16A34A;
+      --acquired-bg:   #DCFCE7;
+      --partial:       #D97706;
+      --partial-bg:    #FEF3C7;
+      --missing:       #DC2626;
+      --missing-bg:    #FEE2E2;
+      --bg:            #F4F7FC;
+      --card:          #FFFFFF;
+      --text:          #111827;
+      --text-sub:      #6B7280;
+      --text-mute:     #9CA3AF;
+      --border:        #E5E7EB;
+      --shadow:        0 1px 8px rgba(0,0,0,0.07);
+      --shadow-md:     0 4px 20px rgba(0,0,0,0.10);
+      --radius:        12px;
+      --radius-sm:     8px;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── 공통 레이아웃 ── */
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── 탑바 ── */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-brand { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .brand-icon {
+      width: 26px; height: 26px; border-radius: 6px;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-icon svg { width: 14px; height: 14px; fill: white; }
+    .brand-name { font-size: 1rem; font-weight: 700; color: var(--primary); }
+    .brand-name span { font-weight: 400; color: var(--text-sub); }
+    .breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.82rem; color: var(--text-sub);
+    }
+    .crumb-link { color: var(--primary); cursor: pointer; font-weight: 500; }
+    .crumb-link:hover { text-decoration: underline; }
+    .crumb-sep { color: var(--text-mute); }
+    .topbar-user { display: flex; align-items: center; gap: 10px; }
+    .eval-badge {
+      background: var(--primary-bg); color: var(--primary);
+      font-size: 0.72rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 99px;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-bg);
+      color: var(--primary); font-weight: 700; font-size: 0.82rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── 콘텐츠 래퍼 (세로 중앙 정렬, 최대 너비 860px) ── */
+    .content-wrap {
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* ── 페이지 전환 ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── 섹션 타이틀 ── */
+    .sec-title {
+      font-size: 0.92rem; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px;
+    }
+    .sec-title::before {
+      content: '';
+      display: inline-block; width: 3px; height: 15px;
+      background: var(--primary); border-radius: 2px;
+    }
+    .sec-divider {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    /* ── 뱃지 ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 99px;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .badge-acquired  { background: var(--acquired-bg);  color: var(--acquired); }
+    .badge-partial   { background: var(--partial-bg);   color: var(--partial); }
+    .badge-missing   { background: var(--missing-bg);   color: var(--missing); }
+    .badge-complete  { background: var(--primary-bg);   color: var(--primary); }
+    .badge-level     { background: #F3F4F6; color: var(--text-sub); font-size: 0.68rem; padding: 2px 8px; }
+
+    /* ── 핵심 지표 카드 (Hero Stats) ── */
+    .hero-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .hero-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .hero-card-icon { font-size: 1.3rem; margin-bottom: 6px; }
+    .hero-card-value {
+      font-size: 2.2rem; font-weight: 900; line-height: 1;
+      margin-bottom: 5px; color: var(--primary);
+    }
+    .hero-card-value.warn { color: var(--partial); }
+    .hero-card-value.good { color: var(--acquired); }
+    .hero-card-value small { font-size: 1rem; font-weight: 500; color: var(--text-sub); }
+    .hero-card-label { font-size: 0.76rem; color: var(--text-sub); font-weight: 500; }
+    .hero-card-sub   { font-size: 0.72rem; color: var(--text-mute); margin-top: 4px; }
+
+    /* ── 트랙 카드 (수직 레이아웃) ── */
+    .track-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+    .track-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border-left: 4px solid transparent;
+      transition: box-shadow 0.15s;
+    }
+    .track-card:hover { box-shadow: var(--shadow-md); }
+    .track-card-header {
+      padding: 16px 20px;
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer;
+    }
+    .track-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; flex-shrink: 0;
+    }
+    .track-info { flex: 1; min-width: 0; }
+    .track-name { font-size: 0.92rem; font-weight: 700; margin-bottom: 3px; }
+    .track-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .track-score-block { text-align: right; flex-shrink: 0; }
+    .track-score-num {
+      font-size: 2rem; font-weight: 900; line-height: 1;
+    }
+    .track-score-num small { font-size: 0.85rem; font-weight: 500; color: var(--text-sub); }
+    .track-score-label { font-size: 0.72rem; color: var(--text-sub); }
+
+    /* 스킬 확보율 바 */
+    .skill-rate-row {
+      padding: 0 20px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .skill-rate-label { font-size: 0.78rem; color: var(--text-sub); width: 72px; flex-shrink: 0; }
+    .prog-bg {
+      flex: 1; height: 8px; background: #F3F4F6;
+      border-radius: 99px; overflow: hidden;
+    }
+    .prog-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+    .skill-rate-val { font-size: 0.82rem; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
+
+    /* 스킬 칩 */
+    .skill-chips {
+      padding: 0 20px 16px;
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .skill-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem; font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* 세부보기 버튼 */
+    .track-detail-btn {
+      margin: 0 20px 16px;
+      padding: 8px 0;
+      width: calc(100% - 40px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent; color: var(--primary);
+      font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: background 0.12s;
+    }
+    .track-detail-btn:hover { background: var(--primary-bg); }
+
+    /* ── 메인 페이지 테이블 ── */
+    .table-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .table-controls {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1; min-width: 160px; max-width: 260px;
+      height: 34px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0 10px; font-size: 0.83rem; outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .filter-tabs {
+      display: flex;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .filter-tab {
+      padding: 5px 12px; font-size: 0.78rem; font-weight: 500;
+      border: none; background: #fff; color: var(--text-sub);
+      cursor: pointer; transition: background 0.12s;
+    }
+    .filter-tab.active { background: var(--primary); color: #fff; }
+    .sort-select {
+      height: 34px; font-size: 0.8rem;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0 8px; background: #fff; outline: none; cursor: pointer;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    thead tr { border-bottom: 2px solid var(--border); }
+    th {
+      text-align: left; font-size: 0.76rem; font-weight: 600;
+      color: var(--text-sub); padding: 8px 10px 10px;
+    }
+    td { padding: 12px 10px; font-size: 0.84rem; border-bottom: 1px solid #F9FAFB; vertical-align: middle; }
+    tbody tr { cursor: pointer; transition: background 0.1s; }
+    tbody tr:hover { background: #F8FBFF; }
+    tbody tr:last-child td { border-bottom: none; }
+    .td-btn {
+      padding: 5px 12px;
+      border: 1px solid var(--primary); border-radius: 6px;
+      background: transparent; color: var(--primary);
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      transition: background 0.12s;
+    }
+    .td-btn:hover { background: var(--primary-bg); }
+
+    /* ── 개인 페이지 헤더 ── */
+    .person-header {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .person-avatar {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: var(--primary-bg); color: var(--primary);
+      font-size: 1.3rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .person-name { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; }
+    .person-meta { font-size: 0.8rem; color: var(--text-sub); display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* ── 트랙 세부 요약 카드 ── */
+    .summary-3 {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .summary-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px; box-shadow: var(--shadow); text-align: center;
+    }
+    .sc-icon { font-size: 1.2rem; margin-bottom: 6px; }
+    .sc-value {
+      font-size: 1.9rem; font-weight: 900; line-height: 1;
+      margin-bottom: 4px;
+    }
+    .sc-value small { font-size: 0.9rem; font-weight: 500; color: var(--text-sub); }
+    .sc-label { font-size: 0.74rem; color: var(--text-sub); font-weight: 500; }
+
+    /* ── 스킬 레벨 분포 바 ── */
+    .level-dist-bar {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .level-bar-wrap {
+      display: flex; height: 18px; border-radius: 99px;
+      overflow: hidden; margin-bottom: 10px;
+    }
+    .level-bar-seg { transition: width 0.7s ease; }
+    .level-bar-legend {
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.78rem; color: var(--text-sub);
+    }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── 스킬 아코디언 ── */
+    .skill-accordion { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+    .acc-item {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .acc-header {
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer; user-select: none;
+      transition: background 0.1s;
+    }
+    .acc-header:hover { background: #FAFBFF; }
+    .acc-title { flex: 1; font-size: 0.88rem; font-weight: 600; }
+    .acc-right { display: flex; align-items: center; gap: 10px; }
+    .acc-score { font-size: 0.8rem; color: var(--text-sub); }
+    .acc-arrow { font-size: 0.65rem; color: var(--text-mute); transition: transform 0.2s; }
+    .acc-header.open .acc-arrow { transform: rotate(180deg); }
+    .acc-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .acc-body.open { max-height: 300px; }
+    .acc-inner {
+      padding: 0 18px 16px;
+      font-size: 0.83rem; line-height: 1.75; color: var(--text-sub);
+      background: #FAFBFF;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── 비교 차트 (내 점수 vs 전체) ── */
+    .compare-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .compare-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .compare-label { width: 80px; font-size: 0.78rem; color: var(--text-sub); flex-shrink: 0; }
+    .compare-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .cbar-row { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; }
+    .cbar-name { width: 24px; color: var(--text-mute); font-weight: 600; }
+    .cbar-bg { flex: 1; height: 7px; background: #F3F4F6; border-radius: 99px; overflow: hidden; }
+    .cbar-fill { height: 100%; border-radius: 99px; }
+    .cbar-val { width: 32px; text-align: right; font-weight: 700; }
+
+    /* ── 레이더 차트 카드 ── */
+    .radar-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .radar-inner { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+    svg.radar-svg { flex-shrink: 0; }
+    .radar-legend { display: flex; flex-direction: column; gap: 10px; min-width: 160px; }
+    .radar-legend-item {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .rl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .rl-name { font-size: 0.8rem; font-weight: 600; flex: 1; }
+    .rl-val { font-size: 0.85rem; font-weight: 800; }
+
+    /* ── 뒤로 버튼 ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: #fff; color: var(--text-sub);
+      font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: background 0.1s;
+      margin-bottom: 18px;
+    }
+    .back-btn:hover { background: var(--bg); color: var(--text); }
+
+    /* ── 평가 설명 텍스트 ── */
+    .eval-desc {
+      background: var(--card); border-radius: var(--radius);
+      padding: 16px 18px; box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      font-size: 0.83rem; line-height: 1.75; color: var(--text-sub);
+      border-left: 3px solid var(--primary);
+    }
+
+    /* ── 페이지네이션 ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 14px; padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .pg-info { font-size: 0.78rem; color: var(--text-sub); }
+    .pg-btns { display: flex; gap: 3px; }
+    .pg-btn {
+      width: 30px; height: 30px;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: #fff; color: var(--text-sub);
+      font-size: 0.8rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pg-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+    .pg-btn:hover:not(.active) { background: var(--bg); }
+
+    /* ── 푸터 ── */
+    footer {
+      text-align: center; padding: 20px;
+      font-size: 0.73rem; color: var(--text-mute);
+      border-top: 1px solid var(--border); background: #fff;
+    }
+
+    /* ── 반응형 ── */
+    @media (max-width: 680px) {
+      .hero-cards { grid-template-columns: repeat(2, 1fr); }
+      .summary-3  { grid-template-columns: repeat(2, 1fr); }
+      .radar-inner { flex-direction: column; }
+      .content-wrap { padding: 16px 14px 40px; }
+    }
+    @media (max-width: 400px) {
+      .hero-cards { grid-template-columns: 1fr 1fr; }
+      .hero-card-value { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── 탑바 ─── -->
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="navigate('main')">
+      <div class="brand-icon">
+        <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3zm0 5h14v2H3zm0 5h9v2H3z"/></svg>
+      </div>
+      <span class="brand-name">code<span>.presso</span></span>
+    </div>
+    <div id="breadcrumb" class="breadcrumb"></div>
+    <div class="topbar-user">
+      <span class="eval-badge" id="eval-badge-name">MLOps 엔지니어_260405</span>
+      <div class="avatar">A</div>
+    </div>
+  </nav>
+
+  <!-- ─── 콘텐츠 ─── -->
+  <div class="content-wrap">
+
+    <!-- ══════════════════════════════════
+         PAGE 1: 메인 대시보드
+    ══════════════════════════════════ -->
+    <div id="page-main" class="page active">
+
+      <!-- 핵심 지표 Hero Cards -->
+      <div class="sec-divider">
+        <div class="sec-title">평가 개요</div>
+        <span style="font-size:0.76rem; color:var(--text-mute);">2026.03.30 ~ 2026.04.05 &nbsp;|&nbsp; 제한 2시간 40분</span>
+      </div>
+      <div class="hero-cards">
+        <div class="hero-card">
+          <div class="hero-card-icon">👥</div>
+          <div class="hero-card-value">1<small>명</small></div>
+          <div class="hero-card-label">전체 응시자</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">✅</div>
+          <div class="hero-card-value good">100<small>%</small></div>
+          <div class="hero-card-label">완료율</div>
+          <div class="hero-card-sub">1명 완료</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">🏆</div>
+          <div class="hero-card-value">80<small>점</small></div>
+          <div class="hero-card-label">평균 총점</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">💡</div>
+          <div class="hero-card-value warn">77.1<small>%</small></div>
+          <div class="hero-card-label">평균 스킬 확보율</div>
+          <div class="hero-card-sub">전체 16개 스킬 기준</div>
+        </div>
+      </div>
+
+      <!-- 트랙별 레이더 + 요약 -->
+      <div class="sec-title">트랙별 현황</div>
+      <div class="radar-card">
+        <div class="radar-inner">
+          <svg class="radar-svg" id="main-radar" width="220" height="220" viewBox="0 0 220 220"></svg>
+          <div class="radar-legend" id="main-radar-legend"></div>
+        </div>
+      </div>
+
+      <!-- 응시자 목록 테이블 -->
+      <div class="sec-title">응시자 목록</div>
+      <div class="table-card">
+        <div class="table-controls">
+          <input type="text" class="search-input" placeholder="🔍  이름 또는 이메일 검색" id="search-input" oninput="renderTable()" />
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="setFilter('all',this)">전체</button>
+            <button class="filter-tab" onclick="setFilter('completed',this)">완료</button>
+            <button class="filter-tab" onclick="setFilter('incomplete',this)">미완료</button>
+          </div>
+          <select class="sort-select" id="sort-select" onchange="renderTable()">
+            <option value="score">점수순</option>
+            <option value="rate">스킬확보율순</option>
+            <option value="time">소요시간순</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>응시자</th>
+              <th>상태</th>
+              <th>총점</th>
+              <th>스킬 확보율</th>
+              <th>소요시간</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="examinee-tbody"></tbody>
+        </table>
+        <div class="pagination">
+          <div class="pg-info" id="pg-info"></div>
+          <div class="pg-btns" id="pg-btns"></div>
+        </div>
+      </div>
+    </div><!-- /page-main -->
+
+
+    <!-- ══════════════════════════════════
+         PAGE 2: 평가자 개인 페이지
+    ══════════════════════════════════ -->
+    <div id="page-person" class="page">
+      <button class="back-btn" onclick="navigate('main')">← 목록으로</button>
+
+      <!-- 응시자 헤더 -->
+      <div class="person-header">
+        <div class="person-avatar" id="p-avatar">손</div>
+        <div style="flex:1;">
+          <div class="person-name" id="p-name">덕인 손</div>
+          <div class="person-meta">
+            <span id="p-email"></span>
+            <span id="p-status"></span>
+            <span id="p-date"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero 요약 카드 -->
+      <div class="sec-title">시험 결과 요약</div>
+      <div class="hero-cards" style="margin-bottom:24px;">
+        <div class="hero-card">
+          <div class="hero-card-icon">🏆</div>
+          <div class="hero-card-value" id="p-score">80<small>점</small></div>
+          <div class="hero-card-label">총점</div>
+          <div class="hero-card-sub" id="p-pass"></div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">💡</div>
+          <div class="hero-card-value warn" id="p-rate">77.1<small>%</small></div>
+          <div class="hero-card-label">스킬 확보율</div>
+          <div class="hero-card-sub" id="p-skill-count"></div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">⏱</div>
+          <div class="hero-card-value" id="p-time" style="font-size:1.5rem;">2:18:43</div>
+          <div class="hero-card-label">총 소요시간</div>
+          <div class="hero-card-sub">제한 2시간 40분</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">📊</div>
+          <div class="hero-card-value" id="p-rank" style="font-size:1.4rem;">1 / 1</div>
+          <div class="hero-card-label">순위 (전체)</div>
+        </div>
+      </div>
+
+      <!-- 트랙별 결과 카드 (수직) -->
+      <div class="sec-title">트랙별 결과</div>
+      <div class="track-list" id="track-list"></div>
+    </div><!-- /page-person -->
+
+
+    <!-- ══════════════════════════════════
+         PAGE 3: 트랙 세부 내용
+    ══════════════════════════════════ -->
+    <div id="page-detail" class="page">
+      <button class="back-btn" onclick="navigate('person')">← 개인 결과로</button>
+
+      <!-- 세부 요약 카드 3열 -->
+      <div class="sec-title" id="d-track-title">트랙 세부 내용</div>
+      <div class="summary-3">
+        <div class="summary-card">
+          <div class="sc-icon">📝</div>
+          <div class="sc-value" id="d-score" style="color:var(--primary);">55<small>/100</small></div>
+          <div class="sc-label">트랙 점수</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon">💡</div>
+          <div class="sc-value" id="d-rate" style="color:var(--partial);">47.8<small>%</small></div>
+          <div class="sc-label">스킬 확보율</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon">⏱</div>
+          <div class="sc-value" id="d-time" style="color:var(--text); font-size:1.5rem;">08:20</div>
+          <div class="sc-label">소요시간</div>
+        </div>
+      </div>
+
+      <!-- 스킬 레벨 분포 -->
+      <div class="level-dist-bar">
+        <div class="sec-title" style="margin-bottom:12px;">스킬 레벨 분포</div>
+        <div class="level-bar-wrap" id="d-level-bar"></div>
+        <div class="level-bar-legend" id="d-level-legend"></div>
+      </div>
+
+      <!-- 트랙 설명 -->
+      <div class="eval-desc" id="d-track-desc"></div>
+
+      <!-- 스킬별 아코디언 -->
+      <div class="sec-title">스킬별 세부 결과</div>
+      <div class="skill-accordion" id="d-accordion"></div>
+    </div><!-- /page-detail -->
+
+  </div><!-- /content-wrap -->
+
+  <footer>© 2026 Codepresso, Inc. All Rights Reserved.</footer>
+</div><!-- /app -->
+
+
+<script>
+/* ══════════════════════════════
+   DATA (MLOps 엔지니어_260405)
+══════════════════════════════ */
+const EVALUATION = {
+  title:     'MLOps 엔지니어_260405',
+  period:    '2026.03.30 ~ 2026.04.05',
+  timeLimit: '2시간 40분',
+};
+
+const TRACKS = [
+  {
+    id: 1,
+    name: '클라우드 & 분산 시스템 아키텍처',
+    level: '중급',
+    icon: '☁️',
+    color: '#DC2626',    /* 취약 트랙 → 빨강 */
+    colorBg: '#FEF2F2',
+    score: 55,
+    rate: 47.8,
+    time: '0:08:20',
+    desc: '이 레벨은 클라우드 네이티브 및 분산 시스템 환경에서의 복잡한 요구사항을 해결하기 위해, 아키텍처를 직접 설계하고 운영 전략을 수립할 수 있는 실전 역량을 갖추는 단계입니다.',
+    skills: [
+      { name: '분산 시스템 설계',           level: 'partial',
+        desc: '확장 가능한 분산 환경을 구축하기 위한 설계 능력을 검증합니다. 분산 시스템의 기초 개념을 바탕으로 노드 간 상호작용 원리를 이해하고, 적절한 설계 패턴을 적용하여 아키텍처를 구조화하는 능력을 평가합니다.' },
+      { name: '고성능 시스템 아키텍처 설계',   level: 'acquired',
+        desc: '대규모 트래픽 환경에서도 안정적인 응답 속도를 유지하기 위한 최적화 능력을 검증합니다. 성능 측정 및 분석을 통해 시스템 병목 구간을 정확히 진단하고, 캐싱 전략 심화 기술을 적용하여 데이터 접근 속도를 극대화하는 능력을 평가합니다.' },
+      { name: '고가용성 시스템 설계 및 운영',  level: 'partial',
+        desc: '서비스의 연속성을 보장하기 위해 중단 없는 시스템을 설계하고 운영하는 능력을 검증합니다. 고가용성 확보 전략을 수립하여 SPOF를 제거하고, 로드밸런싱을 통해 트래픽을 효율적으로 분산하는 능력을 평가합니다.' },
+      { name: '클라우드 네이티브 아키텍처 설계', level: 'acquired',
+        desc: '클라우드 환경에 최적화된 유연하고 탄력적인 시스템을 구축하는 능력을 검증합니다. 클라우드 네이티브 개념을 바탕으로 MSA 및 DevOps 원칙을 이해하고, 컨테이너 기술을 활용하여 애플리케이션의 배포와 관리 효율성을 극대화하는 능력을 평가합니다.' },
+      { name: '아키텍처 평가 및 개선',         level: 'missing',
+        desc: '시스템의 현재 상태를 객관적으로 진단하고 지속 가능한 발전 방향을 설계하는 능력을 검증합니다. 아키텍처 평가 방법과 품질 속성을 활용하여 시스템의 구조적 적합성을 판별하고, 기술 부채를 관리하는 실무 역량을 포함합니다.' },
+    ]
+  },
+  {
+    id: 2,
+    name: '클라우드 컴퓨팅',
+    level: '중급',
+    icon: '🌐',
+    color: '#1565C0',
+    colorBg: '#EBF3FF',
+    score: 90,
+    rate: 89.5,
+    time: '0:20:11',
+    desc: '클라우드 컴퓨팅의 중급 수준 실무 역량을 종합적으로 검증합니다. 클라우드 아키텍처 설계 원칙과 핵심 구성 요소 이해를 바탕으로, 확장성과 비즈니스 연속성을 고려한 아키텍처 구성 능력을 평가합니다.',
+    skills: [
+      { name: '클라우드 컴퓨팅 개념과 구조',              level: 'acquired',
+        desc: '클라우드 컴퓨팅의 기본 개념과 구조적 원리를 이해하는 능력을 검증합니다. 클라우드 환경을 구성하는 핵심 요소와 그 상호 연관성을 파악하고, 클라우드 관리 및 보안의 기본 요소를 인식합니다.' },
+      { name: '확장성과 복원력을 갖춘 클라우드 아키텍처 설계', level: 'acquired',
+        desc: '확장성과 복원력을 갖춘 클라우드 아키텍처를 설계하는 능력을 검증합니다. 자동 확장, 로드 밸런싱, 멀티 AZ 설계 등의 개념을 적용하여 장애 복구와 재해 대응이 가능한 시스템을 구축합니다.' },
+      { name: '실무 중심 클라우드 보안 및 규제 준수',       level: 'acquired',
+        desc: '실무 중심의 클라우드 보안 및 규제 준수 역량을 검증합니다. IAM 역할 및 정책 설정, 보안 네트워크 아키텍처 구축, 데이터 암호화 및 접근 제어 적용을 포함합니다.' },
+      { name: '클라우드 네트워크 및 성능 최적화',           level: 'partial',
+        desc: '클라우드 네트워크를 효율적이고 안정적으로 설계·관리·최적화하는 능력을 검증합니다. 보안 네트워크 구조 설계, DNS와 CDN을 활용한 트래픽 분산, 네트워크 성능 모니터링 및 비용 효율적 네트워크 전략 수립을 포함합니다.' },
+    ]
+  },
+  {
+    id: 3,
+    name: 'Python',
+    level: '전문가',
+    icon: '🐍',
+    color: '#16A34A',    /* 최강 트랙 → 초록 */
+    colorBg: '#F0FDF4',
+    score: 95,
+    rate: 91,
+    time: '1:50:12',
+    desc: 'Python 언어의 고급 수준 실무 역량을 종합적으로 검증합니다. 데코레이터와 컨텍스트 매니저를 활용한 고급 언어 기능 구현, 람다와 고급 모듈을 통한 효율적인 코드 작성 능력을 평가합니다.',
+    skills: [
+      { name: '데코레이터',        level: 'acquired',
+        desc: 'Python에서 데코레이터를 이해하고 구현하는 능력을 검증합니다. 데코레이터 정의, 인자를 포함한 데코레이터 적용, 데코레이터 중첩, 클래스 기반 데코레이터를 포함합니다.' },
+      { name: '고급 Python 모듈', level: 'acquired',
+        desc: '고급 Python 모듈을 이해하고 활용하는 능력을 검증합니다. 알고리즘, 자료구조, 수학 연산, 날짜 및 시간 처리와 관련된 모듈을 포함합니다.' },
+      { name: '람다',             level: 'acquired',
+        desc: 'Python에서 람다 함수를 정의하고 활용하는 능력을 검증합니다. 매개변수 처리, 반환값 처리, 간결한 연산을 위한 람다 함수 활용을 포함합니다.' },
+      { name: '파일 입출력',       level: 'acquired',
+        desc: 'Python에서 파일 입출력 작업을 수행하는 능력을 검증합니다. 파일 읽기, 파일 쓰기, 파일 모드 관리, 파일 처리 중 예외 처리를 포함합니다.' },
+      { name: 'JSON',            level: 'acquired',
+        desc: 'Python에서 JSON 데이터를 파싱하고 처리하는 능력을 검증합니다. JSON 데이터 읽기 및 쓰기, JSON 구조 이해, JSON 데이터 타입 처리를 포함합니다.' },
+      { name: '멀티프로세싱',      level: 'partial',
+        desc: 'Python에서 다중 프로세스를 생성하고 관리하는 능력을 검증합니다. 프로세스 생성 및 관리, 프로세스 간 통신, 동기화 기법, 멀티프로세싱 환경에서의 예외 처리를 포함합니다.' },
+      { name: '멀티스레딩',        level: 'acquired',
+        desc: 'Python에서 멀티스레딩을 구현하는 능력을 검증합니다. 스레드 생성 및 관리, 스레드 간 통신, 동기화 기법, 스레드 프로그램에서의 예외 처리를 포함합니다.' },
+    ]
+  }
+];
+
+const EXAMINEES = [
+  {
+    id: 1,
+    name: '덕인 손', email: 'dlwmznzl@gmail.com',
+    status: 'completed', date: '2026.04.05',
+    totalScore: 80, rate: 77.1,
+    time: '2:18:43',
+  }
+];
+
+const LEVEL_LABEL = { acquired: '획득', partial: '보완 필요', missing: '미획득' };
+const LEVEL_CLASS = { acquired: 'badge-acquired', partial: 'badge-partial', missing: 'badge-missing' };
+const LEVEL_COLOR = { acquired: '#16A34A', partial: '#D97706', missing: '#DC2626' };
+
+/* ══════════════════════════════
+   STATE
+══════════════════════════════ */
+let currentPage = 'main';
+let selectedTrackIdx = 0;
+let tableFilter = 'all';
+let tableCurrentPage = 1;
+
+/* ══════════════════════════════
+   NAVIGATION
+══════════════════════════════ */
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  currentPage = page;
+
+  const bc = document.getElementById('breadcrumb');
+  if (page === 'main') {
+    bc.innerHTML = '';
+  } else if (page === 'person') {
+    bc.innerHTML = `<span class="crumb-link" onclick="navigate('main')">대시보드</span>
+      <span class="crumb-sep">›</span><span>덕인 손</span>`;
+  } else if (page === 'detail') {
+    const t = TRACKS[selectedTrackIdx];
+    bc.innerHTML = `<span class="crumb-link" onclick="navigate('main')">대시보드</span>
+      <span class="crumb-sep">›</span>
+      <span class="crumb-link" onclick="navigate('person')">덕인 손</span>
+      <span class="crumb-sep">›</span><span>${t.name}</span>`;
+  }
+  window.scrollTo(0, 0);
+}
+
+/* ══════════════════════════════
+   TABLE
+══════════════════════════════ */
+function setFilter(f, el) {
+  tableFilter = f;
+  tableCurrentPage = 1;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+function renderTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const sortBy = document.getElementById('sort-select').value;
+
+  let data = EXAMINEES.filter(e => {
+    if (tableFilter === 'completed'  && e.status !== 'completed')  return false;
+    if (tableFilter === 'incomplete' && e.status !== 'incomplete') return false;
+    if (search && !e.name.toLowerCase().includes(search) && !e.email.toLowerCase().includes(search)) return false;
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === 'score') return (b.totalScore || 0) - (a.totalScore || 0);
+    if (sortBy === 'rate')  return (b.rate || 0) - (a.rate || 0);
+    return 0;
+  });
+
+  const tbody = document.getElementById('examinee-tbody');
+  tbody.innerHTML = data.map(e => `
+    <tr onclick="openPerson(${e.id})">
+      <td>
+        <div style="font-weight:600;">${e.name}</div>
+        <div style="font-size:0.76rem; color:var(--text-sub);">${e.email}</div>
+      </td>
+      <td>${e.status === 'completed'
+        ? '<span class="badge badge-complete">완료</span>'
+        : '<span class="badge" style="background:#F3F4F6; color:var(--text-sub);">미완료</span>'}</td>
+      <td style="font-weight:800; color:var(--primary); font-size:1rem;">${e.totalScore !== null ? e.totalScore + '점' : '-'}</td>
+      <td>
+        ${e.rate !== null ? `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="prog-bg" style="width:100px; height:7px;">
+            <div class="prog-fill" style="width:${e.rate}%; background:${e.rate >= 80 ? 'var(--acquired)' : e.rate >= 60 ? 'var(--partial)' : 'var(--missing)'};"></div>
+          </div>
+          <span style="font-size:0.8rem; font-weight:700; color:${e.rate >= 80 ? 'var(--acquired)' : e.rate >= 60 ? 'var(--partial)' : 'var(--missing)'};">${e.rate}%</span>
+        </div>` : '-'}
+      </td>
+      <td style="color:var(--text-sub);">${e.time}</td>
+      <td><button class="td-btn" onclick="event.stopPropagation(); openPerson(${e.id})">결과 보기</button></td>
+    </tr>`).join('') || `<tr><td colspan="6" style="text-align:center; color:var(--text-mute); padding:24px;">결과 없음</td></tr>`;
+
+  document.getElementById('pg-info').textContent = `총 ${data.length}명`;
+  document.getElementById('pg-btns').innerHTML = '';
+}
+
+/* ══════════════════════════════
+   개인 페이지
+══════════════════════════════ */
+function openPerson(id) {
+  const e = EXAMINEES.find(x => x.id === id);
+
+  document.getElementById('p-avatar').textContent = e.name[1] || e.name[0];
+  document.getElementById('p-name').textContent = e.name;
+  document.getElementById('p-email').textContent = '✉ ' + e.email;
+  document.getElementById('p-date').textContent = '📅 ' + e.date;
+  document.getElementById('p-status').innerHTML = e.status === 'completed'
+    ? '<span class="badge badge-complete">평가 완료</span>'
+    : '<span class="badge">미완료</span>';
+  document.getElementById('p-score').innerHTML = `${e.totalScore}<small>점</small>`;
+  document.getElementById('p-pass').textContent = e.totalScore >= 70 ? '합격 기준 충족' : '합격 기준 미달';
+  document.getElementById('p-rate').innerHTML = `${e.rate}<small>%</small>`;
+
+  // 스킬 확보 수 계산
+  const allSkills = TRACKS.flatMap(t => t.skills);
+  const acq = allSkills.filter(s => s.level === 'acquired').length;
+  const part = allSkills.filter(s => s.level === 'partial').length;
+  document.getElementById('p-skill-count').textContent = `획득 ${acq} / 보완 ${part} / 미획득 ${allSkills.length - acq - part}`;
+  document.getElementById('p-time').textContent = e.time;
+  document.getElementById('p-rank').textContent = '1 / 1';
+
+  // 트랙 카드 렌더
+  const trackListEl = document.getElementById('track-list');
+  trackListEl.innerHTML = TRACKS.map((t, idx) => {
+    const acqCount  = t.skills.filter(s => s.level === 'acquired').length;
+    const partCount = t.skills.filter(s => s.level === 'partial').length;
+    const misCount  = t.skills.filter(s => s.level === 'missing').length;
+    const rateColor = t.rate >= 80 ? 'var(--acquired)' : t.rate >= 60 ? 'var(--partial)' : 'var(--missing)';
+
+    return `<div class="track-card" style="border-left-color:${t.color};">
+      <div class="track-card-header">
+        <div class="track-icon" style="background:${t.colorBg};">${t.icon}</div>
+        <div class="track-info">
+          <div class="track-name">${t.name}</div>
+          <div class="track-meta">
+            <span class="badge badge-level">${t.level}</span>
+            <span style="font-size:0.75rem; color:var(--text-mute);">⏱ ${t.time}</span>
+          </div>
+        </div>
+        <div class="track-score-block">
+          <div class="track-score-num" style="color:${t.color};">${t.score}<small>/100</small></div>
+          <div class="track-score-label">트랙 점수</div>
+        </div>
+      </div>
+
+      <!-- 스킬 확보율 바 -->
+      <div class="skill-rate-row">
+        <div class="skill-rate-label">스킬 확보율</div>
+        <div class="prog-bg">
+          <div class="prog-fill" style="width:${t.rate}%; background:${rateColor};"></div>
+        </div>
+        <div class="skill-rate-val" style="color:${rateColor};">${t.rate}%</div>
+      </div>
+
+      <!-- 스킬 칩 -->
+      <div class="skill-chips">
+        ${t.skills.map(s => `
+          <span class="skill-chip ${s.level === 'acquired' ? 'badge-acquired' : s.level === 'partial' ? 'badge-partial' : 'badge-missing'}">
+            ${s.level === 'acquired' ? '✔' : s.level === 'partial' ? '△' : '✘'} ${s.name}
+          </span>`).join('')}
+      </div>
+
+      <button class="track-detail-btn" onclick="openDetail(${idx})">세부 내용 보기 →</button>
+    </div>`;
+  }).join('');
+
+  navigate('person');
+}
+
+/* ══════════════════════════════
+   트랙 세부 페이지
+══════════════════════════════ */
+function openDetail(idx) {
+  selectedTrackIdx = idx;
+  const t = TRACKS[idx];
+  const rateColor = t.rate >= 80 ? 'var(--acquired)' : t.rate >= 60 ? 'var(--partial)' : 'var(--missing)';
+
+  document.getElementById('d-track-title').textContent = `${t.icon}  ${t.name} — ${t.level}`;
+  document.getElementById('d-score').innerHTML = `${t.score}<small>/100</small>`;
+  document.getElementById('d-score').style.color = t.color;
+  document.getElementById('d-rate').innerHTML = `${t.rate}<small>%</small>`;
+  document.getElementById('d-rate').style.color = rateColor;
+  document.getElementById('d-time').textContent = t.time;
+  document.getElementById('d-track-desc').textContent = t.desc;
+
+  // 스킬 레벨 분포 바
+  const acqCount  = t.skills.filter(s => s.level === 'acquired').length;
+  const partCount = t.skills.filter(s => s.level === 'partial').length;
+  const misCount  = t.skills.filter(s => s.level === 'missing').length;
+  const total = t.skills.length;
+
+  document.getElementById('d-level-bar').innerHTML = `
+    <div class="level-bar-seg" style="width:${acqCount/total*100}%; background:var(--acquired);"></div>
+    <div class="level-bar-seg" style="width:${partCount/total*100}%; background:var(--partial);"></div>
+    <div class="level-bar-seg" style="width:${misCount/total*100}%; background:var(--missing);"></div>
+  `;
+  document.getElementById('d-level-legend').innerHTML = `
+    <div class="legend-item"><div class="legend-dot" style="background:var(--acquired);"></div>획득 ${acqCount}개</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--partial);"></div>보완 필요 ${partCount}개</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--missing);"></div>미획득 ${misCount}개</div>
+    <div class="legend-item" style="margin-left:auto; color:var(--text-mute);">전체 ${total}개 스킬</div>
+  `;
+
+  // 아코디언
+  document.getElementById('d-accordion').innerHTML = t.skills.map((s, i) => `
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="badge ${LEVEL_CLASS[s.level]}">${LEVEL_LABEL[s.level]}</span>
+        <span class="acc-title">${s.name}</span>
+        <div class="acc-right">
+          <span class="acc-arrow">▼</span>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="acc-inner">${s.desc}</div>
+      </div>
+    </div>`).join('');
+
+  navigate('detail');
+}
+
+function toggleAcc(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+/* ══════════════════════════════
+   SVG 레이더 차트
+══════════════════════════════ */
+function renderRadar(svgId, axes, color, legendId) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+  const cx = 110, cy = 110, R = 80, n = axes.length;
+  const step = (2 * Math.PI) / n;
+  const start = -Math.PI / 2;
+
+  function pt(i, r) {
+    const a = start + i * step;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+
+  // 격자 (5단계)
+  [20, 40, 60, 80, 100].forEach((pct, idx) => {
+    const r = R * pct / 100;
+    const pts = Array.from({ length: n }, (_, i) => pt(i, r).join(',')).join(' ');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', pts);
+    poly.setAttribute('fill', idx % 2 === 0 ? '#F8FAFD' : 'none');
+    poly.setAttribute('stroke', '#E5E7EB');
+    poly.setAttribute('stroke-width', '1');
+    svg.appendChild(poly);
+  });
+
+  // 축 선
+  axes.forEach((_, i) => {
+    const [x, y] = pt(i, R);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', x);  line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#DDE3EF'); line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  });
+
+  // 데이터 폴리곤
+  const dpts = axes.map((a, i) => pt(i, R * Math.max(0, a.value) / 100).join(',')).join(' ');
+  const dp = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  dp.setAttribute('points', dpts);
+  dp.setAttribute('fill', hexAlpha(color, 0.12));
+  dp.setAttribute('stroke', color);
+  dp.setAttribute('stroke-width', '2');
+  svg.appendChild(dp);
+
+  // 각 축별 색상 점
+  axes.forEach((a, i) => {
+    const [x, y] = pt(i, R * Math.max(0, a.value) / 100);
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', '5');
+    c.setAttribute('fill', a.color || color);
+    c.setAttribute('stroke', 'white'); c.setAttribute('stroke-width', '2');
+    svg.appendChild(c);
+  });
+
+  // 라벨
+  axes.forEach((a, i) => {
+    const [x, y] = pt(i, R + 22);
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', x); t.setAttribute('y', y + 4);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '10.5');
+    t.setAttribute('fill', '#374151');
+    t.setAttribute('font-weight', '600');
+    t.textContent = a.label;
+    svg.appendChild(t);
+  });
+
+  // 범례
+  if (legendId) {
+    const leg = document.getElementById(legendId);
+    leg.innerHTML = axes.map(a => `
+      <div class="radar-legend-item">
+        <div class="rl-dot" style="background:${a.color || color};"></div>
+        <span class="rl-name">${a.label}</span>
+        <span class="rl-val" style="color:${a.color || color};">${a.value}%</span>
+      </div>`).join('');
+  }
+}
+
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/* ══════════════════════════════
+   INIT
+══════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderTable();
+
+  // 메인 레이더: 3개 트랙의 스킬 확보율
+  const axes = TRACKS.map(t => ({ label: t.name.replace('클라우드 & 분산 시스템 아키텍처', '분산 시스템\n아키텍처'), value: t.rate, color: t.color }));
+  renderRadar('main-radar', axes, '#1565C0', 'main-radar-legend');
+});
+</script>
+</body>
+</html>
