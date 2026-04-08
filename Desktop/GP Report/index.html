@@ -609,13 +609,17 @@
         <div class="eval-period">2026.03.30 ~ 2026.04.05 &nbsp;|&nbsp; 제한 2시간 40분</div>
         <div class="eval-stats-inline">
           <div class="esi-item">
-            <span class="esi-val" id="main-esi-total">10<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span>
-            <span class="esi-lbl" id="main-esi-total-sub">완료 8명 (80%)</span>
+            <span class="esi-lbl" style="margin-bottom:3px;">응시자 현황</span>
+            <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
+              <span class="esi-val" id="main-esi-total">10<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span>
+              <span style="font-size:0.8rem; color:var(--text-mute);">|</span>
+              <span style="font-size:0.85rem;">완료 <span class="esi-val" id="main-esi-done" style="font-size:1rem;">8<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span> <span id="main-esi-rate-pct" style="font-size:0.8rem; color:var(--text-mute);">(80%)</span></span>
+            </div>
           </div>
           <div class="esi-divider"></div>
           <div class="esi-item">
+            <span class="esi-lbl" style="margin-bottom:3px;">평균 스킬 확보율</span>
             <span class="esi-val warn" id="main-esi-rate">71.7<span style="font-size:0.75em;font-weight:600;">%</span></span>
-            <span class="esi-lbl">평균 스킬 확보율</span>
           </div>
         </div>
       </div>
@@ -2121,8 +2125,10 @@ function renderMainStats() {
   // 개요 바 인라인 통계 업데이트
   const totalEl = document.getElementById('main-esi-total');
   if (totalEl) totalEl.innerHTML = `${total}<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span>`;
-  const subEl = document.getElementById('main-esi-total-sub');
-  if (subEl) subEl.textContent = `완료 ${completed.length}명 (${compRate}%)`;
+  const doneEl = document.getElementById('main-esi-done');
+  if (doneEl) doneEl.innerHTML = `${completed.length}<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span>`;
+  const pctEl = document.getElementById('main-esi-rate-pct');
+  if (pctEl) pctEl.textContent = `(${compRate}%)`;
   const rateEl = document.getElementById('main-esi-rate');
   if (rateEl) {
     rateEl.innerHTML = `${avgRate}<span style="font-size:0.75em;font-weight:600;">%</span>`;
