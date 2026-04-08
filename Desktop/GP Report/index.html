@@ -1154,18 +1154,11 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
   const sx = x => padL + ((x-xMin)/(xMax-xMin))*cW;
   const sy = y => padT + cH - (y/maxY)*cH;
 
-  // Gradient fill area
-  const gid = svgId+'-grad';
-  const defs = svgEl('defs');
-  const grad = svgEl('linearGradient', {id:gid, x1:'0', y1:'0', x2:'0', y2:'1'});
-  const s1 = svgEl('stop', {'offset':'0%', 'stop-color':col, 'stop-opacity':'0.25'});
-  const s2 = svgEl('stop', {'offset':'100%', 'stop-color':col, 'stop-opacity':'0.03'});
-  grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad); svg.appendChild(defs);
-
+  // Fill area — rgba 직접 사용 (file:// 프로토콜에서도 안전하게 동작)
   const fillD = [`M${sx(xs[0])},${sy(0)}`];
   xs.forEach((x,i) => fillD.push(`L${sx(x)},${sy(ys[i])}`));
   fillD.push(`L${sx(xs[nPts-1])},${sy(0)} Z`);
-  svg.appendChild(svgEl('path', {d:fillD.join(' '), fill:`url(#${gid})`, stroke:'none'}));
+  svg.appendChild(svgEl('path', {d:fillD.join(' '), fill:hexAlpha(col||'#1565C0', 0.15), stroke:'none'}));
 
   // Curve
   const lineD = xs.map((x,i) => `${i===0?'M':'L'}${sx(x).toFixed(1)},${sy(ys[i]).toFixed(1)}`).join(' ');
