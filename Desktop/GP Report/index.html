@@ -125,6 +125,9 @@
       gap: 14px;
       margin-bottom: 24px;
     }
+    .hero-cards-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
     .hero-card {
       background: var(--card);
       border-radius: var(--radius);
@@ -559,38 +562,13 @@
     ══════════════════════════════════ -->
     <div id="page-main" class="page active">
 
-      <!-- 핵심 지표 Hero Cards -->
+      <!-- 평가 개요 헤더 -->
       <div class="sec-divider">
         <div class="sec-title">평가 개요</div>
         <span style="font-size:0.76rem; color:var(--text-mute);">2026.03.30 ~ 2026.04.05 &nbsp;|&nbsp; 제한 2시간 40분</span>
       </div>
-      <div class="hero-cards">
-        <div class="hero-card">
-          <div class="hero-card-icon">👥</div>
-          <div class="hero-card-value">1<small>명</small></div>
-          <div class="hero-card-label">전체 응시자</div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-icon">✅</div>
-          <div class="hero-card-value good">100<small>%</small></div>
-          <div class="hero-card-label">완료율</div>
-          <div class="hero-card-sub">1명 완료</div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-icon">🏆</div>
-          <div class="hero-card-value">80<small>점</small></div>
-          <div class="hero-card-label">평균 총점</div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-icon">💡</div>
-          <div class="hero-card-value warn">77.1<small>%</small></div>
-          <div class="hero-card-label">평균 스킬 확보율</div>
-          <div class="hero-card-sub">전체 16개 스킬 기준</div>
-        </div>
-      </div>
 
-      <!-- 인사이트 블록 3종 -->
-      <div class="sec-title">인사이트 분석</div>
+      <!-- 인사이트 블록 3종 (최상단) -->
       <div class="insight-grid">
         <!-- 점수 분포 곡선 -->
         <div class="insight-card">
@@ -610,6 +588,22 @@
           <div class="insight-header">역량 획득 현황</div>
           <div class="insight-stats" id="ins-skill-stats"></div>
           <div class="donut-row" id="ins-skill-donuts"></div>
+        </div>
+      </div>
+
+      <!-- 핵심 지표 요약 (2카드) -->
+      <div class="hero-cards hero-cards-2">
+        <div class="hero-card" id="main-card-status">
+          <div class="hero-card-icon">👥</div>
+          <div class="hero-card-value">10<small>명</small></div>
+          <div class="hero-card-label">전체 응시자</div>
+          <div class="hero-card-sub" id="main-sub-status">완료 8명 (80%)</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">💡</div>
+          <div class="hero-card-value warn" id="main-val-rate">71.7<small>%</small></div>
+          <div class="hero-card-label">평균 스킬 확보율</div>
+          <div class="hero-card-sub" id="main-sub-rate">전체 16개 스킬 기준</div>
         </div>
       </div>
 
@@ -2101,35 +2095,23 @@ function renderMainStats() {
   const total     = EXAMINEES.length;
   const completed = EXAMINEES.filter(e => e.status === 'completed');
   const compRate  = Math.round(completed.length / total * 100);
-  const avgScore  = completed.length
-    ? Math.round(completed.reduce((s,e) => s + e.totalScore, 0) / completed.length * 10) / 10
+  // rate 필드 평균 (partial 점수 포함, 원래 방식 유지)
+  const avgRate = completed.length
+    ? Math.round(completed.reduce((s,e) => s + e.rate, 0) / completed.length * 10) / 10
     : 0;
-  // strictly acquired 기준으로 통일 (도넛 차트와 동일)
-  const totalSkillsCount = TRACKS_META.reduce((s,m) => s+m.skills.length, 0);
-  let totalAcqAll = 0;
-  completed.forEach(e => {
-    if (!e.tracks.length) return;
-    e.tracks.forEach(t => t.skillLevels.forEach(lv => { if (lv==='acquired') totalAcqAll++; }));
-  });
-  const avgAcqCount = completed.length ? Math.round(totalAcqAll / completed.length * 10) / 10 : 0;
-  const avgRate = completed.length ? Math.round(totalAcqAll / (completed.length * totalSkillsCount) * 1000) / 10 : 0;
 
-  // 카드값 업데이트 (id로 직접 조작)
-  const cards = document.querySelectorAll('.hero-card');
-  // 0: 전체 응시자, 1: 완료율, 2: 평균 총점, 3: 평균 스킬 확보율
-  if (cards[0]) cards[0].querySelector('.hero-card-value').innerHTML = `${total}<small>명</small>`;
-  if (cards[1]) {
-    const v = cards[1].querySelector('.hero-card-value');
-    v.innerHTML = `${compRate}<small>%</small>`;
-    v.className = 'hero-card-value ' + (compRate >= 80 ? 'good' : compRate >= 60 ? '' : 'warn');
-    cards[1].querySelector('.hero-card-sub').textContent = `${completed.length}명 완료`;
+  // 응시 현황 카드 (전체 N명 + 완료 X명/X%)
+  const statusCard = document.getElementById('main-card-status');
+  if (statusCard) {
+    statusCard.querySelector('.hero-card-value').innerHTML = `${total}<small>명</small>`;
+    document.getElementById('main-sub-status').textContent = `완료 ${completed.length}명 (${compRate}%)`;
   }
-  if (cards[2]) cards[2].querySelector('.hero-card-value').innerHTML = `${avgScore}<small>점</small>`;
-  if (cards[3]) {
-    const v = cards[3].querySelector('.hero-card-value');
-    v.innerHTML = `${avgRate}<small>%</small>`;
-    v.className = 'hero-card-value ' + (avgRate >= 80 ? 'good' : avgRate >= 60 ? '' : 'warn');
-    cards[3].querySelector('.hero-card-sub').textContent = `평균 ${avgAcqCount}개 / 전체 ${totalSkillsCount}개`;
+
+  // 평균 스킬 확보율 카드
+  const rateVal = document.getElementById('main-val-rate');
+  if (rateVal) {
+    rateVal.innerHTML = `${avgRate}<small>%</small>`;
+    rateVal.className = 'hero-card-value ' + (avgRate >= 80 ? 'good' : avgRate >= 60 ? '' : 'warn');
   }
 }
 
