@@ -505,6 +505,47 @@
     .tsb-bar-fill { height: 100%; border-radius: 99px; }
     .tsb-val { font-size: 0.8rem; font-weight: 700; width: 42px; text-align: right; flex-shrink: 0; }
 
+    /* ── 평가 개요 헤더 바 ── */
+    .eval-overview-bar {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 0;
+      flex-wrap: wrap;
+    }
+    .eval-overview-title {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 7px;
+      padding-right: 20px; margin-right: 20px;
+      border-right: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .eval-overview-title::before {
+      content: ''; display: inline-block; width: 3px; height: 13px;
+      background: var(--primary); border-radius: 2px;
+    }
+    .eval-period {
+      font-size: 0.76rem; color: var(--text-mute);
+      padding-right: 20px; margin-right: 20px;
+      border-right: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .eval-stats-inline {
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    }
+    .esi-item { display: flex; flex-direction: column; gap: 1px; }
+    .esi-val {
+      font-size: 1.1rem; font-weight: 900; color: var(--primary); line-height: 1.1;
+    }
+    .esi-val.good { color: var(--acquired); }
+    .esi-val.warn { color: var(--partial); }
+    .esi-lbl { font-size: 0.68rem; color: var(--text-mute); font-weight: 500; }
+    .esi-divider {
+      width: 1px; height: 28px; background: var(--border); flex-shrink: 0;
+    }
+
     /* ── 인사이트 탭 버튼 ── */
     .ins-tab-group { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
     .ins-tab-btn {
@@ -562,10 +603,21 @@
     ══════════════════════════════════ -->
     <div id="page-main" class="page active">
 
-      <!-- 평가 개요 헤더 -->
-      <div class="sec-divider">
-        <div class="sec-title">평가 개요</div>
-        <span style="font-size:0.76rem; color:var(--text-mute);">2026.03.30 ~ 2026.04.05 &nbsp;|&nbsp; 제한 2시간 40분</span>
+      <!-- 평가 개요 바 (인라인 통계 포함) -->
+      <div class="eval-overview-bar">
+        <div class="eval-overview-title">평가 개요</div>
+        <div class="eval-period">2026.03.30 ~ 2026.04.05 &nbsp;|&nbsp; 제한 2시간 40분</div>
+        <div class="eval-stats-inline">
+          <div class="esi-item">
+            <span class="esi-val" id="main-esi-total">10<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span>
+            <span class="esi-lbl" id="main-esi-total-sub">완료 8명 (80%)</span>
+          </div>
+          <div class="esi-divider"></div>
+          <div class="esi-item">
+            <span class="esi-val warn" id="main-esi-rate">71.7<span style="font-size:0.75em;font-weight:600;">%</span></span>
+            <span class="esi-lbl">평균 스킬 확보율</span>
+          </div>
+        </div>
       </div>
 
       <!-- 인사이트 블록 3종 (최상단) -->
@@ -588,31 +640,6 @@
           <div class="insight-header">역량 획득 현황</div>
           <div class="insight-stats" id="ins-skill-stats"></div>
           <div class="donut-row" id="ins-skill-donuts"></div>
-        </div>
-      </div>
-
-      <!-- 핵심 지표 요약 (2카드) -->
-      <div class="hero-cards hero-cards-2">
-        <div class="hero-card" id="main-card-status">
-          <div class="hero-card-icon">👥</div>
-          <div class="hero-card-value">10<small>명</small></div>
-          <div class="hero-card-label">전체 응시자</div>
-          <div class="hero-card-sub" id="main-sub-status">완료 8명 (80%)</div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-icon">💡</div>
-          <div class="hero-card-value warn" id="main-val-rate">71.7<small>%</small></div>
-          <div class="hero-card-label">평균 스킬 확보율</div>
-          <div class="hero-card-sub" id="main-sub-rate">전체 16개 스킬 기준</div>
-        </div>
-      </div>
-
-      <!-- 트랙별 레이더 + 요약 -->
-      <div class="sec-title">트랙별 현황</div>
-      <div class="radar-card">
-        <div class="radar-inner">
-          <svg class="radar-svg" id="main-radar" width="220" height="220" viewBox="0 0 220 220"></svg>
-          <div class="radar-legend" id="main-radar-legend"></div>
         </div>
       </div>
 
@@ -2095,23 +2122,19 @@ function renderMainStats() {
   const total     = EXAMINEES.length;
   const completed = EXAMINEES.filter(e => e.status === 'completed');
   const compRate  = Math.round(completed.length / total * 100);
-  // rate 필드 평균 (partial 점수 포함, 원래 방식 유지)
-  const avgRate = completed.length
+  const avgRate   = completed.length
     ? Math.round(completed.reduce((s,e) => s + e.rate, 0) / completed.length * 10) / 10
     : 0;
 
-  // 응시 현황 카드 (전체 N명 + 완료 X명/X%)
-  const statusCard = document.getElementById('main-card-status');
-  if (statusCard) {
-    statusCard.querySelector('.hero-card-value').innerHTML = `${total}<small>명</small>`;
-    document.getElementById('main-sub-status').textContent = `완료 ${completed.length}명 (${compRate}%)`;
-  }
-
-  // 평균 스킬 확보율 카드
-  const rateVal = document.getElementById('main-val-rate');
-  if (rateVal) {
-    rateVal.innerHTML = `${avgRate}<small>%</small>`;
-    rateVal.className = 'hero-card-value ' + (avgRate >= 80 ? 'good' : avgRate >= 60 ? '' : 'warn');
+  // 개요 바 인라인 통계 업데이트
+  const totalEl = document.getElementById('main-esi-total');
+  if (totalEl) totalEl.innerHTML = `${total}<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span>`;
+  const subEl = document.getElementById('main-esi-total-sub');
+  if (subEl) subEl.textContent = `완료 ${completed.length}명 (${compRate}%)`;
+  const rateEl = document.getElementById('main-esi-rate');
+  if (rateEl) {
+    rateEl.innerHTML = `${avgRate}<span style="font-size:0.75em;font-weight:600;">%</span>`;
+    rateEl.className = 'esi-val ' + (avgRate >= 80 ? 'good' : avgRate >= 60 ? '' : 'warn');
   }
 }
 
