@@ -624,28 +624,35 @@
         </div>
       </div>
 
-      <!-- 인사이트 블록 3종 (최상단) -->
-      <div class="insight-grid">
-        <!-- 점수 분포 곡선 -->
-        <div class="insight-card">
-          <div class="insight-header">점수 분포</div>
-          <div class="insight-stats" id="ins-score-stats"></div>
-          <svg id="ins-score-curve" class="chart-svg" height="120" viewBox="0 0 360 120"></svg>
+      <!-- 인사이트 통합 카드 -->
+      <div class="insight-card" style="margin-bottom:16px;">
+        <!-- 상단: 점수 분포 + 과목별 점수 분포 나란히 -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0;">
+          <!-- 점수 분포 -->
+          <div style="padding:0 16px 16px 0; border-right:1px solid var(--border);">
+            <div class="insight-header">점수 분포</div>
+            <div class="insight-stats" id="ins-score-stats"></div>
+            <svg id="ins-score-curve" class="chart-svg" height="120" viewBox="0 0 360 120"></svg>
+          </div>
+          <!-- 과목별 점수 분포 -->
+          <div style="padding:0 0 16px 16px;">
+            <div class="insight-header">과목별 점수 분포</div>
+            <div class="ins-tab-group" id="ins-track-tabs"></div>
+            <div class="insight-stats" id="ins-track-stat-val"></div>
+            <svg id="ins-track-curve" class="chart-svg" height="110" viewBox="0 0 360 110"></svg>
+          </div>
         </div>
-        <!-- 과목별 점수 분포 곡선 (탭) -->
-        <div class="insight-card">
-          <div class="insight-header">과목별 점수 분포</div>
-          <div class="ins-tab-group" id="ins-track-tabs"></div>
-          <div class="insight-stats" id="ins-track-stat-val"></div>
-          <svg id="ins-track-curve" class="chart-svg" height="110" viewBox="0 0 360 110"></svg>
-        </div>
-        <!-- 역량 획득 도넛 전체 (full-width) -->
-        <div class="insight-card" style="grid-column:1/-1;">
-          <div class="insight-header">역량 획득 현황</div>
-          <div class="insight-stats" id="ins-skill-stats"></div>
-          <div class="donut-row" id="ins-skill-donuts"></div>
-        </div>
+        <!-- 구분선 -->
+        <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
+        <!-- 하단: 역량 획득 현황 -->
+        <div class="insight-header">역량 획득 현황</div>
+        <div class="insight-stats" id="ins-skill-stats"></div>
+        <div class="donut-row" id="ins-skill-donuts"></div>
       </div>
+
+      <!-- 평가 총평 (전체 평가 기반) -->
+      <div class="sec-title">평가 총평</div>
+      <div class="comment-box" id="ins-group-assessment"></div>
 
       <!-- 응시자 목록 테이블 -->
       <div class="sec-title">응시자 목록</div>
@@ -1614,6 +1621,49 @@ function renderSkillDonuts() {
 }
 
 /* ══════════════════════════════
+   그룹 총평 생성 (메인 페이지용)
+══════════════════════════════ */
+function generateGroupAssessment() {
+  const completed = EXAMINEES.filter(e => e.status === 'completed' && e.tracks.length > 0);
+  const stats = computeStats();
+  const trackStats = computeTrackStats();
+  const skillRates = computeSkillAcqRates();
+
+  // 점수 분포 특성
+  const skew = stats.avg > stats.median ? '상위권 집중' : stats.avg < stats.median ? '하위권 집중' : '고른 분포';
+
+  // 과목별 강/약
+  const sortedTracks = [...trackStats].sort((a,b) => b.avg - a.avg);
+  const strongTracks = trackStats.filter(t => t.avg >= 80).map(t => t.name);
+  const weakTracks   = trackStats.filter(t => t.avg <  65).map(t => t.name);
+
+  // 역량별 강/약 (획득률 기준)
+  const allSkillRates = TRACKS_META.flatMap((meta, ti) =>
+    meta.skills.map((s, si) => ({ name: s.name, rate: skillRates[ti][si] }))
+  );
+  const strongSkills = allSkillRates.filter(s => s.rate >= 75).map(s => s.name);
+  const weakSkills   = allSkillRates.filter(s => s.rate <  40).map(s => s.name);
+
+  const totalSkills = TRACKS_META.reduce((s, m) => s + m.skills.length, 0);
+  let totalAcq = 0;
+  completed.forEach(e => e.tracks.forEach(t => t.skillLevels.forEach(lv => { if (lv === 'acquired') totalAcq++; })));
+  const acqRate = Math.round(totalAcq / (completed.length * totalSkills) * 100);
+
+  const text =
+    `전체 ${completed.length}명의 완료 응시자 평가 결과, 평균 ${stats.avg}점(중앙값 ${stats.median}점, 표준편차 σ${stats.std})으로 ${skew} 양상을 보입니다. ` +
+    `전체 역량 획득률은 ${acqRate}%이며, 과목별로는 ${sortedTracks.map(t => `${t.name.replace('클라우드 & 분산 시스템 아키텍처','분산 아키텍처')} ${t.avg}점`).join(' / ')} 순입니다. ` +
+    (strongTracks.length ? `${strongTracks.join(', ')} 과목에서 전반적으로 높은 성과를 보였습니다. ` : '') +
+    (weakTracks.length   ? `${weakTracks.join(', ')} 과목은 전체 평균이 낮아 교육 보완이 권장됩니다. ` : '') +
+    (weakSkills.length   ? `특히 ${weakSkills.slice(0, 3).join(', ')} 역량의 획득률이 낮아 집중적인 개선이 필요합니다.` : '');
+
+  return {
+    text,
+    strengths:    strongSkills.slice(0, 5),
+    improvements: weakSkills.slice(0, 5),
+  };
+}
+
+/* ══════════════════════════════
    RENDER: 메인 인사이트 차트
 ══════════════════════════════ */
 function renderInsightCharts() {
@@ -1638,6 +1688,11 @@ function renderInsightCharts() {
 
   // ─ 역량 획득 도넛 ─
   renderSkillDonuts();
+
+  // ─ 그룹 총평 ─
+  const ga = generateGroupAssessment();
+  const gaEl = document.getElementById('ins-group-assessment');
+  if (gaEl) gaEl.innerHTML = assessmentHTML(ga);
 }
 
 /* ══════════════════════════════
