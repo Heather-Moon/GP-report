@@ -1,0 +1,570 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary:       #1565C0;
+  --primary-light: #1976D2;
+  --primary-bg:    #EBF3FF;
+  --acquired:      #16A34A;
+  --acquired-bg:   #DCFCE7;
+  --partial:       #D97706;
+  --partial-bg:    #FEF3C7;
+  --missing:       #DC2626;
+  --missing-bg:    #FEE2E2;
+  --bg:            #F4F7FC;
+  --card:          #FFFFFF;
+  --text:          #111827;
+  --text-sub:      #6B7280;
+  --text-mute:     #9CA3AF;
+  --border:        #E5E7EB;
+  --shadow:        0 1px 8px rgba(0,0,0,0.07);
+  --shadow-md:     0 4px 20px rgba(0,0,0,0.10);
+  --radius:        12px;
+  --radius-sm:     8px;
+}
+
+body {
+  font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── 공통 레이아웃 ── */
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── 탑바 ── */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-brand { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.brand-icon {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-icon svg { width: 14px; height: 14px; fill: white; }
+.brand-name { font-size: 1rem; font-weight: 700; color: var(--primary); }
+.brand-name span { font-weight: 400; color: var(--text-sub); }
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; color: var(--text-sub);
+}
+.crumb-link { color: var(--primary); cursor: pointer; font-weight: 500; }
+.crumb-link:hover { text-decoration: underline; }
+.crumb-sep { color: var(--text-mute); }
+.topbar-user { display: flex; align-items: center; gap: 10px; }
+.eval-badge {
+  background: var(--primary-bg); color: var(--primary);
+  font-size: 0.72rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 99px;
+}
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--primary-bg);
+  color: var(--primary); font-weight: 700; font-size: 0.82rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── 콘텐츠 래퍼 (세로 중앙 정렬, 최대 너비 860px) ── */
+.content-wrap {
+  flex: 1;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+/* ── 페이지 전환 ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── 섹션 타이틀 ── */
+.sec-title {
+  font-size: 0.92rem; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px;
+}
+.sec-title::before {
+  content: '';
+  display: inline-block; width: 3px; height: 15px;
+  background: var(--primary); border-radius: 2px;
+}
+.sec-divider {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+/* ── 뱃지 ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 0.72rem; font-weight: 700;
+}
+.badge-acquired  { background: var(--acquired-bg);  color: var(--acquired); }
+.badge-partial   { background: var(--partial-bg);   color: var(--partial); }
+.badge-missing   { background: var(--missing-bg);   color: var(--missing); }
+.badge-complete  { background: var(--primary-bg);   color: var(--primary); }
+.badge-level     { background: #F3F4F6; color: var(--text-sub); font-size: 0.68rem; padding: 2px 8px; }
+
+/* ── 핵심 지표 카드 (Hero Stats) ── */
+.hero-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.hero-cards-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.hero-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.hero-card-icon { font-size: 1.3rem; margin-bottom: 6px; }
+.hero-card-value {
+  font-size: 2.2rem; font-weight: 900; line-height: 1;
+  margin-bottom: 5px; color: var(--primary);
+}
+.hero-card-value.warn { color: var(--partial); }
+.hero-card-value.good { color: var(--acquired); }
+.hero-card-value small { font-size: 1rem; font-weight: 500; color: var(--text-sub); }
+.hero-card-label { font-size: 0.76rem; color: var(--text-sub); font-weight: 500; }
+.hero-card-sub   { font-size: 0.72rem; color: var(--text-mute); margin-top: 4px; }
+
+/* ── 트랙 카드 (수직 레이아웃) ── */
+.track-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+.track-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border-left: 4px solid transparent;
+  transition: box-shadow 0.15s;
+}
+.track-card:hover { box-shadow: var(--shadow-md); }
+.track-card-header {
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer;
+}
+.track-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; flex-shrink: 0;
+}
+.track-info { flex: 1; min-width: 0; }
+.track-name { font-size: 0.92rem; font-weight: 700; margin-bottom: 3px; }
+.track-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.track-score-block { text-align: right; flex-shrink: 0; }
+.track-score-num {
+  font-size: 2rem; font-weight: 900; line-height: 1;
+}
+.track-score-num small { font-size: 0.85rem; font-weight: 500; color: var(--text-sub); }
+.track-score-label { font-size: 0.72rem; color: var(--text-sub); }
+
+/* 스킬 확보율 바 */
+.skill-rate-row {
+  padding: 0 20px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.skill-rate-label { font-size: 0.78rem; color: var(--text-sub); width: 72px; flex-shrink: 0; }
+.prog-bg {
+  flex: 1; height: 8px; background: #F3F4F6;
+  border-radius: 99px; overflow: hidden;
+}
+.prog-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+.skill-rate-val { font-size: 0.82rem; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
+
+/* 스킬 칩 */
+.skill-chips {
+  padding: 0 20px 16px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.skill-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem; font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 세부보기 버튼 */
+.track-detail-btn {
+  margin: 0 20px 16px;
+  padding: 8px 0;
+  width: calc(100% - 40px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent; color: var(--primary);
+  font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; transition: background 0.12s;
+}
+.track-detail-btn:hover { background: var(--primary-bg); }
+
+/* ── 메인 페이지 테이블 ── */
+.table-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+.table-controls {
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+.search-input {
+  flex: 1; min-width: 160px; max-width: 260px;
+  height: 34px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 0 10px; font-size: 0.83rem; outline: none;
+}
+.search-input:focus { border-color: var(--primary); }
+.filter-tabs {
+  display: flex;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.filter-tab {
+  padding: 5px 12px; font-size: 0.78rem; font-weight: 500;
+  border: none; background: #fff; color: var(--text-sub);
+  cursor: pointer; transition: background 0.12s;
+}
+.filter-tab.active { background: var(--primary); color: #fff; }
+.sort-select {
+  height: 34px; font-size: 0.8rem;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 0 8px; background: #fff; outline: none; cursor: pointer;
+}
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+thead tr { border-bottom: 2px solid var(--border); }
+th {
+  text-align: left; font-size: 0.76rem; font-weight: 600;
+  color: var(--text-sub); padding: 8px 10px 10px;
+}
+td { padding: 12px 10px; font-size: 0.84rem; border-bottom: 1px solid #F9FAFB; vertical-align: middle; }
+tbody tr { cursor: pointer; transition: background 0.1s; }
+tbody tr:hover { background: #F8FBFF; }
+tbody tr:last-child td { border-bottom: none; }
+.td-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--primary); border-radius: 6px;
+  background: transparent; color: var(--primary);
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: background 0.12s;
+}
+.td-btn:hover { background: var(--primary-bg); }
+
+/* ── 개인 페이지 헤더 ── */
+.person-header {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.person-avatar {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: var(--primary-bg); color: var(--primary);
+  font-size: 1.3rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.person-name { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; }
+.person-meta { font-size: 0.8rem; color: var(--text-sub); display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ── 트랙 세부 요약 카드 ── */
+.summary-3 {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-bottom: 24px;
+}
+.summary-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 18px; box-shadow: var(--shadow); text-align: center;
+}
+.sc-icon { font-size: 1.2rem; margin-bottom: 6px; }
+.sc-value {
+  font-size: 1.9rem; font-weight: 900; line-height: 1;
+  margin-bottom: 4px;
+}
+.sc-value small { font-size: 0.9rem; font-weight: 500; color: var(--text-sub); }
+.sc-label { font-size: 0.74rem; color: var(--text-sub); font-weight: 500; }
+
+/* ── 스킬 레벨 분포 바 ── */
+.level-dist-bar {
+  background: var(--card); border-radius: var(--radius);
+  padding: 18px 20px; box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.level-bar-wrap {
+  display: flex; height: 18px; border-radius: 99px;
+  overflow: hidden; margin-bottom: 10px;
+}
+.level-bar-seg { transition: width 0.7s ease; }
+.level-bar-legend {
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.78rem; color: var(--text-sub);
+}
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── 스킬 아코디언 ── */
+.skill-accordion { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.acc-item {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.acc-header {
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; user-select: none;
+  transition: background 0.1s;
+}
+.acc-header:hover { background: #FAFBFF; }
+.acc-title { flex: 1; font-size: 0.88rem; font-weight: 600; }
+.acc-right { display: flex; align-items: center; gap: 10px; }
+.acc-score { font-size: 0.8rem; color: var(--text-sub); }
+.acc-arrow { font-size: 0.65rem; color: var(--text-mute); transition: transform 0.2s; }
+.acc-header.open .acc-arrow { transform: rotate(180deg); }
+.acc-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.acc-body.open { max-height: 300px; }
+.acc-inner {
+  padding: 0 18px 16px;
+  font-size: 0.83rem; line-height: 1.75; color: var(--text-sub);
+  background: #FAFBFF;
+  border-top: 1px solid var(--border);
+}
+
+/* ── 비교 차트 (내 점수 vs 전체) ── */
+.compare-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 18px 20px; box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.compare-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.compare-label { width: 80px; font-size: 0.78rem; color: var(--text-sub); flex-shrink: 0; }
+.compare-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.cbar-row { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; }
+.cbar-name { width: 24px; color: var(--text-mute); font-weight: 600; }
+.cbar-bg { flex: 1; height: 7px; background: #F3F4F6; border-radius: 99px; overflow: hidden; }
+.cbar-fill { height: 100%; border-radius: 99px; }
+.cbar-val { width: 32px; text-align: right; font-weight: 700; }
+
+/* ── 레이더 차트 카드 ── */
+.radar-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 18px 20px; box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.radar-inner { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+svg.radar-svg { flex-shrink: 0; }
+.radar-legend { display: flex; flex-direction: column; gap: 10px; min-width: 160px; }
+.radar-legend-item {
+  display: flex; align-items: center; gap: 10px;
+}
+.rl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.rl-name { font-size: 0.8rem; font-weight: 600; flex: 1; }
+.rl-val { font-size: 0.85rem; font-weight: 800; }
+
+/* ── 뒤로 버튼 ── */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: #fff; color: var(--text-sub);
+  font-size: 0.8rem; font-weight: 500;
+  cursor: pointer; transition: background 0.1s;
+  margin-bottom: 18px;
+}
+.back-btn:hover { background: var(--bg); color: var(--text); }
+
+/* ── 평가 설명 텍스트 ── */
+.eval-desc {
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  font-size: 0.83rem; line-height: 1.75; color: var(--text-sub);
+  border-left: 3px solid var(--primary);
+}
+
+/* ── 페이지네이션 ── */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.pg-info { font-size: 0.78rem; color: var(--text-sub); }
+.pg-btns { display: flex; gap: 3px; }
+.pg-btn {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: #fff; color: var(--text-sub);
+  font-size: 0.8rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.pg-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+.pg-btn:hover:not(.active) { background: var(--bg); }
+
+/* ── 푸터 ── */
+footer {
+  text-align: center; padding: 20px;
+  font-size: 0.73rem; color: var(--text-mute);
+  border-top: 1px solid var(--border); background: #fff;
+}
+
+/* ── 인사이트 그리드 ── */
+.insight-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-bottom: 24px;
+}
+.insight-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 18px 20px;
+}
+.insight-header {
+  font-size: 0.88rem; font-weight: 700; color: var(--text);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.insight-header::before {
+  content: ''; display: inline-block; width: 3px; height: 13px;
+  background: var(--primary); border-radius: 2px; flex-shrink: 0;
+}
+.insight-stats {
+  display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.ins-stat { display: flex; flex-direction: column; gap: 2px; }
+.ins-stat-val { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+.ins-stat-val.good { color: var(--acquired); }
+.ins-stat-val.warn { color: var(--partial); }
+.ins-stat-val.miss { color: var(--missing); }
+.ins-stat-lbl { font-size: 0.68rem; color: var(--text-mute); }
+.chart-svg { width: 100%; display: block; overflow: visible; }
+
+/* ── 코멘트/총평 박스 ── */
+.comment-box {
+  background: var(--card); border-radius: var(--radius);
+  padding: 18px 20px; box-shadow: var(--shadow);
+  margin-bottom: 24px; border-left: 3px solid var(--primary);
+}
+.comment-text {
+  font-size: 0.86rem; line-height: 1.9; color: var(--text);
+  margin-bottom: 12px;
+}
+.tag-section-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; }
+.tag-group { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 11px; border-radius: 99px;
+  font-size: 0.74rem; font-weight: 600;
+}
+.tag-strength { background: var(--acquired-bg); color: var(--acquired); }
+.tag-improve  { background: var(--partial-bg);  color: var(--partial);  }
+
+/* ── summary-4 (세부 페이지 카드 4열) ── */
+.summary-4 {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 24px;
+}
+
+/* ── 그룹 바 범례 ── */
+.gbar-legend { display: flex; gap: 14px; margin-bottom: 6px; }
+.gbar-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text-sub); }
+.gbar-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* ── 과목별 점수 바 ── */
+.track-score-bar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.tsb-label { font-size: 0.78rem; color: var(--text-sub); width: 130px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsb-bar-bg { flex: 1; height: 9px; background: #F3F4F6; border-radius: 99px; overflow: hidden; }
+.tsb-bar-fill { height: 100%; border-radius: 99px; }
+.tsb-val { font-size: 0.8rem; font-weight: 700; width: 42px; text-align: right; flex-shrink: 0; }
+
+/* ── 평가 개요 헤더 바 ── */
+.eval-overview-bar {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 0;
+  flex-wrap: wrap;
+}
+.eval-overview-title {
+  font-size: 0.88rem; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 7px;
+  padding-right: 20px; margin-right: 20px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+.eval-overview-title::before {
+  content: ''; display: inline-block; width: 3px; height: 13px;
+  background: var(--primary); border-radius: 2px;
+}
+.eval-period {
+  font-size: 0.76rem; color: var(--text-mute);
+  padding-right: 20px; margin-right: 20px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+.eval-stats-inline {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.esi-item { display: flex; flex-direction: column; gap: 1px; }
+.esi-val {
+  font-size: 1.1rem; font-weight: 900; color: var(--primary); line-height: 1.1;
+}
+.esi-val.good { color: var(--acquired); }
+.esi-val.warn { color: var(--partial); }
+.esi-lbl { font-size: 0.68rem; color: var(--text-mute); font-weight: 500; }
+.esi-divider {
+  width: 1px; height: 28px; background: var(--border); flex-shrink: 0;
+}
+
+/* ── 인사이트 탭 버튼 ── */
+.ins-tab-group { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.ins-tab-btn {
+  padding: 4px 11px; border-radius: 99px;
+  border: 1px solid var(--border); background: #fff;
+  font-size: 0.73rem; font-weight: 600; color: var(--text-sub);
+  cursor: pointer; transition: all 0.12s;
+}
+.ins-tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.ins-tab-btn:hover:not(.active) { background: var(--primary-bg); color: var(--primary); }
+
+/* ── 도넛 그리드 ── */
+.donut-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:space-around; margin-top:6px; }
+.donut-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:80px; }
+.donut-item-label { font-size:0.72rem; color:var(--text-sub); font-weight:600; text-align:center; max-width:90px; }
+
+/* ── 반응형 ── */
+@media (max-width: 680px) {
+  .hero-cards { grid-template-columns: repeat(2, 1fr); }
+  .summary-3  { grid-template-columns: repeat(2, 1fr); }
+  .summary-4  { grid-template-columns: repeat(2, 1fr); }
+  .insight-grid { grid-template-columns: 1fr; }
+  .radar-inner { flex-direction: column; }
+  .content-wrap { padding: 16px 14px 40px; }
+}
+@media (max-width: 400px) {
+  .hero-cards { grid-template-columns: 1fr 1fr; }
+  .hero-card-value { font-size: 1.7rem; }
+}
