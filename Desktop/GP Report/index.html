@@ -433,10 +433,81 @@
       border-top: 1px solid var(--border); background: #fff;
     }
 
+    /* ── 인사이트 그리드 ── */
+    .insight-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 24px;
+    }
+    .insight-card {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 18px 20px;
+    }
+    .insight-header {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .insight-header::before {
+      content: ''; display: inline-block; width: 3px; height: 13px;
+      background: var(--primary); border-radius: 2px; flex-shrink: 0;
+    }
+    .insight-stats {
+      display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .ins-stat { display: flex; flex-direction: column; gap: 2px; }
+    .ins-stat-val { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+    .ins-stat-val.good { color: var(--acquired); }
+    .ins-stat-val.warn { color: var(--partial); }
+    .ins-stat-val.miss { color: var(--missing); }
+    .ins-stat-lbl { font-size: 0.68rem; color: var(--text-mute); }
+    .chart-svg { width: 100%; display: block; overflow: visible; }
+
+    /* ── 코멘트/총평 박스 ── */
+    .comment-box {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px 20px; box-shadow: var(--shadow);
+      margin-bottom: 24px; border-left: 3px solid var(--primary);
+    }
+    .comment-text {
+      font-size: 0.86rem; line-height: 1.9; color: var(--text);
+      margin-bottom: 12px;
+    }
+    .tag-section-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; }
+    .tag-group { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 11px; border-radius: 99px;
+      font-size: 0.74rem; font-weight: 600;
+    }
+    .tag-strength { background: var(--acquired-bg); color: var(--acquired); }
+    .tag-improve  { background: var(--partial-bg);  color: var(--partial);  }
+
+    /* ── summary-4 (세부 페이지 카드 4열) ── */
+    .summary-4 {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+
+    /* ── 그룹 바 범례 ── */
+    .gbar-legend { display: flex; gap: 14px; margin-bottom: 6px; }
+    .gbar-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text-sub); }
+    .gbar-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* ── 과목별 점수 바 ── */
+    .track-score-bar {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .tsb-label { font-size: 0.78rem; color: var(--text-sub); width: 130px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tsb-bar-bg { flex: 1; height: 9px; background: #F3F4F6; border-radius: 99px; overflow: hidden; }
+    .tsb-bar-fill { height: 100%; border-radius: 99px; }
+    .tsb-val { font-size: 0.8rem; font-weight: 700; width: 42px; text-align: right; flex-shrink: 0; }
+
     /* ── 반응형 ── */
     @media (max-width: 680px) {
       .hero-cards { grid-template-columns: repeat(2, 1fr); }
       .summary-3  { grid-template-columns: repeat(2, 1fr); }
+      .summary-4  { grid-template-columns: repeat(2, 1fr); }
+      .insight-grid { grid-template-columns: 1fr; }
       .radar-inner { flex-direction: column; }
       .content-wrap { padding: 16px 14px 40px; }
     }
@@ -499,6 +570,39 @@
           <div class="hero-card-value warn">77.1<small>%</small></div>
           <div class="hero-card-label">평균 스킬 확보율</div>
           <div class="hero-card-sub">전체 16개 스킬 기준</div>
+        </div>
+      </div>
+
+      <!-- 인사이트 블록 4종 -->
+      <div class="sec-title">인사이트 분석</div>
+      <div class="insight-grid">
+        <!-- 4.1.1 점수 분포 -->
+        <div class="insight-card">
+          <div class="insight-header">점수 분포</div>
+          <div class="insight-stats" id="ins-score-stats"></div>
+          <svg id="ins-histogram" class="chart-svg" height="100" viewBox="0 0 360 100"></svg>
+          <svg id="ins-boxplot"   class="chart-svg" height="44"  viewBox="0 0 360 44"  style="margin-top:6px;"></svg>
+        </div>
+        <!-- 4.1.2 과목별 성과 -->
+        <div class="insight-card">
+          <div class="insight-header">과목별 평균 점수</div>
+          <div class="insight-stats" id="ins-track-stats"></div>
+          <svg id="ins-track-bar" class="chart-svg" height="110" viewBox="0 0 360 110"></svg>
+        </div>
+        <!-- 4.1.3 역량 획득 -->
+        <div class="insight-card">
+          <div class="insight-header">역량 획득 현황</div>
+          <div class="insight-stats" id="ins-skill-stats"></div>
+          <div style="display:flex; gap:14px; align-items:center;">
+            <svg id="ins-donut" width="84" height="84" viewBox="0 0 84 84" style="flex-shrink:0;"></svg>
+            <svg id="ins-skill-bar" class="chart-svg" height="84" viewBox="0 0 260 84"></svg>
+          </div>
+        </div>
+        <!-- 4.1.4 CDF -->
+        <div class="insight-card">
+          <div class="insight-header">점수 누적 분포 (CDF)</div>
+          <div class="insight-stats" id="ins-cdf-stats"></div>
+          <svg id="ins-cdf" class="chart-svg" height="110" viewBox="0 0 360 110"></svg>
         </div>
       </div>
 
@@ -595,6 +699,27 @@
         </div>
       </div>
 
+      <!-- 과목별 점수 Progress Bars -->
+      <div class="sec-title">과목별 점수</div>
+      <div class="compare-card" id="p-track-scores"></div>
+
+      <!-- 레이더 차트 -->
+      <div class="radar-card">
+        <div class="sec-title" style="margin-bottom:14px;">스킬 확보율 레이더</div>
+        <div class="radar-inner">
+          <svg class="radar-svg" id="p-radar" width="220" height="220" viewBox="0 0 220 220"></svg>
+          <div class="radar-legend" id="p-radar-legend"></div>
+        </div>
+      </div>
+
+      <!-- 전체 평균 대비 -->
+      <div class="sec-title">전체 평균 대비</div>
+      <div class="compare-card" id="p-vs-avg"></div>
+
+      <!-- 시험 결과 총평 -->
+      <div class="sec-title">시험 결과 총평</div>
+      <div class="comment-box" id="p-assessment"></div>
+
       <!-- 트랙별 결과 카드 (수직) -->
       <div class="sec-title">트랙별 결과</div>
       <div class="track-list" id="track-list"></div>
@@ -607,9 +732,9 @@
     <div id="page-detail" class="page">
       <button class="back-btn" onclick="navigate('person')">← 개인 결과로</button>
 
-      <!-- 세부 요약 카드 3열 -->
+      <!-- 세부 요약 카드 4열 -->
       <div class="sec-title" id="d-track-title">트랙 세부 내용</div>
-      <div class="summary-3">
+      <div class="summary-4">
         <div class="summary-card">
           <div class="sc-icon">📝</div>
           <div class="sc-value" id="d-score" style="color:var(--primary);">55<small>/100</small></div>
@@ -625,7 +750,36 @@
           <div class="sc-value" id="d-time" style="color:var(--text); font-size:1.5rem;">08:20</div>
           <div class="sc-label">소요시간</div>
         </div>
+        <div class="summary-card">
+          <div class="sc-icon">📊</div>
+          <div class="sc-value" id="d-vs-avg" style="color:var(--primary);">-</div>
+          <div class="sc-label">전체 평균 대비</div>
+          <div class="sc-sub" id="d-vs-avg-sub" style="font-size:0.7rem; color:var(--text-mute); margin-top:4px;"></div>
+        </div>
       </div>
+
+      <!-- 통계 비교 차트 -->
+      <div class="sec-title">통계 비교</div>
+      <div class="compare-card">
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <div style="font-size:0.76rem; color:var(--text-sub); margin-bottom:5px;">전체 점수 분포 내 내 위치</div>
+            <svg id="d-hist" class="chart-svg" height="90" viewBox="0 0 280 90"></svg>
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <div class="gbar-legend">
+              <div class="gbar-legend-item"><div class="gbar-legend-dot" style="background:var(--primary);"></div>나</div>
+              <div class="gbar-legend-item"><div class="gbar-legend-dot" style="background:#CBD5E1;"></div>전체 평균</div>
+            </div>
+            <div style="font-size:0.76rem; color:var(--text-sub); margin-bottom:5px;">역량별 비교 (나 vs 전체 평균)</div>
+            <svg id="d-group-bar" class="chart-svg" height="90" viewBox="0 0 280 90"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 평가 총평 -->
+      <div class="sec-title">평가 총평</div>
+      <div class="comment-box" id="d-assessment"></div>
 
       <!-- 스킬 레벨 분포 -->
       <div class="level-dist-bar">
@@ -880,6 +1034,538 @@ function buildTracks(examinee) {
 }
 
 /* ══════════════════════════════
+   STATS HELPERS
+══════════════════════════════ */
+function computeStats() {
+  const scores = EXAMINEES.filter(e => e.status === 'completed').map(e => e.totalScore).sort((a,b) => a-b);
+  const n = scores.length;
+  if (!n) return null;
+  const avg = scores.reduce((s,v) => s+v,0) / n;
+  const median = n % 2 === 0 ? (scores[n/2-1]+scores[n/2])/2 : scores[Math.floor(n/2)];
+  const std = Math.sqrt(scores.reduce((s,v) => s+(v-avg)**2,0)/n);
+  const q1 = scores[Math.floor(n*0.25)];
+  const q3 = scores[Math.floor(n*0.75)];
+  return { scores, n, avg: Math.round(avg*10)/10, median, std: Math.round(std*10)/10,
+           min: scores[0], max: scores[n-1], q1, q3 };
+}
+
+function computeTrackStats() {
+  const completed = EXAMINEES.filter(e => e.status === 'completed' && e.tracks.length > 0);
+  return TRACKS_META.map((meta, i) => {
+    const vals = completed.map(e => e.tracks[i].score);
+    const avg = vals.reduce((s,v) => s+v,0) / vals.length;
+    const std = Math.sqrt(vals.reduce((s,v) => s+(v-avg)**2,0)/vals.length);
+    return { name: meta.name, avg: Math.round(avg*10)/10, std: Math.round(std*10)/10 };
+  });
+}
+
+function computeSkillAcqRates() {
+  // Returns [trackIdx][skillIdx] => rate 0-100
+  const completed = EXAMINEES.filter(e => e.status === 'completed' && e.tracks.length > 0);
+  return TRACKS_META.map((meta, ti) =>
+    meta.skills.map((_, si) => {
+      const acq = completed.filter(e => e.tracks[ti].skillLevels[si] === 'acquired').length;
+      return Math.round(acq / completed.length * 100);
+    })
+  );
+}
+
+function getPercentile(score, sortedScores) {
+  const below = sortedScores.filter(s => s < score).length;
+  const pct = Math.round(below / sortedScores.length * 100);
+  return `상위 ${100 - pct}%`;
+}
+
+function timeToSec(t) {
+  if (!t || t === '-') return 0;
+  const p = t.split(':').map(Number);
+  return (p[0]||0)*3600 + (p[1]||0)*60 + (p[2]||0);
+}
+
+/* ══════════════════════════════
+   SVG HELPERS
+══════════════════════════════ */
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs||{})) el.setAttribute(k,v);
+  return el;
+}
+function svgTxt(svg, text, x, y, attrs) {
+  const t = svgEl('text', { x, y, 'text-anchor':'middle', 'dominant-baseline':'middle', ...attrs });
+  t.textContent = text;
+  svg.appendChild(t);
+}
+function clearSvg(id) {
+  const el = document.getElementById(id);
+  if (el) { el.innerHTML = ''; return el; }
+  return null;
+}
+
+/* ══════════════════════════════
+   CHART: HISTOGRAM + AVG/MEDIAN
+   markerScore: optional personal score
+══════════════════════════════ */
+function renderHistogram(svgId, scores, avgVal, medVal, markerScore) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W=360, H=100, padL=28, padR=10, padT=8, padB=22;
+  const bins = [40,50,60,70,80,90,100];
+  const counts = Array(bins.length-1).fill(0);
+  scores.forEach(s => {
+    const i = Math.min(Math.floor((s-40)/10), counts.length-1);
+    if (i >= 0) counts[i]++;
+  });
+  const maxC = Math.max(...counts, 1);
+  const cW = (W - padL - padR) / counts.length;
+  const cH = H - padT - padB;
+
+  // bars
+  counts.forEach((c, i) => {
+    const bH = (c / maxC) * cH;
+    const x = padL + i * cW;
+    const y = padT + cH - bH;
+    const col = i >= 5 ? '#16A34A' : i >= 3 ? '#D97706' : '#DC2626';
+    svg.appendChild(svgEl('rect', { x: x+2, y, width: cW-4, height: bH,
+      fill: col, rx:3, opacity:'0.75' }));
+    if (c > 0) {
+      const t = svgEl('text', { x: x+cW/2, y: y-3, 'text-anchor':'middle',
+        'font-size':'9', fill:'#374151', 'font-weight':'600' });
+      t.textContent = c;
+      svg.appendChild(t);
+    }
+    // x-axis label
+    const tl = svgEl('text', { x: x+cW/2, y: H-5, 'text-anchor':'middle',
+      'font-size':'8.5', fill:'#9CA3AF' });
+    tl.textContent = bins[i];
+    svg.appendChild(tl);
+  });
+
+  // avg line
+  const aX = padL + ((avgVal - 40) / 60) * (W - padL - padR);
+  svg.appendChild(svgEl('line', { x1:aX, y1:padT, x2:aX, y2:H-padB, stroke:'#1565C0', 'stroke-width':'1.5', 'stroke-dasharray':'4,3' }));
+  const at = svgEl('text', { x:aX+3, y:padT+8, 'font-size':'8', fill:'#1565C0', 'font-weight':'700' });
+  at.textContent = '평균';
+  svg.appendChild(at);
+
+  // median line
+  const mX = padL + ((medVal - 40) / 60) * (W - padL - padR);
+  svg.appendChild(svgEl('line', { x1:mX, y1:padT, x2:mX, y2:H-padB, stroke:'#7C3AED', 'stroke-width':'1.5', 'stroke-dasharray':'4,3' }));
+  const mt = svgEl('text', { x:mX+3, y:padT+17, 'font-size':'8', fill:'#7C3AED', 'font-weight':'700' });
+  mt.textContent = '중앙';
+  svg.appendChild(mt);
+
+  // personal marker
+  if (markerScore != null) {
+    const px = padL + ((markerScore - 40) / 60) * (W - padL - padR);
+    svg.appendChild(svgEl('line', { x1:px, y1:padT, x2:px, y2:H-padB, stroke:'#DC2626', 'stroke-width':'2' }));
+    const pt2 = svgEl('text', { x:px, y:padT+4, 'text-anchor':'middle', 'font-size':'8', fill:'#DC2626', 'font-weight':'700' });
+    pt2.textContent = '나';
+    svg.appendChild(pt2);
+  }
+}
+
+/* ══════════════════════════════
+   CHART: BOX PLOT
+══════════════════════════════ */
+function renderBoxPlot(svgId, stats) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W=360, H=44, padL=28, padR=10, py=22;
+  const scale = x => padL + ((x-30)/(105-30)) * (W-padL-padR);
+
+  svg.appendChild(svgEl('line', { x1:scale(stats.min), y1:py, x2:scale(stats.q1), y2:py, stroke:'#9CA3AF', 'stroke-width':'1.5' }));
+  svg.appendChild(svgEl('line', { x1:scale(stats.q3),  y1:py, x2:scale(stats.max), y2:py, stroke:'#9CA3AF', 'stroke-width':'1.5' }));
+  // whisker ticks
+  [stats.min, stats.max].forEach(v => {
+    svg.appendChild(svgEl('line', { x1:scale(v), y1:py-6, x2:scale(v), y2:py+6, stroke:'#6B7280', 'stroke-width':'1.5' }));
+  });
+  // IQR box
+  svg.appendChild(svgEl('rect', { x:scale(stats.q1), y:py-9, width:scale(stats.q3)-scale(stats.q1), height:18,
+    fill:'#EBF3FF', stroke:'#1565C0', 'stroke-width':'1.5', rx:'3' }));
+  // median
+  svg.appendChild(svgEl('line', { x1:scale(stats.median), y1:py-9, x2:scale(stats.median), y2:py+9,
+    stroke:'#7C3AED', 'stroke-width':'2' }));
+  // labels
+  [[stats.min,'min'],[stats.q1,'Q1'],[stats.median,'중앙'],[stats.q3,'Q3'],[stats.max,'max']].forEach(([v,lbl]) => {
+    const t = svgEl('text', { x:scale(v), y:py+18, 'text-anchor':'middle', 'font-size':'7.5', fill:'#6B7280' });
+    t.textContent = lbl+'('+v+')';
+    svg.appendChild(t);
+  });
+}
+
+/* ══════════════════════════════
+   CHART: HORIZONTAL BAR (with error bar)
+══════════════════════════════ */
+function renderHBarChart(svgId, items, maxVal, showErrorBar) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W=360, padL=130, padR=50, rowH=30;
+  const H = items.length * rowH + 10;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+  const bW = W - padL - padR;
+
+  items.forEach((item, i) => {
+    const y = i * rowH + rowH/2;
+    const bLen = (item.avg / maxVal) * bW;
+    const col = trackColor(item.avg);
+    // label
+    const tl = svgEl('text', { x:padL-6, y:y+1, 'text-anchor':'end', 'dominant-baseline':'middle',
+      'font-size':'9.5', fill:'#374151' });
+    tl.textContent = item.name.length > 14 ? item.name.slice(0,13)+'…' : item.name;
+    svg.appendChild(tl);
+    // bar
+    svg.appendChild(svgEl('rect', { x:padL, y:y-8, width:Math.max(bLen,2), height:16,
+      fill:col, rx:3, opacity:'0.8' }));
+    // error bar
+    if (showErrorBar && item.std != null) {
+      const cx = padL + bLen;
+      const eW = (item.std / maxVal) * bW;
+      svg.appendChild(svgEl('line', { x1:Math.max(padL,cx-eW), y1:y, x2:cx+eW, y2:y,
+        stroke:'#374151', 'stroke-width':'1.5' }));
+      svg.appendChild(svgEl('line', { x1:cx-eW, y1:y-4, x2:cx-eW, y2:y+4, stroke:'#374151', 'stroke-width':'1.5' }));
+      svg.appendChild(svgEl('line', { x1:cx+eW, y1:y-4, x2:cx+eW, y2:y+4, stroke:'#374151', 'stroke-width':'1.5' }));
+    }
+    // value label
+    const vl = svgEl('text', { x:padL+bLen+6, y:y+1, 'dominant-baseline':'middle',
+      'font-size':'9', fill:col, 'font-weight':'700' });
+    vl.textContent = item.avg + (showErrorBar ? ' ±'+item.std : '%');
+    svg.appendChild(vl);
+  });
+}
+
+/* ══════════════════════════════
+   CHART: DONUT
+══════════════════════════════ */
+function renderDonut(svgId, acquired, total, colorAcq, colorMis) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const cx=42, cy=42, r=32, sw=12;
+  const pct = total > 0 ? acquired/total : 0;
+  const circ = 2 * Math.PI * r;
+  const dashAcq = pct * circ;
+
+  svg.appendChild(svgEl('circle', { cx, cy, r, fill:'none', stroke: colorMis||'#FEE2E2', 'stroke-width':sw }));
+  const arc = svgEl('circle', { cx, cy, r, fill:'none', stroke: colorAcq||'#16A34A', 'stroke-width':sw,
+    'stroke-dasharray': `${dashAcq} ${circ - dashAcq}`,
+    'stroke-dashoffset': circ/4,
+    'stroke-linecap':'round' });
+  svg.appendChild(arc);
+  // center text
+  const pv = svgEl('text', { x:cx, y:cy-4, 'text-anchor':'middle', 'dominant-baseline':'middle',
+    'font-size':'13', fill:'#111827', 'font-weight':'800' });
+  pv.textContent = Math.round(pct*100)+'%';
+  svg.appendChild(pv);
+  const sub = svgEl('text', { x:cx, y:cy+10, 'text-anchor':'middle', 'dominant-baseline':'middle',
+    'font-size':'8', fill:'#6B7280' });
+  sub.textContent = `${acquired}/${total}`;
+  svg.appendChild(sub);
+}
+
+/* ══════════════════════════════
+   CHART: CDF
+══════════════════════════════ */
+function renderCDF(svgId, scores) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W=360, H=110, padL=28, padR=16, padT=8, padB=24;
+  const sorted = [...scores].sort((a,b)=>a-b);
+  const n = sorted.length;
+  const cW = W-padL-padR, cH = H-padT-padB;
+  const sx = v => padL + ((v-30)/(105-30))*cW;
+  const sy = p => padT + cH - p*cH;
+
+  // grid lines
+  [0.25,0.5,0.75,1.0].forEach(p => {
+    svg.appendChild(svgEl('line', { x1:padL, y1:sy(p), x2:W-padR, y2:sy(p),
+      stroke:'#E5E7EB', 'stroke-width':'1' }));
+    const t = svgEl('text', { x:padL-4, y:sy(p), 'text-anchor':'end', 'dominant-baseline':'middle',
+      'font-size':'8', fill:'#9CA3AF' });
+    t.textContent = Math.round(p*100)+'%';
+    svg.appendChild(t);
+  });
+  // x-axis ticks
+  [40,50,60,70,80,90,100].forEach(v => {
+    const t = svgEl('text', { x:sx(v), y:H-6, 'text-anchor':'middle', 'font-size':'8', fill:'#9CA3AF' });
+    t.textContent = v;
+    svg.appendChild(t);
+  });
+
+  // CDF line (step function)
+  let pts = [`M${sx(sorted[0])},${sy(0)}`];
+  sorted.forEach((s, i) => {
+    const p = (i+1)/n;
+    const prevP = i/n;
+    pts.push(`L${sx(s)},${sy(prevP)}`);
+    pts.push(`L${sx(s)},${sy(p)}`);
+  });
+  pts.push(`L${W-padR},${sy(1)}`);
+  const path = svgEl('path', { d: pts.join(' '), fill:'none', stroke:'#1565C0', 'stroke-width':'2.5', 'stroke-linejoin':'round' });
+  svg.appendChild(path);
+
+  // fill area
+  const fillPts = [`M${sx(sorted[0])},${sy(0)}`];
+  sorted.forEach((s,i) => {
+    const p=(i+1)/n, prevP=i/n;
+    fillPts.push(`L${sx(s)},${sy(prevP)}`);
+    fillPts.push(`L${sx(s)},${sy(p)}`);
+  });
+  fillPts.push(`L${W-padR},${sy(1)} L${W-padR},${sy(0)} Z`);
+  const fill = svgEl('path', { d: fillPts.join(' '), fill:'#EBF3FF', opacity:'0.5', stroke:'none' });
+  svg.insertBefore(fill, path);
+
+  // reference lines 70 / 80
+  [{v:70, col:'#D97706'}, {v:80, col:'#16A34A'}].forEach(({v, col}) => {
+    const below = sorted.filter(s=>s<=v).length/n;
+    svg.appendChild(svgEl('line', { x1:sx(v), y1:sy(0), x2:sx(v), y2:sy(below),
+      stroke:col, 'stroke-width':'1.2', 'stroke-dasharray':'3,3' }));
+    const t2 = svgEl('text', { x:sx(v), y:H-padB-4, 'text-anchor':'middle', 'font-size':'8', fill:col, 'font-weight':'700' });
+    t2.textContent = v+'점';
+    svg.appendChild(t2);
+  });
+}
+
+/* ══════════════════════════════
+   CHART: GROUP BAR (나 vs 전체 평균)
+   items: [{label, me, avg}]   0-100
+══════════════════════════════ */
+function renderGroupBar(svgId, items) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W=280, padL=90, padR=12, rowH=22;
+  const H = items.length * rowH + 10;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+  const bW = W - padL - padR;
+
+  items.forEach((item, i) => {
+    const y = i * rowH + rowH/2;
+    // label
+    const tl = svgEl('text', { x:padL-5, y:y, 'text-anchor':'end', 'dominant-baseline':'middle',
+      'font-size':'9', fill:'#374151' });
+    tl.textContent = item.label.length > 12 ? item.label.slice(0,11)+'…' : item.label;
+    svg.appendChild(tl);
+    // avg bar (background)
+    const avgW = (item.avg/100)*bW;
+    svg.appendChild(svgEl('rect', { x:padL, y:y-4, width:Math.max(avgW,2), height:8,
+      fill:'#CBD5E1', rx:2 }));
+    // me bar (foreground, thinner)
+    const meW = (item.me/100)*bW;
+    const meCol = item.me >= 80 ? '#16A34A' : item.me >= 50 ? '#D97706' : '#DC2626';
+    svg.appendChild(svgEl('rect', { x:padL, y:y-7, width:Math.max(meW,2), height:6,
+      fill:meCol, rx:2, opacity:'0.9' }));
+    // value label
+    const vl = svgEl('text', { x:padL+Math.max(meW,2)+4, y:y, 'dominant-baseline':'middle',
+      'font-size':'8.5', fill:meCol, 'font-weight':'700' });
+    vl.textContent = item.me+'%';
+    svg.appendChild(vl);
+  });
+}
+
+/* ══════════════════════════════
+   ASSESSMENT GENERATOR
+══════════════════════════════ */
+function generatePersonAssessment(e) {
+  const tracks = buildTracks(e);
+  const allSkills = tracks.flatMap(t => t.skills);
+  const acq = allSkills.filter(s => s.level === 'acquired').length;
+  const total = allSkills.length;
+  const rate = Math.round(acq/total*100);
+  const completed = EXAMINEES.filter(x => x.status==='completed');
+  const avgScore = Math.round(completed.reduce((s,x)=>s+x.totalScore,0)/completed.length);
+  const diff = e.totalScore - avgScore;
+  const diffStr = diff >= 0 ? `+${diff}점` : `${diff}점`;
+
+  const strongTracks = tracks.filter(t => t.score >= 80);
+  const weakTracks   = tracks.filter(t => t.score <  60);
+
+  const text = `${e.name}님은 총 ${total}개 스킬 중 ${acq}개를 획득하여 ${rate}%의 역량 확보율을 기록했습니다. ` +
+    `전체 평균 대비 ${diffStr} (평균 ${avgScore}점)으로 ` +
+    (diff >= 10 ? '우수한' : diff >= 0 ? '평균 수준의' : '개선이 필요한') +
+    ` 성과를 보였습니다.` +
+    (strongTracks.length ? ` ${strongTracks.map(t=>t.name).join(', ')} 분야에서 강점을 발휘했습니다.` : '') +
+    (weakTracks.length   ? ` ${weakTracks.map(t=>t.name).join(', ')} 분야의 보완이 권장됩니다.` : '');
+
+  const strengths  = strongTracks.map(t => t.name);
+  const improvements = weakTracks.map(t => t.name);
+  // add partial skills to improvement
+  tracks.forEach(t => t.skills.filter(s => s.level === 'missing').forEach(s => {
+    if (!improvements.includes(s.name)) improvements.push(s.name);
+  }));
+
+  return { text, strengths, improvements: improvements.slice(0,5) };
+}
+
+function generateTrackAssessment(e, trackIdx) {
+  const t = buildTracks(e)[trackIdx];
+  const completed = EXAMINEES.filter(x => x.status==='completed' && x.tracks.length>0);
+  const trackScores = completed.map(x => x.tracks[trackIdx].score);
+  const avgT = Math.round(trackScores.reduce((s,v)=>s+v,0)/trackScores.length);
+  const diff = t.score - avgT;
+  const diffStr = diff >= 0 ? `+${diff}점` : `${diff}점`;
+  const acq = t.skills.filter(s=>s.level==='acquired').length;
+  const total = t.skills.length;
+
+  const strengths    = t.skills.filter(s => s.level === 'acquired').map(s => s.name);
+  const improvements = t.skills.filter(s => s.level !== 'acquired').map(s => s.name);
+
+  const text = `${t.name} 평가에서 ${t.score}점을 획득하였으며, ` +
+    `전체 평균(${avgT}점) 대비 ${diffStr}을 기록했습니다. ` +
+    `총 ${total}개 역량 중 ${acq}개를 획득했습니다(확보율 ${t.rate}%).` +
+    (strengths.length    ? ` 강점: ${strengths.slice(0,3).join(', ')}.`    : '') +
+    (improvements.length ? ` 보완 필요: ${improvements.slice(0,3).join(', ')}.` : '');
+
+  return { text, strengths: strengths.slice(0,4), improvements: improvements.slice(0,4) };
+}
+
+/* ══════════════════════════════
+   ASSESSMENT HTML BUILDER
+══════════════════════════════ */
+function assessmentHTML(assessment) {
+  return `<div class="comment-text">${assessment.text}</div>
+    ${assessment.strengths.length ? `<div class="tag-section-lbl">✅ 강점</div>
+    <div class="tag-group">${assessment.strengths.map(s=>`<span class="tag tag-strength">✔ ${s}</span>`).join('')}</div>` : ''}
+    ${assessment.improvements.length ? `<div class="tag-section-lbl" style="margin-top:8px;">📈 개선 필요</div>
+    <div class="tag-group">${assessment.improvements.map(s=>`<span class="tag tag-improve">△ ${s}</span>`).join('')}</div>` : ''}`;
+}
+
+/* ══════════════════════════════
+   RENDER: 메인 인사이트 차트
+══════════════════════════════ */
+function renderInsightCharts() {
+  const stats = computeStats();
+  if (!stats) return;
+  const trackStats = computeTrackStats();
+  const skillRates = computeSkillAcqRates();
+  const completed  = EXAMINEES.filter(e => e.status === 'completed');
+
+  // ─ 4.1.1 점수 분포 ─
+  document.getElementById('ins-score-stats').innerHTML = [
+    { val: stats.avg+'점', lbl: '평균' },
+    { val: stats.median+'점', lbl: '중앙값' },
+    { val: stats.min+'~'+stats.max+'점', lbl: '범위' },
+    { val: 'σ '+stats.std, lbl: '표준편차' },
+  ].map(s => `<div class="ins-stat"><span class="ins-stat-val">${s.val}</span><span class="ins-stat-lbl">${s.lbl}</span></div>`).join('');
+  renderHistogram('ins-histogram', stats.scores, stats.avg, stats.median, null);
+  renderBoxPlot('ins-boxplot', stats);
+
+  // ─ 4.1.2 과목별 성과 ─
+  document.getElementById('ins-track-stats').innerHTML = trackStats.map(ts =>
+    `<div class="ins-stat"><span class="ins-stat-val">${ts.avg}점</span><span class="ins-stat-lbl">${ts.name.slice(0,6)}…</span></div>`
+  ).join('');
+  const tsSorted = [...trackStats].sort((a,b) => b.avg-a.avg);
+  renderHBarChart('ins-track-bar', tsSorted, 100, true);
+
+  // ─ 4.1.3 역량 획득 ─
+  const totalSkills = TRACKS_META.reduce((s,m) => s+m.skills.length, 0);
+  let totalAcq = 0;
+  completed.forEach(e => {
+    if (!e.tracks.length) return;
+    e.tracks.forEach((t,ti) => t.skillLevels.forEach(lv => { if (lv==='acquired') totalAcq++; }));
+  });
+  const totalPossible = completed.length * totalSkills;
+  const avgAcqPer = Math.round(totalAcq / completed.length * 10) / 10;
+  document.getElementById('ins-skill-stats').innerHTML = [
+    { val: Math.round(avgAcqPer)+'개', lbl: '평균 획득 스킬' },
+    { val: totalSkills+'개', lbl: '전체 스킬' },
+    { val: Math.round(totalAcq/totalPossible*100)+'%', lbl: '전체 획득률' },
+  ].map(s => `<div class="ins-stat"><span class="ins-stat-val">${s.val}</span><span class="ins-stat-lbl">${s.lbl}</span></div>`).join('');
+  renderDonut('ins-donut', totalAcq, totalPossible, '#16A34A', '#FEE2E2');
+
+  // skill bar: per-track avg acquisition rate
+  const trackAcqItems = TRACKS_META.map((meta, ti) => {
+    const rates = skillRates[ti];
+    const avgR = Math.round(rates.reduce((s,v)=>s+v,0)/rates.length);
+    return { name: meta.name, avg: avgR };
+  });
+  renderHBarChart('ins-skill-bar', trackAcqItems, 100, false);
+
+  // ─ 4.1.4 CDF ─
+  const below70 = stats.scores.filter(s=>s<70).length;
+  const above80 = stats.scores.filter(s=>s>=80).length;
+  document.getElementById('ins-cdf-stats').innerHTML = [
+    { val: Math.round(below70/stats.n*100)+'%', lbl: '70점 미만', cls:'warn' },
+    { val: Math.round(above80/stats.n*100)+'%', lbl: '80점 이상', cls:'good' },
+  ].map(s => `<div class="ins-stat"><span class="ins-stat-val ${s.cls||''}">${s.val}</span><span class="ins-stat-lbl">${s.lbl}</span></div>`).join('');
+  renderCDF('ins-cdf', stats.scores);
+}
+
+/* ══════════════════════════════
+   RENDER: 개인 페이지 추가 섹션
+══════════════════════════════ */
+function renderPersonSections(e) {
+  if (e.status !== 'completed') {
+    ['p-track-scores','p-vs-avg','p-assessment'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.innerHTML = '';
+    });
+    document.querySelector('.radar-card') && (document.querySelector('#p-radar').innerHTML = '');
+    return;
+  }
+  const tracks = buildTracks(e);
+  const completed = EXAMINEES.filter(x => x.status==='completed');
+  const avgScore = completed.reduce((s,x)=>s+x.totalScore,0)/completed.length;
+
+  // 과목별 점수 bars
+  document.getElementById('p-track-scores').innerHTML = tracks.map(t => {
+    const col = trackColor(t.score);
+    return `<div class="track-score-bar">
+      <div class="tsb-label">${t.icon} ${t.name}</div>
+      <div class="tsb-bar-bg"><div class="tsb-bar-fill" style="width:${t.score}%;background:${col};"></div></div>
+      <div class="tsb-val" style="color:${col};">${t.score}<span style="font-size:0.7em;font-weight:500;color:var(--text-mute);">/100</span></div>
+    </div>`;
+  }).join('');
+
+  // 레이더 (person vs avg)
+  const skillRates = computeSkillAcqRates();
+  const radarAxes = TRACKS_META.map((meta, ti) => {
+    const avgR = Math.round(skillRates[ti].reduce((s,v)=>s+v,0)/skillRates[ti].length);
+    return {
+      label: meta.name.replace('클라우드 & 분산 시스템 아키텍처','분산 아키텍처').replace('클라우드 컴퓨팅','클라우드').replace('Python','Python'),
+      value: e.tracks[ti].rate,
+      color: trackColor(e.tracks[ti].score),
+    };
+  });
+  renderRadar('p-radar', radarAxes, '#1565C0', 'p-radar-legend');
+
+  // 전체 평균 대비
+  const avgTime  = completed.reduce((s,x)=>s+timeToSec(x.time),0)/completed.length;
+  const myTime   = timeToSec(e.time);
+  const allSkills = tracks.flatMap(t=>t.skills);
+  const myAcq = allSkills.filter(s=>s.level==='acquired').length;
+  const avgAcqArr = completed.map(x => {
+    if (!x.tracks.length) return 0;
+    return buildTracks(x).flatMap(t=>t.skills).filter(s=>s.level==='acquired').length;
+  });
+  const avgAcq = Math.round(avgAcqArr.reduce((s,v)=>s+v,0)/avgAcqArr.length*10)/10;
+  const scoreDiff  = Math.round((e.totalScore - avgScore)*10)/10;
+  const timeDiff   = myTime - avgTime;
+  const timeDiffStr = (timeDiff >= 0 ? '+' : '') + Math.round(timeDiff/60) + '분';
+
+  document.getElementById('p-vs-avg').innerHTML = `
+    <div class="track-score-bar">
+      <div class="tsb-label">총점</div>
+      <div class="tsb-bar-bg"><div class="tsb-bar-fill" style="width:${e.totalScore}%;background:${trackColor(e.totalScore)};"></div></div>
+      <div class="tsb-val" style="color:${trackColor(e.totalScore)};">${e.totalScore}점
+        <span style="font-size:0.72em;font-weight:600;color:${scoreDiff>=0?'var(--acquired)':'var(--missing)'};">(${scoreDiff>=0?'+':''}${scoreDiff})</span>
+      </div>
+    </div>
+    <div class="track-score-bar">
+      <div class="tsb-label">전체평균 총점</div>
+      <div class="tsb-bar-bg"><div class="tsb-bar-fill" style="width:${Math.round(avgScore)}%;background:#CBD5E1;"></div></div>
+      <div class="tsb-val" style="color:var(--text-sub);">${Math.round(avgScore)}점</div>
+    </div>
+    <div style="height:8px;"></div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div class="ins-stat">
+        <span class="ins-stat-val ${myAcq >= avgAcq ? 'good' : 'warn'}">${myAcq}개</span>
+        <span class="ins-stat-lbl">획득 역량 (평균 ${avgAcq}개)</span>
+      </div>
+      <div class="ins-stat">
+        <span class="ins-stat-val ${timeDiff <= 0 ? 'good' : 'warn'}">${e.time}</span>
+        <span class="ins-stat-lbl">소요시간 (평균 대비 ${timeDiffStr})</span>
+      </div>
+    </div>`;
+
+  // 총평
+  document.getElementById('p-assessment').innerHTML = assessmentHTML(generatePersonAssessment(e));
+}
+
+/* ══════════════════════════════
    STATE
 ══════════════════════════════ */
 let currentPage    = 'main';
@@ -1077,6 +1763,7 @@ function openPerson(id) {
     </div>`;
   }).join('');
 
+  renderPersonSections(e);
   navigate('person');
 }
 
@@ -1096,6 +1783,34 @@ function openDetail(idx) {
   document.getElementById('d-time').textContent = t.time;
   document.getElementById('d-track-desc').textContent = t.desc;
 
+  // 4th summary card: vs avg
+  const completed2 = EXAMINEES.filter(x => x.status==='completed' && x.tracks.length>0);
+  const trackScores2 = completed2.map(x => x.tracks[idx].score);
+  const avgT2 = Math.round(trackScores2.reduce((s,v)=>s+v,0)/trackScores2.length);
+  const diff2 = t.score - avgT2;
+  const diffEl = document.getElementById('d-vs-avg');
+  diffEl.innerHTML = `${diff2>=0?'+':''}${diff2}<small>점</small>`;
+  diffEl.style.color = diff2 >= 0 ? 'var(--acquired)' : 'var(--missing)';
+  document.getElementById('d-vs-avg-sub').textContent = `전체 평균 ${avgT2}점`;
+
+  // 통계 비교 차트: 히스토그램 (이 트랙 전체 점수 분포)
+  const stats2 = computeStats();
+  renderHistogram('d-hist', trackScores2,
+    Math.round(avgT2), Math.round(trackScores2.sort((a,b)=>a-b)[Math.floor(trackScores2.length/2)]),
+    t.score);
+
+  // 그룹 바 차트: 역량별 나 vs 전체 평균
+  const skillRates2 = computeSkillAcqRates();
+  const groupItems = t.skills.map((s, si) => ({
+    label: s.name,
+    me:    s.level === 'acquired' ? 100 : s.level === 'partial' ? 50 : 0,
+    avg:   skillRates2[idx][si],
+  }));
+  renderGroupBar('d-group-bar', groupItems);
+
+  // 평가 총평
+  document.getElementById('d-assessment').innerHTML = assessmentHTML(generateTrackAssessment(selectedExaminee, idx));
+
   // 스킬 레벨 분포 바
   const acqCount  = t.skills.filter(s => s.level === 'acquired').length;
   const partCount = t.skills.filter(s => s.level === 'partial').length;
@@ -1114,20 +1829,30 @@ function openDetail(idx) {
     <div class="legend-item" style="margin-left:auto; color:var(--text-mute);">전체 ${total}개 스킬</div>
   `;
 
-  // 아코디언
-  document.getElementById('d-accordion').innerHTML = t.skills.map((s, i) => `
-    <div class="acc-item">
+  // 아코디언 (with per-skill acquisition rate)
+  const skillRates3 = computeSkillAcqRates();
+  document.getElementById('d-accordion').innerHTML = t.skills.map((s, si) => {
+    const acqRate = skillRates3[idx][si];
+    const rateCol = acqRate >= 80 ? 'var(--acquired)' : acqRate >= 50 ? 'var(--partial)' : 'var(--missing)';
+    return `<div class="acc-item">
       <div class="acc-header" onclick="toggleAcc(this)">
         <span class="badge ${LEVEL_CLASS[s.level]}">${LEVEL_LABEL[s.level]}</span>
         <span class="acc-title">${s.name}</span>
         <div class="acc-right">
-          <span class="acc-arrow">▼</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:72px;">
+            <span style="font-size:0.72rem;font-weight:700;color:${rateCol};">전체 획득률 ${acqRate}%</span>
+            <div style="width:70px;height:4px;background:#F3F4F6;border-radius:99px;overflow:hidden;">
+              <div style="width:${acqRate}%;height:100%;background:${rateCol};border-radius:99px;"></div>
+            </div>
+          </div>
+          <span class="acc-arrow" style="margin-left:8px;">▼</span>
         </div>
       </div>
       <div class="acc-body">
         <div class="acc-inner">${s.desc}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   navigate('detail');
 }
@@ -1232,6 +1957,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTable();
   renderMainStats();
   renderMainRadar();
+  renderInsightCharts();
 });
 
 function renderMainStats() {
