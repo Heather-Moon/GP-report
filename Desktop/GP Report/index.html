@@ -1692,7 +1692,7 @@ function renderInsightCharts() {
   // ─ 그룹 총평 ─
   const ga = generateGroupAssessment();
   const gaEl = document.getElementById('ins-group-assessment');
-  if (gaEl) gaEl.innerHTML = assessmentHTML(ga);
+  if (gaEl) gaEl.innerHTML = `<div class="comment-text">${ga.text}</div>`;
 }
 
 /* ══════════════════════════════
