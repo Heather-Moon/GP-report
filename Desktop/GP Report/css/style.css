@@ -252,7 +252,7 @@ th {
   color: var(--text-sub); padding: 8px 10px 10px;
 }
 td { padding: 12px 10px; font-size: 0.84rem; border-bottom: 1px solid #F9FAFB; vertical-align: middle; }
-tbody tr { cursor: pointer; transition: background 0.1s; }
+tbody tr { transition: background 0.1s; }
 tbody tr:hover { background: #F8FBFF; }
 tbody tr:last-child td { border-bottom: none; }
 .td-btn {

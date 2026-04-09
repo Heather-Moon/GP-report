@@ -39,10 +39,10 @@
         <div class="eval-stats-inline">
           <div class="esi-item">
             <span class="esi-lbl" style="margin-bottom:3px;">응시자 현황</span>
-            <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
-              <span class="esi-val" id="main-esi-total">10<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span>
+            <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">              
+              <span style="font-size:0.85rem;">완료 <span class="esi-val" id="main-esi-done" style="font-size:1rem;">8<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span> <span id="main-esi-rate-pct" style="font-size:0.8rem; color:var(--text-mute);">(80%)</span>
               <span style="font-size:0.8rem; color:var(--text-mute);">|</span>
-              <span style="font-size:0.85rem;">완료 <span class="esi-val" id="main-esi-done" style="font-size:1rem;">8<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span> <span id="main-esi-rate-pct" style="font-size:0.8rem; color:var(--text-mute);">(80%)</span></span>
+              <span class="esi-val" id="main-esi-total">10<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span>
             </div>
           </div>
           <div class="esi-divider"></div>
@@ -55,21 +55,15 @@
 
       <!-- 인사이트 통합 카드 -->
       <div class="insight-card" style="margin-bottom:16px;">
-        <!-- 상단: 점수 분포 + 과목별 점수 분포 나란히 -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0;">
-          <!-- 점수 분포 -->
-          <div style="padding:0 16px 16px 0; border-right:1px solid var(--border);">
-            <div class="insight-header">점수 분포</div>
-            <div class="insight-stats" id="ins-score-stats"></div>
+        <!-- 점수 분포 + 탭 -->
+        <div class="insight-header">점수 분포</div>
+        <div class="ins-tab-group" id="ins-score-tabs"></div>
+        <!-- 차트(좌) + 통계(우) -->
+        <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:16px;">
+          <div style="flex:1; min-width:0;">
             <svg id="ins-score-curve" class="chart-svg" height="120" viewBox="0 0 360 120"></svg>
           </div>
-          <!-- 과목별 점수 분포 -->
-          <div style="padding:0 0 16px 16px;">
-            <div class="insight-header">과목별 점수 분포</div>
-            <div class="ins-tab-group" id="ins-track-tabs"></div>
-            <div class="insight-stats" id="ins-track-stat-val"></div>
-            <svg id="ins-track-curve" class="chart-svg" height="110" viewBox="0 0 360 110"></svg>
-          </div>
+          <div id="ins-score-stats" style="display:flex; flex-direction:column; gap:10px; min-width:110px; padding-top:6px;"></div>
         </div>
         <!-- 구분선 -->
         <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
@@ -269,9 +263,9 @@
   <footer>© 2026 Codepresso, Inc. All Rights Reserved.</footer>
 </div><!-- /app -->
 
-<script src="js/data.js"></script>
-<script src="js/charts.js"></script>
-<script src="js/render.js"></script>
-<script src="js/app.js"></script>
+<script src="js/data.js?v=20260409"></script>
+<script src="js/charts.js?v=20260409"></script>
+<script src="js/render.js?v=20260409"></script>
+<script src="js/app.js?v=20260409"></script>
 </body>
 </html>

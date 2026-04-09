@@ -72,7 +72,7 @@ function renderTable() {
           .findIndex(x => x.id === e.id) + 1
       : null;
     return `
-    <tr onclick="openPerson(${e.id})">
+    <tr>
       <td>
         <div style="font-weight:600;">${e.name}</div>
         <div style="font-size:0.76rem; color:var(--text-sub);">${e.email}</div>
@@ -91,7 +91,7 @@ function renderTable() {
         </div>` : '-'}
       </td>
       <td style="color:var(--text-sub);">${e.time}</td>
-      <td><button class="td-btn" onclick="event.stopPropagation(); openPerson(${e.id})">결과 보기</button></td>
+      <td><button class="td-btn" onclick="openPerson(${e.id})">결과 보기</button></td>
     </tr>`;
   }).join('') || `<tr><td colspan="6" style="text-align:center; color:var(--text-mute); padding:24px;">결과 없음</td></tr>`;
 

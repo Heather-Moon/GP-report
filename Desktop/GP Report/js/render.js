@@ -115,30 +115,45 @@ function assessmentHTML(assessment) {
 }
 
 /* ══════════════════════════════
-   INSIGHT STATE
+   INSIGHT STATE (점수 분포 탭)
 ══════════════════════════════ */
-let insightTrackIdx = 0;
+let scoreTabIdx = 0;
 
-function setInsightTrack(i) {
-  insightTrackIdx = i;
-  document.querySelectorAll('.ins-track-tab').forEach((b,j) => b.classList.toggle('active', i===j));
-  renderInsightTrackCurve(i);
+function setScoreTab(i) {
+  scoreTabIdx = i;
+  document.querySelectorAll('.ins-score-tab').forEach((b,j) => b.classList.toggle('active', i===j));
+  renderScoreCurve(i);
 }
 
-function renderInsightTrackCurve(i) {
-  const completed = EXAMINEES.filter(e => e.status==='completed' && e.tracks.length>0);
-  const trackScores = completed.map(e => e.tracks[i].score);
-  const sorted = [...trackScores].sort((a,b)=>a-b);
-  const avg = Math.round(trackScores.reduce((s,v)=>s+v,0)/trackScores.length*10)/10;
-  const n = sorted.length;
-  const median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
-  const col = trackColor(avg);
-  const short = ['분산 아키텍처','클라우드 컴퓨팅','Python'][i];
-  document.getElementById('ins-track-stat-val').innerHTML =
-    `<div class="ins-stat"><span class="ins-stat-val" style="color:${col};">${avg}점</span><span class="ins-stat-lbl">${short} 평균</span></div>` +
-    `<div class="ins-stat"><span class="ins-stat-val" style="color:#7C3AED;">${median}점</span><span class="ins-stat-lbl">중앙값</span></div>` +
-    `<div class="ins-stat"><span class="ins-stat-val">${sorted[0]}~${sorted[n-1]}점</span><span class="ins-stat-lbl">범위</span></div>`;
-  renderKDECurve('ins-track-curve', trackScores, avg, median, null, col);
+function renderScoreCurve(i) {
+  const statsEl = document.getElementById('ins-score-stats');
+  if (i === 0) {
+    // 전체 평가 결과
+    const stats = computeStats();
+    statsEl.innerHTML = [
+      { lbl: '평균',    val: stats.avg+'점',              color: '#1565C0' },
+      { lbl: '중앙값',  val: stats.median+'점',           color: '#7C3AED' },
+      { lbl: '범위',    val: stats.min+'~'+stats.max+'점' },
+      { lbl: '표준편차', val: 'σ '+stats.std },
+    ].map(s=>`<div class="ins-stat"><span class="ins-stat-lbl">${s.lbl}</span><span class="ins-stat-val"${s.color?' style="color:'+s.color+';"':''}>${s.val}</span></div>`).join('');
+    renderKDECurve('ins-score-curve', stats.scores, stats.avg, stats.median, null, '#1565C0');
+  } else {
+    // 과목별 (i-1 번째 트랙)
+    const trackIdx = i - 1;
+    const completed = EXAMINEES.filter(e => e.status==='completed' && e.tracks.length>0);
+    const trackScores = completed.map(e => e.tracks[trackIdx].score);
+    const sorted = [...trackScores].sort((a,b)=>a-b);
+    const avg = Math.round(trackScores.reduce((s,v)=>s+v,0)/trackScores.length*10)/10;
+    const n = sorted.length;
+    const median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
+    const col = trackColor(avg);
+    statsEl.innerHTML = [
+      { lbl: '평균',   val: avg+'점',                        color: col },
+      { lbl: '중앙값', val: median+'점',                     color: '#7C3AED' },
+      { lbl: '범위',   val: sorted[0]+'~'+sorted[n-1]+'점' },
+    ].map(s=>`<div class="ins-stat"><span class="ins-stat-lbl">${s.lbl}</span><span class="ins-stat-val"${s.color?' style="color:'+s.color+';"':''}>${s.val}</span></div>`).join('');
+    renderKDECurve('ins-score-curve', trackScores, avg, median, null, col);
+  }
 }
 
 function renderSkillDonuts() {
@@ -249,20 +264,12 @@ function renderInsightCharts() {
   const stats = computeStats();
   if (!stats) return;
 
-  // ─ 점수 분포 KDE 곡선 ─
-  document.getElementById('ins-score-stats').innerHTML = [
-    { val: stats.avg+'점', lbl: '평균' },
-    { val: stats.median+'점', lbl: '중앙값' },
-    { val: stats.min+'~'+stats.max+'점', lbl: '범위' },
-    { val: 'σ '+stats.std, lbl: '표준편차' },
-  ].map(s=>`<div class="ins-stat"><span class="ins-stat-val">${s.val}</span><span class="ins-stat-lbl">${s.lbl}</span></div>`).join('');
-  renderKDECurve('ins-score-curve', stats.scores, stats.avg, stats.median, null, '#1565C0');
-
-  // ─ 과목별 탭 버튼 초기화 ─
-  document.getElementById('ins-track-tabs').innerHTML = TRACKS_META.map((m,i)=>
-    `<button class="ins-tab-btn ins-track-tab${i===0?' active':''}" onclick="setInsightTrack(${i})">${['분산 아키텍처','클라우드 컴퓨팅','Python'][i]}</button>`
+  // ─ 점수 분포 탭 버튼 초기화 ─
+  const tabLabels = ['전체 평가 결과', '분산 아키텍처', '클라우드 컴퓨팅', 'Python'];
+  document.getElementById('ins-score-tabs').innerHTML = tabLabels.map((lbl, i) =>
+    `<button class="ins-tab-btn ins-score-tab${i===0?' active':''}" onclick="setScoreTab(${i})">${lbl}</button>`
   ).join('');
-  renderInsightTrackCurve(0);
+  renderScoreCurve(0);
 
   // ─ 역량 획득 도넛 ─
   renderSkillDonuts();
