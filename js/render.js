@@ -364,32 +364,65 @@ function renderSummaryTab(e) {
       </div>
     </div>
 
-    <div class="sec-title" style="margin-top:4px;">역량 획득 현황</div>
-    <div class="compare-card">
-      ${tracks.map(t => {
-        const acqCount   = t.skills.filter(s => s.level === 'acquired').length;
-        const totalCount = t.skills.length;
-        const shortName  = t.name.replace('클라우드 & 분산 시스템 아키텍처','클라우드 & 분산 시스템');
-        return `<div class="track-acq-card">
-          <div class="track-acq-header">
-            <div class="track-acq-score" style="color:${t.color};">${t.score}<small>/100</small></div>
-            <div class="track-acq-name">${shortName}</div>
-            <div class="track-acq-rate" style="background:${t.colorBg};color:${t.color};">${acqCount}/${totalCount}개&nbsp; ${t.rate}%</div>
+    <div class="compare-card" style="margin-bottom:16px;">
+      <div class="ss-block-title">점수 분포</div>
+      <div class="kde-outer">
+        <div class="kde-graph-area">
+          <svg id="p-sum-kde" class="chart-svg" height="160" viewBox="0 0 360 160"></svg>
+          <div class="kde-legend">
+            <div class="kde-legend-item">
+              <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
+            </div>
+            <div class="kde-legend-item">
+              <span class="kde-leg-line" style="border-color:#16A34A; border-style:solid;"></span>합격선 (80점)
+            </div>
           </div>
-          <div class="track-acq-skills">
-            ${t.skills.map(s => `
-              <div class="track-acq-skill-row">
-                <span class="badge ${LEVEL_CLASS[s.level]}">${LEVEL_LABEL[s.level]}</span>
-                <span class="track-acq-skill-name">${s.name}</span>
-              </div>`).join('')}
+        </div>
+        <div class="kde-stats-panel">
+          <div class="kde-stat">
+            <div class="kde-stat-val">${avg}점</div>
+            <div class="kde-stat-lbl">평균</div>
           </div>
-        </div>`;
-      }).join('')}
+          <div class="kde-stat">
+            <div class="kde-stat-val">${median}점</div>
+            <div class="kde-stat-lbl">중앙값</div>
+          </div>
+          <div class="kde-stat">
+            <div class="kde-stat-val">${std}점</div>
+            <div class="kde-stat-lbl">표준편차</div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-divider"></div>
+      <div class="ss-block-title">획득 역량</div>
+      <div class="donut-row">
+        <div class="donut-item">
+          <svg id="p-sum-donut-all" width="84" height="84" viewBox="0 0 84 84"></svg>
+          <div class="donut-item-label" style="color:${scoreCol};">전체</div>
+        </div>
+        <div class="donut-separator"></div>
+        ${tracks.map((t, ti) => {
+          const shortName = t.name.replace('클라우드 & 분산 시스템 아키텍처','클라우드 & 분산 시스템');
+          return `<div class="donut-item">
+            <svg id="p-sum-donut-${ti}" width="84" height="84" viewBox="0 0 84 84"></svg>
+            <div class="donut-item-label" style="color:${t.color};">${shortName}</div>
+          </div>
+          ${ti < tracks.length - 1 ? '<div class="donut-separator"></div>' : ''}`;
+        }).join('')}
+      </div>
     </div>
 
-    <div class="sec-title" style="margin-top:16px;">시험 결과 총평</div>
+    <div class="sec-title">시험 결과 총평</div>
     <div class="comment-box">${assessmentHTML(generatePersonAssessment(e))}</div>
   `;
+
+  // 차트 렌더링 (innerHTML 설정 후)
+  renderKDECurve('p-sum-kde', totalScores, avg, median, e.totalScore, scoreCol);
+  renderDonut('p-sum-donut-all', acq, total, scoreCol, '#E5E7EB');
+  tracks.forEach((t, ti) => {
+    const acqCount = t.skills.filter(s => s.level === 'acquired').length;
+    renderDonut(`p-sum-donut-${ti}`, acqCount, t.skills.length, t.color, t.colorBg);
+  });
 }
 
 /* ══════════════════════════════
