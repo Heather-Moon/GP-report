@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>평가 관리 대시보드 | code.presso</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── 탑바 ─── -->
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="navigate('main')">
+      <div class="brand-icon">
+        <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3zm0 5h14v2H3zm0 5h9v2H3z"/></svg>
+      </div>
+      <span class="brand-name">code<span>.presso</span></span>
+    </div>
+    <div id="breadcrumb" class="breadcrumb"></div>
+    <div class="topbar-user">
+      <span class="eval-badge" id="eval-badge-name">MLOps 엔지니어_260405</span>
+      <div class="avatar">A</div>
+    </div>
+  </nav>
+
+  <!-- ─── 콘텐츠 ─── -->
+  <div class="content-wrap">
+
+    <!-- ══════════════════════════════════
+         PAGE 1: 메인 대시보드
+    ══════════════════════════════════ -->
+    <div id="page-main" class="page active">
+
+      <!-- 평가 개요 바 (인라인 통계 포함) -->
+      <div class="eval-overview-bar">
+        <div class="eval-overview-title">평가 개요</div>
+        <div class="eval-period">2026.03.30 ~ 2026.04.05 &nbsp;|&nbsp; 제한 2시간 40분</div>
+        <div class="eval-stats-inline">
+          <div class="esi-item">
+            <span class="esi-lbl" style="margin-bottom:3px;">응시자 현황</span>
+            <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
+              <span style="font-size:0.85rem;">완료 <span class="esi-val" id="main-esi-done" style="font-size:1rem;">8<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span> <span id="main-esi-rate-pct" style="font-size:0.8rem; color:var(--text-mute);">(80%)</span></span>
+              <span style="font-size:0.8rem; color:var(--text-mute);">|</span>
+              <span class="esi-val" id="main-esi-total">10<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span>
+            </div>
+          </div>
+          <div class="esi-divider"></div>
+          <div class="esi-item">
+            <span class="esi-lbl" style="margin-bottom:3px;">평균 스킬 확보율</span>
+            <span class="esi-val warn" id="main-esi-rate">71.7<span style="font-size:0.75em;font-weight:600;">%</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 메인 탭 버튼 -->
+      <div class="main-tab-nav">
+        <button class="main-tab-btn active" id="main-tab-btn-results" onclick="setMainTab('results')">평가 결과</button>
+        <button class="main-tab-btn" id="main-tab-btn-examinees" onclick="setMainTab('examinees')">응시자 목록</button>
+      </div>
+
+      <!-- 탭 콘텐츠: 평가 결과 -->
+      <div id="main-tab-results" class="main-tab-content">
+        <!-- 인사이트 통합 카드 -->
+        <div class="insight-card" style="margin-bottom:16px;">
+          <!-- 점수 분포 + 탭 -->
+          <div class="insight-header">점수 분포</div>
+          <div class="ins-tab-group" id="ins-score-tabs"></div>
+          <!-- 차트(좌) + 통계(우) -->
+          <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:16px;">
+            <div style="flex:1; min-width:0;">
+              <svg id="ins-score-curve" class="chart-svg" height="130" viewBox="0 0 360 130"></svg>
+            </div>
+            <div id="ins-score-stats" style="display:flex; flex-direction:column; gap:10px; min-width:110px; padding-top:6px;"></div>
+          </div>
+          <!-- 구분선 -->
+          <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
+          <!-- 하단: 역량 획득 현황 -->
+          <div class="insight-header">역량 획득 현황</div>
+          <div class="insight-stats" id="ins-skill-stats"></div>
+          <div class="donut-row" id="ins-skill-donuts"></div>
+        </div>
+
+        <!-- 평가 총평 (전체 평가 기반) -->
+        <div class="sec-title">평가 총평</div>
+        <div class="comment-box" id="ins-group-assessment"></div>
+      </div>
+
+      <!-- 탭 콘텐츠: 응시자 목록 -->
+      <div id="main-tab-examinees" class="main-tab-content" style="display:none;">
+        <div class="table-card">
+          <div class="table-controls">
+            <input type="text" class="search-input" placeholder="🔍  이름 또는 이메일 검색" id="search-input" oninput="renderTable()" />
+            <div class="filter-tabs">
+              <button class="filter-tab active" onclick="setFilter('all',this)">전체</button>
+              <button class="filter-tab" onclick="setFilter('completed',this)">완료</button>
+              <button class="filter-tab" onclick="setFilter('incomplete',this)">미완료</button>
+            </div>
+            <select class="sort-select" id="sort-select" onchange="renderTable()">
+              <option value="score">점수순</option>
+              <option value="rate">스킬확보율순</option>
+              <option value="time">소요시간순</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>응시자</th>
+                <th>상태</th>
+                <th>총점</th>
+                <th>스킬 확보율</th>
+                <th>소요시간</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="examinee-tbody"></tbody>
+          </table>
+          <div class="pagination">
+            <div class="pg-info" id="pg-info"></div>
+            <div class="pg-btns" id="pg-btns"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-main -->
+
+
+    <!-- ══════════════════════════════════
+         PAGE 2: 평가자 개인 페이지
+    ══════════════════════════════════ -->
+    <div id="page-person" class="page">
+      <button class="back-btn" onclick="navigate('main')">← 목록으로</button>
+
+      <!-- 응시자 헤더 -->
+      <div class="person-header">
+        <div class="person-avatar" id="p-avatar">손</div>
+        <div style="flex:1; min-width:0;">
+          <div class="person-name" id="p-name">덕인 손</div>
+          <div class="person-meta">
+            <span id="p-email"></span>
+            <span id="p-status"></span>
+            <span id="p-date"></span>
+            <span id="p-time-meta"></span>
+          </div>
+        </div>
+        <button class="behavior-btn" onclick="toggleBehaviorPanel()">행동 분석</button>
+      </div>
+
+      <!-- 행동 분석 패널 -->
+      <div class="behavior-panel" id="behavior-panel" style="display:none;">
+        <span class="behavior-panel-label">행동 분석</span>
+        <button class="behavior-action-btn">영상</button>
+        <button class="behavior-action-btn">타임라인</button>
+      </div>
+
+      <!-- 탭 네비게이션 -->
+      <div class="person-tab-nav">
+        <button class="person-tab-btn active" id="ptab-btn-0" onclick="setPersonTab(0)">결과 요약</button>
+        <button class="person-tab-btn" id="ptab-btn-1" onclick="setPersonTab(1)">클라우드 &amp; 분산 시스템</button>
+        <button class="person-tab-btn" id="ptab-btn-2" onclick="setPersonTab(2)">클라우드 컴퓨팅</button>
+        <button class="person-tab-btn" id="ptab-btn-3" onclick="setPersonTab(3)">Python</button>
+      </div>
+
+      <!-- 탭 콘텐츠 (JS로 채워짐) -->
+      <div id="ptab-0" class="person-tab-content"></div>
+      <div id="ptab-1" class="person-tab-content" style="display:none;"></div>
+      <div id="ptab-2" class="person-tab-content" style="display:none;"></div>
+      <div id="ptab-3" class="person-tab-content" style="display:none;"></div>
+    </div><!-- /page-person -->
+
+
+    <!-- ══════════════════════════════════
+         PAGE 3: 트랙 세부 내용
+    ══════════════════════════════════ -->
+    <div id="page-detail" class="page">
+      <button class="back-btn" onclick="navigate('person')">← 개인 결과로</button>
+
+      <!-- 세부 요약 카드 4열 -->
+      <div class="sec-title" id="d-track-title">트랙 세부 내용</div>
+      <div class="summary-4">
+        <div class="summary-card">
+          <div class="sc-icon">📝</div>
+          <div class="sc-value" id="d-score" style="color:var(--primary);">55<small>/100</small></div>
+          <div class="sc-label">트랙 점수</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon">💡</div>
+          <div class="sc-value" id="d-rate" style="color:var(--partial);">47.8<small>%</small></div>
+          <div class="sc-label">스킬 확보율</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon">⏱</div>
+          <div class="sc-value" id="d-time" style="color:var(--text); font-size:1.5rem;">08:20</div>
+          <div class="sc-label">소요시간</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-icon">📊</div>
+          <div class="sc-value" id="d-vs-avg" style="color:var(--primary);">-</div>
+          <div class="sc-label">전체 평균 대비</div>
+          <div class="sc-sub" id="d-vs-avg-sub" style="font-size:0.7rem; color:var(--text-mute); margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <!-- 통계 비교 차트 -->
+      <div class="sec-title">통계 비교</div>
+      <div class="compare-card">
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <div style="font-size:0.76rem; color:var(--text-sub); margin-bottom:5px;">전체 점수 분포 내 내 위치</div>
+            <svg id="d-hist" class="chart-svg" height="90" viewBox="0 0 280 90"></svg>
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <div class="gbar-legend">
+              <div class="gbar-legend-item"><div class="gbar-legend-dot" style="background:var(--primary);"></div>나</div>
+              <div class="gbar-legend-item"><div class="gbar-legend-dot" style="background:#CBD5E1;"></div>전체 평균</div>
+            </div>
+            <div style="font-size:0.76rem; color:var(--text-sub); margin-bottom:5px;">역량별 비교 (나 vs 전체 평균)</div>
+            <svg id="d-group-bar" class="chart-svg" height="90" viewBox="0 0 280 90"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 평가 총평 -->
+      <div class="sec-title">평가 총평</div>
+      <div class="comment-box" id="d-assessment"></div>
+
+      <!-- 스킬 레벨 분포 -->
+      <div class="level-dist-bar">
+        <div class="sec-title" style="margin-bottom:12px;">스킬 레벨 분포</div>
+        <div class="level-bar-wrap" id="d-level-bar"></div>
+        <div class="level-bar-legend" id="d-level-legend"></div>
+      </div>
+
+      <!-- 트랙 설명 -->
+      <div class="eval-desc" id="d-track-desc"></div>
+
+      <!-- 스킬별 아코디언 -->
+      <div class="sec-title">스킬별 세부 결과</div>
+      <div class="skill-accordion" id="d-accordion"></div>
+    </div><!-- /page-detail -->
+
+  </div><!-- /content-wrap -->
+
+  <footer>© 2026 Codepresso, Inc. All Rights Reserved.</footer>
+</div><!-- /app -->
+
+<script src="js/data.js?v=20260409k"></script>
+<script src="js/charts.js?v=20260409k"></script>
+<script src="js/render.js?v=20260409k"></script>
+<script src="js/app.js?v=20260409k"></script>
+</body>
+</html>
