@@ -434,3 +434,84 @@ function renderRadar(svgId, axes, color, legendId) {
       </div>`).join('');
   }
 }
+
+/* ══════════════════════════════
+   CHART: DUAL RADAR (나 vs 전체 평균)
+   labels: string[], meVals: number[], avgVals: number[], color: string
+   tooltipId: 툴팁 div id
+══════════════════════════════ */
+function renderDualRadar(svgId, labels, meVals, avgVals, color, tooltipId) {
+  const svg = document.getElementById(svgId); if (!svg) return;
+  svg.innerHTML = '';
+  const n = labels.length;
+  const W = parseInt(svg.getAttribute('width') || '240');
+  const H = parseInt(svg.getAttribute('height') || '240');
+  const cx = W / 2, cy = H / 2;
+  const R = Math.min(cx, cy) - 38;
+  const step = (2 * Math.PI) / n;
+  const start = -Math.PI / 2;
+
+  function pt(i, pct) {
+    const a = start + i * step;
+    const r = R * Math.max(0, pct) / 100;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+
+  // 격자
+  [20, 40, 60, 80, 100].forEach((pct, idx) => {
+    const pts = Array.from({length: n}, (_, i) => pt(i, pct).join(',')).join(' ');
+    svg.appendChild(svgEl('polygon', { points: pts,
+      fill: idx % 2 === 0 ? '#F8FAFD' : 'none', stroke: '#E5E7EB', 'stroke-width': '1' }));
+  });
+
+  // 축선
+  labels.forEach((_, i) => {
+    const [x, y] = pt(i, 100);
+    svg.appendChild(svgEl('line', { x1: cx, y1: cy, x2: x, y2: y, stroke: '#DDE3EF', 'stroke-width': '1' }));
+  });
+
+  // 전체 평균 폴리곤 (옅은색, 점선)
+  const avgPts = avgVals.map((v, i) => pt(i, v).join(',')).join(' ');
+  svg.appendChild(svgEl('polygon', { points: avgPts,
+    fill: 'rgba(203,213,225,0.25)', stroke: '#94A3B8', 'stroke-width': '1.5', 'stroke-dasharray': '4,3' }));
+
+  // 내 폴리곤 (짙은색)
+  const mePts = meVals.map((v, i) => pt(i, v).join(',')).join(' ');
+  svg.appendChild(svgEl('polygon', { points: mePts,
+    fill: hexAlpha(color, 0.18), stroke: color, 'stroke-width': '2.2' }));
+
+  // 라벨
+  labels.forEach((lbl, i) => {
+    const a = start + i * step;
+    const lx = cx + (R + 26) * Math.cos(a);
+    const ly = cy + (R + 26) * Math.sin(a);
+    const anchor = Math.abs(Math.cos(a)) < 0.1 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
+    const short = lbl.length > 9 ? lbl.slice(0, 8) + '…' : lbl;
+    const t = svgEl('text', { x: lx, y: ly + 4, 'text-anchor': anchor,
+      'font-size': '9', fill: '#374151', 'font-weight': '600' });
+    t.textContent = short;
+    svg.appendChild(t);
+  });
+
+  // 점 + 호버 히트 영역
+  const tip = tooltipId ? document.getElementById(tooltipId) : null;
+  labels.forEach((lbl, i) => {
+    const [mx, my] = pt(i, meVals[i]);
+    const [ax, ay] = pt(i, avgVals[i]);
+    // avg dot
+    svg.appendChild(svgEl('circle', { cx: ax, cy: ay, r: '3.5', fill: '#94A3B8', stroke: 'white', 'stroke-width': '1.5' }));
+    // me dot
+    svg.appendChild(svgEl('circle', { cx: mx, cy: my, r: '4.5', fill: color, stroke: 'white', 'stroke-width': '2' }));
+    // transparent hit circle along axis
+    const [hx, hy] = pt(i, 100);
+    const hitEl = svgEl('circle', { cx: hx, cy: hy, r: '20', fill: 'transparent', style: 'cursor:pointer;' });
+    hitEl.addEventListener('mouseenter', () => {
+      if (tip) {
+        tip.innerHTML = `<strong>${lbl}</strong><br>내 점수 ${meVals[i]}% &nbsp;|&nbsp; 전체 평균 ${avgVals[i]}%`;
+        tip.style.display = 'block';
+      }
+    });
+    hitEl.addEventListener('mouseleave', () => { if (tip) tip.style.display = 'none'; });
+    svg.appendChild(hitEl);
+  });
+}

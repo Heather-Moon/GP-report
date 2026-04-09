@@ -134,64 +134,38 @@
       <!-- 응시자 헤더 -->
       <div class="person-header">
         <div class="person-avatar" id="p-avatar">손</div>
-        <div style="flex:1;">
+        <div style="flex:1; min-width:0;">
           <div class="person-name" id="p-name">덕인 손</div>
           <div class="person-meta">
             <span id="p-email"></span>
             <span id="p-status"></span>
             <span id="p-date"></span>
+            <span id="p-time-meta"></span>
           </div>
         </div>
+        <button class="behavior-btn" onclick="toggleBehaviorPanel()">행동 분석</button>
       </div>
 
-      <!-- Hero 요약 카드 -->
-      <div class="sec-title">시험 결과 요약</div>
-      <div class="hero-cards" style="margin-bottom:24px;">
-        <div class="hero-card">
-          <div class="hero-card-value" id="p-score">80<small>점</small></div>
-          <div class="hero-card-label">총점</div>
-          <div class="hero-card-sub" id="p-pass"></div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-value warn" id="p-rate">77.1<small>%</small></div>
-          <div class="hero-card-label">스킬 확보율</div>
-          <div class="hero-card-sub" id="p-skill-count"></div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-value" id="p-time" style="font-size:1.5rem;">2:18:43</div>
-          <div class="hero-card-label">총 소요시간</div>
-          <div class="hero-card-sub">제한 2시간 40분</div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-value" id="p-rank" style="font-size:1.4rem;">1 / 1</div>
-          <div class="hero-card-label">순위 (전체)</div>
-        </div>
+      <!-- 행동 분석 패널 -->
+      <div class="behavior-panel" id="behavior-panel" style="display:none;">
+        <span class="behavior-panel-label">행동 분석</span>
+        <button class="behavior-action-btn">영상</button>
+        <button class="behavior-action-btn">타임라인</button>
       </div>
 
-      <!-- 과목별 점수 Progress Bars -->
-      <div class="sec-title">과목별 점수</div>
-      <div class="compare-card" id="p-track-scores"></div>
-
-      <!-- 레이더 차트 -->
-      <div class="radar-card">
-        <div class="sec-title" style="margin-bottom:14px;">스킬 확보율 레이더</div>
-        <div class="radar-inner">
-          <svg class="radar-svg" id="p-radar" width="220" height="220" viewBox="0 0 220 220"></svg>
-          <div class="radar-legend" id="p-radar-legend"></div>
-        </div>
+      <!-- 탭 네비게이션 -->
+      <div class="person-tab-nav">
+        <button class="person-tab-btn active" id="ptab-btn-0" onclick="setPersonTab(0)">결과 요약</button>
+        <button class="person-tab-btn" id="ptab-btn-1" onclick="setPersonTab(1)">클라우드 &amp; 분산 시스템</button>
+        <button class="person-tab-btn" id="ptab-btn-2" onclick="setPersonTab(2)">클라우드 컴퓨팅</button>
+        <button class="person-tab-btn" id="ptab-btn-3" onclick="setPersonTab(3)">Python</button>
       </div>
 
-      <!-- 전체 평균 대비 -->
-      <div class="sec-title">전체 평균 대비</div>
-      <div class="compare-card" id="p-vs-avg"></div>
-
-      <!-- 시험 결과 총평 -->
-      <div class="sec-title">시험 결과 총평</div>
-      <div class="comment-box" id="p-assessment"></div>
-
-      <!-- 트랙별 결과 카드 (수직) -->
-      <div class="sec-title">트랙별 결과</div>
-      <div class="track-list" id="track-list"></div>
+      <!-- 탭 콘텐츠 (JS로 채워짐) -->
+      <div id="ptab-0" class="person-tab-content"></div>
+      <div id="ptab-1" class="person-tab-content" style="display:none;"></div>
+      <div id="ptab-2" class="person-tab-content" style="display:none;"></div>
+      <div id="ptab-3" class="person-tab-content" style="display:none;"></div>
     </div><!-- /page-person -->
 
 
@@ -270,9 +244,9 @@
   <footer>© 2026 Codepresso, Inc. All Rights Reserved.</footer>
 </div><!-- /app -->
 
-<script src="js/data.js?v=20260409j"></script>
-<script src="js/charts.js?v=20260409j"></script>
-<script src="js/render.js?v=20260409j"></script>
-<script src="js/app.js?v=20260409j"></script>
+<script src="js/data.js?v=20260409k"></script>
+<script src="js/charts.js?v=20260409k"></script>
+<script src="js/render.js?v=20260409k"></script>
+<script src="js/app.js?v=20260409k"></script>
 </body>
 </html>

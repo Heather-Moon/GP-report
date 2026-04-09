@@ -121,81 +121,46 @@ function openPerson(id) {
   selectedExaminee = EXAMINEES.find(x => x.id === id);
   const e = selectedExaminee;
 
+  // 헤더 채우기
   document.getElementById('p-avatar').textContent = e.name[1] || e.name[0];
   document.getElementById('p-name').textContent = e.name;
   document.getElementById('p-email').textContent = '✉ ' + e.email;
-  document.getElementById('p-date').textContent = '📅 ' + e.date;
   document.getElementById('p-status').innerHTML = e.status === 'completed'
     ? '<span class="badge badge-complete">평가 완료</span>'
     : '<span class="badge" style="background:#F3F4F6;color:var(--text-sub);">미완료</span>';
+  document.getElementById('p-date').textContent = '📅 ' + e.date;
+  document.getElementById('p-time-meta').textContent = e.status === 'completed' ? '⏱ ' + e.time : '';
 
-  if (e.status !== 'completed') {
-    document.getElementById('p-score').innerHTML = '-';
-    document.getElementById('p-pass').textContent = '';
-    document.getElementById('p-rate').innerHTML = '-';
-    document.getElementById('p-skill-count').textContent = '';
-    document.getElementById('p-time').textContent = '-';
-    const completed = EXAMINEES.filter(x => x.status === 'completed');
-    document.getElementById('p-rank').textContent = `- / ${completed.length}`;
-    document.getElementById('track-list').innerHTML =
-      `<div style="padding:24px; text-align:center; color:var(--text-mute);">아직 평가를 완료하지 않았습니다.</div>`;
-    navigate('person');
-    return;
+  // 행동 분석 패널 초기화
+  document.getElementById('behavior-panel').style.display = 'none';
+
+  // 탭 초기화
+  setPersonTab(0);
+
+  // 탭 콘텐츠 렌더
+  renderSummaryTab(e);
+  if (e.status === 'completed') {
+    [0, 1, 2].forEach(ti => renderTrackTab(e, ti));
+  } else {
+    [1, 2, 3].forEach(i => {
+      document.getElementById('ptab-' + i).innerHTML =
+        `<div style="padding:40px;text-align:center;color:var(--text-mute);">아직 평가를 완료하지 않았습니다.</div>`;
+    });
   }
 
-  document.getElementById('p-score').innerHTML = `${e.totalScore}<small>점</small>`;
-  document.getElementById('p-pass').textContent = e.totalScore >= 70 ? '합격 기준 충족' : '합격 기준 미달';
-  document.getElementById('p-rate').innerHTML = `${e.rate}<small>%</small>`;
-
-  const tracks = buildTracks(e);
-  const allSkills = tracks.flatMap(t => t.skills);
-  const acq  = allSkills.filter(s => s.level === 'acquired').length;
-  const part = allSkills.filter(s => s.level === 'partial').length;
-  document.getElementById('p-skill-count').textContent = `획득 ${acq} / 보완 ${part} / 미획득 ${allSkills.length - acq - part}`;
-  document.getElementById('p-time').textContent = e.time;
-
-  const completedSorted = EXAMINEES
-    .filter(x => x.status === 'completed')
-    .sort((a,b) => (b.totalScore||0)-(a.totalScore||0));
-  const rank = completedSorted.findIndex(x => x.id === e.id) + 1;
-  document.getElementById('p-rank').textContent = `${rank} / ${completedSorted.length}`;
-
-  // 트랙 카드 렌더
-  document.getElementById('track-list').innerHTML = tracks.map((t, idx) => {
-    const rc = rateColor(t.rate);
-    return `<div class="track-card" style="border-left-color:${t.color};">
-      <div class="track-card-header">
-        <div class="track-info">
-          <div class="track-name">${t.name}</div>
-          <div class="track-meta">
-            <span class="badge badge-level">${t.level}</span>
-            <span style="font-size:0.75rem; color:var(--text-mute);">${t.time}</span>
-          </div>
-        </div>
-        <div class="track-score-block">
-          <div class="track-score-num" style="color:${t.color};">${t.score}<small>/100</small></div>
-          <div class="track-score-label">트랙 점수</div>
-        </div>
-      </div>
-      <div class="skill-rate-row">
-        <div class="skill-rate-label">스킬 확보율</div>
-        <div class="prog-bg">
-          <div class="prog-fill" style="width:${t.rate}%; background:${rc};"></div>
-        </div>
-        <div class="skill-rate-val" style="color:${rc};">${t.rate}%</div>
-      </div>
-      <div class="skill-chips">
-        ${t.skills.map(s => `
-          <span class="skill-chip ${s.level === 'acquired' ? 'badge-acquired' : s.level === 'partial' ? 'badge-partial' : 'badge-missing'}">
-            ${s.name}
-          </span>`).join('')}
-      </div>
-      <button class="track-detail-btn" onclick="openDetail(${idx})">세부 내용 보기 →</button>
-    </div>`;
-  }).join('');
-
-  renderPersonSections(e);
   navigate('person');
+}
+
+function setPersonTab(i) {
+  document.querySelectorAll('.person-tab-btn').forEach((b, j) => b.classList.toggle('active', i === j));
+  [0, 1, 2, 3].forEach(j => {
+    document.getElementById('ptab-' + j).style.display = j === i ? '' : 'none';
+  });
+}
+
+function toggleBehaviorPanel() {
+  const p = document.getElementById('behavior-panel');
+  p.style.display = p.style.display === 'none' ? '' : 'none';
 }
 
 /* ══════════════════════════════

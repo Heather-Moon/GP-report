@@ -562,6 +562,63 @@ footer {
 .donut-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:80px; }
 .donut-item-label { font-size:0.72rem; color:var(--text-sub); font-weight:600; text-align:center; max-width:90px; }
 
+/* ── 행동 분석 버튼 & 패널 ── */
+.behavior-btn { flex-shrink:0; padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:#fff; font-size:0.78rem; font-weight:600; color:var(--text-sub); cursor:pointer; transition:all 0.15s; }
+.behavior-btn:hover { border-color:var(--primary); color:var(--primary); }
+.behavior-panel { display:flex; align-items:center; gap:10px; background:#F8FAFD; border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:14px; }
+.behavior-panel-label { font-size:0.78rem; font-weight:700; color:var(--text-sub); margin-right:4px; }
+.behavior-action-btn { padding:6px 16px; border-radius:6px; border:1px solid var(--border); background:#fff; font-size:0.8rem; font-weight:600; color:var(--primary); cursor:pointer; transition:all 0.15s; }
+.behavior-action-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+/* ── 개인 페이지 탭 ── */
+.person-tab-nav { display:flex; border-bottom:2px solid var(--border); margin-bottom:20px; overflow-x:auto; }
+.person-tab-btn { padding:10px 16px; border:none; background:none; font-size:0.82rem; font-weight:600; color:var(--text-sub); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; white-space:nowrap; transition:all 0.15s; }
+.person-tab-btn:hover { color:var(--primary); }
+.person-tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+.person-tab-content { animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── 결과 요약 탭 — 지표 카드 ── */
+.summary-stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+.ss-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 10px; text-align:center; }
+.ss-val { font-size:1.9rem; font-weight:800; color:var(--text); line-height:1.1; }
+.ss-val small { font-size:0.55em; font-weight:600; color:var(--text-sub); }
+.ss-label { font-size:0.72rem; color:var(--text-sub); font-weight:600; margin-top:5px; }
+.ss-sub { font-size:0.68rem; color:var(--text-mute); margin-top:2px; }
+
+/* ── 트랙 탭 — 지표 카드 ── */
+.track-stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+.tsg-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 10px; text-align:center; }
+.tsg-val { font-size:1.7rem; font-weight:800; color:var(--text); line-height:1.1; }
+.tsg-val small { font-size:0.55em; font-weight:600; color:var(--text-sub); }
+.tsg-label { font-size:0.72rem; color:var(--text-sub); font-weight:600; margin-top:5px; }
+
+/* ── 트랙 설명 박스 ── */
+.track-desc-box { background:#F8FAFD; border-left:3px solid var(--primary); padding:12px 14px; border-radius:0 8px 8px 0; font-size:0.81rem; color:var(--text-sub); line-height:1.6; margin-bottom:16px; }
+
+/* ── 레이더 (dual) ── */
+.radar-wrap { position:relative; display:inline-block; }
+.radar-tip { position:absolute; top:8px; left:50%; transform:translateX(-50%); background:rgba(17,24,39,0.88); color:#fff; padding:7px 12px; border-radius:8px; font-size:0.73rem; pointer-events:none; white-space:nowrap; z-index:10; display:none; line-height:1.5; text-align:center; }
+.radar-legend-row { display:flex; gap:14px; margin-top:8px; }
+.radar-legend-item { display:flex; align-items:center; gap:5px; font-size:0.73rem; color:var(--text-sub); }
+.rl-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+/* ── 역량 현황 칩 ── */
+.skill-status-section { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
+
+/* ── 스킬 세부 카드 ── */
+.skill-detail-list { display:flex; flex-direction:column; gap:12px; }
+.skill-detail-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px; }
+.sdc-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.sdc-name { font-weight:700; font-size:0.88rem; flex:1; min-width:0; }
+.sdc-rate { font-size:0.72rem; font-weight:700; white-space:nowrap; }
+.sdc-desc { font-size:0.8rem; color:var(--text-sub); line-height:1.6; margin-bottom:10px; }
+.sdc-verdict { font-size:0.79rem; padding:8px 10px; border-radius:6px; line-height:1.5; }
+.verdict-good { background:#F0FDF4; color:#166534; }
+.verdict-warn { background:#FFFBEB; color:#92400E; }
+.verdict-bad { background:#FEF2F2; color:#991B1B; }
+.verdict-label { font-weight:700; margin-right:4px; }
+
 /* ── 반응형 ── */
 @media (max-width: 680px) {
   .hero-cards { grid-template-columns: repeat(2, 1fr); }
