@@ -165,12 +165,11 @@ function openPerson(id) {
     const rc = rateColor(t.rate);
     return `<div class="track-card" style="border-left-color:${t.color};">
       <div class="track-card-header">
-        <div class="track-icon" style="background:${t.colorBg};">${t.icon}</div>
         <div class="track-info">
           <div class="track-name">${t.name}</div>
           <div class="track-meta">
             <span class="badge badge-level">${t.level}</span>
-            <span style="font-size:0.75rem; color:var(--text-mute);">⏱ ${t.time}</span>
+            <span style="font-size:0.75rem; color:var(--text-mute);">${t.time}</span>
           </div>
         </div>
         <div class="track-score-block">
@@ -188,7 +187,7 @@ function openPerson(id) {
       <div class="skill-chips">
         ${t.skills.map(s => `
           <span class="skill-chip ${s.level === 'acquired' ? 'badge-acquired' : s.level === 'partial' ? 'badge-partial' : 'badge-missing'}">
-            ${s.level === 'acquired' ? '✔' : s.level === 'partial' ? '△' : '✘'} ${s.name}
+            ${s.name}
           </span>`).join('')}
       </div>
       <button class="track-detail-btn" onclick="openDetail(${idx})">세부 내용 보기 →</button>
@@ -207,7 +206,7 @@ function openDetail(idx) {
   const t = buildTracks(selectedExaminee)[idx];
   const rc = rateColor(t.rate);
 
-  document.getElementById('d-track-title').textContent = `${t.icon}  ${t.name} — ${t.level}`;
+  document.getElementById('d-track-title').textContent = `${t.name} — ${t.level}`;
   document.getElementById('d-score').innerHTML = `${t.score}<small>/100</small>`;
   document.getElementById('d-score').style.color = t.color;
   document.getElementById('d-rate').innerHTML = `${t.rate}<small>%</small>`;
@@ -291,6 +290,17 @@ function openDetail(idx) {
 function toggleAcc(header) {
   header.classList.toggle('open');
   header.nextElementSibling.classList.toggle('open');
+}
+
+/* ══════════════════════════════
+   MAIN PAGE TABS
+══════════════════════════════ */
+function setMainTab(tab) {
+  ['results', 'examinees'].forEach(t => {
+    document.getElementById('main-tab-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('main-tab-btn-' + t).classList.toggle('active', t === tab);
+  });
+  window.scrollTo(0, 0);
 }
 
 /* ══════════════════════════════

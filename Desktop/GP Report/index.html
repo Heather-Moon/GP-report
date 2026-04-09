@@ -39,7 +39,7 @@
         <div class="eval-stats-inline">
           <div class="esi-item">
             <span class="esi-lbl" style="margin-bottom:3px;">응시자 현황</span>
-            <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">              
+            <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
               <span style="font-size:0.85rem;">완료 <span class="esi-val" id="main-esi-done" style="font-size:1rem;">8<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span> <span id="main-esi-rate-pct" style="font-size:0.8rem; color:var(--text-mute);">(80%)</span></span>
               <span style="font-size:0.8rem; color:var(--text-mute);">|</span>
               <span class="esi-val" id="main-esi-total">10<span style="font-size:0.75em;font-weight:600;color:var(--text-sub);">명</span></span>
@@ -53,64 +53,75 @@
         </div>
       </div>
 
-      <!-- 인사이트 통합 카드 -->
-      <div class="insight-card" style="margin-bottom:16px;">
-        <!-- 점수 분포 + 탭 -->
-        <div class="insight-header">점수 분포</div>
-        <div class="ins-tab-group" id="ins-score-tabs"></div>
-        <!-- 차트(좌) + 통계(우) -->
-        <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:16px;">
-          <div style="flex:1; min-width:0;">
-            <svg id="ins-score-curve" class="chart-svg" height="130" viewBox="0 0 360 130"></svg>
-          </div>
-          <div id="ins-score-stats" style="display:flex; flex-direction:column; gap:10px; min-width:110px; padding-top:6px;"></div>
-        </div>
-        <!-- 구분선 -->
-        <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
-        <!-- 하단: 역량 획득 현황 -->
-        <div class="insight-header">역량 획득 현황</div>
-        <div class="insight-stats" id="ins-skill-stats"></div>
-        <div class="donut-row" id="ins-skill-donuts"></div>
+      <!-- 메인 탭 버튼 -->
+      <div class="main-tab-nav">
+        <button class="main-tab-btn active" id="main-tab-btn-results" onclick="setMainTab('results')">평가 결과</button>
+        <button class="main-tab-btn" id="main-tab-btn-examinees" onclick="setMainTab('examinees')">응시자 목록</button>
       </div>
 
-      <!-- 평가 총평 (전체 평가 기반) -->
-      <div class="sec-title">평가 총평</div>
-      <div class="comment-box" id="ins-group-assessment"></div>
-
-      <!-- 응시자 목록 테이블 -->
-      <div class="sec-title">응시자 목록</div>
-      <div class="table-card">
-        <div class="table-controls">
-          <input type="text" class="search-input" placeholder="🔍  이름 또는 이메일 검색" id="search-input" oninput="renderTable()" />
-          <div class="filter-tabs">
-            <button class="filter-tab active" onclick="setFilter('all',this)">전체</button>
-            <button class="filter-tab" onclick="setFilter('completed',this)">완료</button>
-            <button class="filter-tab" onclick="setFilter('incomplete',this)">미완료</button>
+      <!-- 탭 콘텐츠: 평가 결과 -->
+      <div id="main-tab-results" class="main-tab-content">
+        <!-- 인사이트 통합 카드 -->
+        <div class="insight-card" style="margin-bottom:16px;">
+          <!-- 점수 분포 + 탭 -->
+          <div class="insight-header">점수 분포</div>
+          <div class="ins-tab-group" id="ins-score-tabs"></div>
+          <!-- 차트(좌) + 통계(우) -->
+          <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:16px;">
+            <div style="flex:1; min-width:0;">
+              <svg id="ins-score-curve" class="chart-svg" height="130" viewBox="0 0 360 130"></svg>
+            </div>
+            <div id="ins-score-stats" style="display:flex; flex-direction:column; gap:10px; min-width:110px; padding-top:6px;"></div>
           </div>
-          <select class="sort-select" id="sort-select" onchange="renderTable()">
-            <option value="score">점수순</option>
-            <option value="rate">스킬확보율순</option>
-            <option value="time">소요시간순</option>
-          </select>
+          <!-- 구분선 -->
+          <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
+          <!-- 하단: 역량 획득 현황 -->
+          <div class="insight-header">역량 획득 현황</div>
+          <div class="insight-stats" id="ins-skill-stats"></div>
+          <div class="donut-row" id="ins-skill-donuts"></div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>응시자</th>
-              <th>상태</th>
-              <th>총점</th>
-              <th>스킬 확보율</th>
-              <th>소요시간</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="examinee-tbody"></tbody>
-        </table>
-        <div class="pagination">
-          <div class="pg-info" id="pg-info"></div>
-          <div class="pg-btns" id="pg-btns"></div>
+
+        <!-- 평가 총평 (전체 평가 기반) -->
+        <div class="sec-title">평가 총평</div>
+        <div class="comment-box" id="ins-group-assessment"></div>
+      </div>
+
+      <!-- 탭 콘텐츠: 응시자 목록 -->
+      <div id="main-tab-examinees" class="main-tab-content" style="display:none;">
+        <div class="table-card">
+          <div class="table-controls">
+            <input type="text" class="search-input" placeholder="🔍  이름 또는 이메일 검색" id="search-input" oninput="renderTable()" />
+            <div class="filter-tabs">
+              <button class="filter-tab active" onclick="setFilter('all',this)">전체</button>
+              <button class="filter-tab" onclick="setFilter('completed',this)">완료</button>
+              <button class="filter-tab" onclick="setFilter('incomplete',this)">미완료</button>
+            </div>
+            <select class="sort-select" id="sort-select" onchange="renderTable()">
+              <option value="score">점수순</option>
+              <option value="rate">스킬확보율순</option>
+              <option value="time">소요시간순</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>응시자</th>
+                <th>상태</th>
+                <th>총점</th>
+                <th>스킬 확보율</th>
+                <th>소요시간</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="examinee-tbody"></tbody>
+          </table>
+          <div class="pagination">
+            <div class="pg-info" id="pg-info"></div>
+            <div class="pg-btns" id="pg-btns"></div>
+          </div>
         </div>
       </div>
+
     </div><!-- /page-main -->
 
 
@@ -137,25 +148,21 @@
       <div class="sec-title">시험 결과 요약</div>
       <div class="hero-cards" style="margin-bottom:24px;">
         <div class="hero-card">
-          <div class="hero-card-icon">🏆</div>
           <div class="hero-card-value" id="p-score">80<small>점</small></div>
           <div class="hero-card-label">총점</div>
           <div class="hero-card-sub" id="p-pass"></div>
         </div>
         <div class="hero-card">
-          <div class="hero-card-icon">💡</div>
           <div class="hero-card-value warn" id="p-rate">77.1<small>%</small></div>
           <div class="hero-card-label">스킬 확보율</div>
           <div class="hero-card-sub" id="p-skill-count"></div>
         </div>
         <div class="hero-card">
-          <div class="hero-card-icon">⏱</div>
           <div class="hero-card-value" id="p-time" style="font-size:1.5rem;">2:18:43</div>
           <div class="hero-card-label">총 소요시간</div>
           <div class="hero-card-sub">제한 2시간 40분</div>
         </div>
         <div class="hero-card">
-          <div class="hero-card-icon">📊</div>
           <div class="hero-card-value" id="p-rank" style="font-size:1.4rem;">1 / 1</div>
           <div class="hero-card-label">순위 (전체)</div>
         </div>
@@ -263,9 +270,9 @@
   <footer>© 2026 Codepresso, Inc. All Rights Reserved.</footer>
 </div><!-- /app -->
 
-<script src="js/data.js?v=20260409e"></script>
-<script src="js/charts.js?v=20260409e"></script>
-<script src="js/render.js?v=20260409e"></script>
-<script src="js/app.js?v=20260409e"></script>
+<script src="js/data.js?v=20260409j"></script>
+<script src="js/charts.js?v=20260409j"></script>
+<script src="js/render.js?v=20260409j"></script>
+<script src="js/app.js?v=20260409j"></script>
 </body>
 </html>

@@ -550,8 +550,15 @@ footer {
 .ins-tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .ins-tab-btn:hover:not(.active) { background: var(--primary-bg); color: var(--primary); }
 
+/* ── 메인 페이지 탭 ── */
+.main-tab-nav { display:flex; border-bottom:2px solid var(--border); margin-bottom:20px; }
+.main-tab-btn { padding:10px 20px; border:none; background:none; font-size:0.88rem; font-weight:600; color:var(--text-sub); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.15s; }
+.main-tab-btn:hover { color:var(--primary); }
+.main-tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+
 /* ── 도넛 그리드 ── */
-.donut-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:space-around; margin-top:6px; }
+.donut-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:space-around; margin-top:6px; align-items:center; }
+.donut-separator { width:1px; background:var(--border); align-self:stretch; margin:0 6px; }
 .donut-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:80px; }
 .donut-item-label { font-size:0.72rem; color:var(--text-sub); font-weight:600; text-align:center; max-width:90px; }
 

@@ -108,10 +108,10 @@ function generateTrackAssessment(e, trackIdx) {
 ══════════════════════════════ */
 function assessmentHTML(assessment) {
   return `<div class="comment-text">${assessment.text}</div>
-    ${assessment.strengths.length ? `<div class="tag-section-lbl">✅ 강점</div>
-    <div class="tag-group">${assessment.strengths.map(s=>`<span class="tag tag-strength">✔ ${s}</span>`).join('')}</div>` : ''}
-    ${assessment.improvements.length ? `<div class="tag-section-lbl" style="margin-top:8px;">📈 개선 필요</div>
-    <div class="tag-group">${assessment.improvements.map(s=>`<span class="tag tag-improve">△ ${s}</span>`).join('')}</div>` : ''}`;
+    ${assessment.strengths.length ? `<div class="tag-section-lbl">강점</div>
+    <div class="tag-group">${assessment.strengths.map(s=>`<span class="tag tag-strength">${s}</span>`).join('')}</div>` : ''}
+    ${assessment.improvements.length ? `<div class="tag-section-lbl" style="margin-top:8px;">개선 필요</div>
+    <div class="tag-group">${assessment.improvements.map(s=>`<span class="tag tag-improve">${s}</span>`).join('')}</div>` : ''}`;
 }
 
 /* ══════════════════════════════
@@ -199,6 +199,7 @@ function renderSkillDonuts() {
 
   const container = document.getElementById('ins-skill-donuts');
   container.innerHTML = allDonuts.map((_,i)=>
+    (i === 1 ? `<div class="donut-separator"></div>` : '') +
     `<div class="donut-item">
       <svg id="ins-donut-${i}" width="90" height="90" viewBox="0 0 90 90"></svg>
       <div class="donut-item-label">${allDonuts[i].label}</div>
@@ -258,10 +259,24 @@ function generateGroupAssessment() {
     (weakTracks.length   ? `${weakTracks.join(', ')} 과목은 전체 평균이 낮아 교육 보완이 권장됩니다. ` : '') +
     (weakSkills.length   ? `특히 ${weakSkills.slice(0, 3).join(', ')} 역량의 획득률이 낮아 집중적인 개선이 필요합니다.` : '');
 
+  // 트랙별 총평
+  const trackAssessments = trackStats.map((t, ti) => {
+    const tSkillRates = skillRates[ti];
+    const tStrongSkills = TRACKS_META[ti].skills.filter((_,si) => tSkillRates[si] >= 75).map(s => s.name);
+    const tWeakSkills   = TRACKS_META[ti].skills.filter((_,si) => tSkillRates[si] <  40).map(s => s.name);
+    const tText =
+      `평균 ${t.avg}점(σ ${t.std})으로 ` +
+      (t.avg >= 80 ? '우수한 성과를 보였습니다.' : t.avg >= 65 ? '전반적으로 양호한 수준입니다.' : '전체 평균이 낮아 보완이 필요합니다.') +
+      (tStrongSkills.length ? ` ${tStrongSkills.slice(0,3).join(', ')} 역량에서 높은 획득률을 보였습니다.` : '') +
+      (tWeakSkills.length   ? ` ${tWeakSkills.slice(0,3).join(', ')} 역량의 집중 학습이 권장됩니다.` : '');
+    return { name: t.name, text: tText, color: trackColor(t.avg) };
+  });
+
   return {
     text,
     strengths:    strongSkills.slice(0, 5),
     improvements: weakSkills.slice(0, 5),
+    trackAssessments,
   };
 }
 
@@ -285,7 +300,15 @@ function renderInsightCharts() {
   // ─ 그룹 총평 ─
   const ga = generateGroupAssessment();
   const gaEl = document.getElementById('ins-group-assessment');
-  if (gaEl) gaEl.innerHTML = `<div class="comment-text">${ga.text}</div>`;
+  if (gaEl) {
+    const trackRows = ga.trackAssessments.map(t =>
+      `<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        <div style="font-size:0.78rem; font-weight:700; color:${t.color}; margin-bottom:4px;">${t.name}</div>
+        <div class="comment-text">${t.text}</div>
+      </div>`
+    ).join('');
+    gaEl.innerHTML = `<div class="comment-text">${ga.text}</div>${trackRows}`;
+  }
 }
 
 /* ══════════════════════════════
@@ -307,7 +330,7 @@ function renderPersonSections(e) {
   document.getElementById('p-track-scores').innerHTML = tracks.map(t => {
     const col = trackColor(t.score);
     return `<div class="track-score-bar">
-      <div class="tsb-label">${t.icon} ${t.name}</div>
+      <div class="tsb-label">${t.name}</div>
       <div class="tsb-bar-bg"><div class="tsb-bar-fill" style="width:${t.score}%;background:${col};"></div></div>
       <div class="tsb-val" style="color:${col};">${t.score}<span style="font-size:0.7em;font-weight:500;color:var(--text-mute);">/100</span></div>
     </div>`;
