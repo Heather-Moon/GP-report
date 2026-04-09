@@ -571,7 +571,7 @@ footer {
 .behavior-action-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
 
 /* ── 개인 페이지 탭 ── */
-.person-tab-nav { display:flex; border-bottom:2px solid var(--border); margin-bottom:20px; overflow-x:auto; }
+.person-tab-nav { display:flex; flex-wrap:wrap; border-bottom:2px solid var(--border); margin-bottom:20px; }
 .person-tab-btn { padding:10px 16px; border:none; background:none; font-size:0.82rem; font-weight:600; color:var(--text-sub); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; white-space:nowrap; transition:all 0.15s; }
 .person-tab-btn:hover { color:var(--primary); }
 .person-tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
@@ -579,15 +579,26 @@ footer {
 @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
 
 /* ── 결과 요약 탭 — 지표 카드 ── */
+.summary-top-grid   { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
+.summary-track-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
 .summary-stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
 .ss-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 10px; text-align:center; }
+.ss-card-flat { padding:12px 10px; text-align:center; }
+.ss-divider { height:1px; background:var(--border); margin:14px 0; }
+.ss-block-title { font-size:0.78rem; font-weight:700; color:var(--text-sub); margin-bottom:10px; letter-spacing:0.02em; }
+.compare-card-sm { padding: 12px 16px; }
+.compare-card-sm .ss-block-title { margin-bottom: 8px; }
+.compare-card-sm .ss-card-flat { padding: 6px 8px; }
+.compare-card-sm .ss-val { font-size: 1.35rem; }
+.compare-card-sm .track-stat-grid { margin-bottom: 0; gap: 0; }
 .ss-val { font-size:1.9rem; font-weight:800; color:var(--text); line-height:1.1; }
 .ss-val small { font-size:0.55em; font-weight:600; color:var(--text-sub); }
 .ss-label { font-size:0.72rem; color:var(--text-sub); font-weight:600; margin-top:5px; }
 .ss-sub { font-size:0.68rem; color:var(--text-mute); margin-top:2px; }
 
 /* ── 트랙 탭 — 지표 카드 ── */
-.track-stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+.track-stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+.track-stat-grid-4 { grid-template-columns:repeat(4,1fr); }
 .tsg-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 10px; text-align:center; }
 .tsg-val { font-size:1.7rem; font-weight:800; color:var(--text); line-height:1.1; }
 .tsg-val small { font-size:0.55em; font-weight:600; color:var(--text-sub); }
@@ -596,8 +607,29 @@ footer {
 /* ── 트랙 설명 박스 ── */
 .track-desc-box { background:#F8FAFD; border-left:3px solid var(--primary); padding:12px 14px; border-radius:0 8px 8px 0; font-size:0.81rem; color:var(--text-sub); line-height:1.6; margin-bottom:16px; }
 
+/* ── KDE 분포 그래프 + 통계 패널 ── */
+.kde-outer { display:flex; align-items:center; gap:0; justify-content:center; }
+.kde-graph-area { flex:0 1 360px; min-width:0; }
+.kde-graph-area .chart-svg { width:100%; display:block; }
+.kde-stats-panel { display:flex; flex-direction:column; gap:14px; flex-shrink:0; width:88px; padding:8px 6px 8px 14px; border-left:1px solid var(--border); }
+.kde-stat { text-align:center; }
+.kde-stat-val { font-size:1.05rem; font-weight:800; color:var(--text); line-height:1.1; }
+.kde-stat-lbl { font-size:0.67rem; color:var(--text-mute); font-weight:600; margin-top:3px; }
+.kde-legend { display:flex; gap:14px; justify-content:center; margin-top:6px; }
+.kde-legend-item { display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--text-sub); }
+.kde-leg-line { display:inline-block; width:20px; border-top-width:2px; flex-shrink:0; }
+
 /* ── 레이더 (dual) ── */
 .radar-wrap { position:relative; display:inline-block; }
+.radar-center-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.track-skill-status-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 6px 20px; margin-top: 14px; width: 100%; max-width: 540px;
+}
+.track-skill-status-row { display:flex; align-items:center; gap:7px; }
+.track-skill-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.track-skill-name { flex:1; font-size:0.78rem; color:var(--text-sub); min-width:0; }
+.track-skill-lvl { font-size:0.75rem; font-weight:700; white-space:nowrap; }
 .radar-tip { position:absolute; top:8px; left:50%; transform:translateX(-50%); background:rgba(17,24,39,0.88); color:#fff; padding:7px 12px; border-radius:8px; font-size:0.73rem; pointer-events:none; white-space:nowrap; z-index:10; display:none; line-height:1.5; text-align:center; }
 .radar-legend-row { display:flex; gap:14px; margin-top:8px; }
 .radar-legend-item { display:flex; align-items:center; gap:5px; font-size:0.73rem; color:var(--text-sub); }
@@ -605,6 +637,12 @@ footer {
 
 /* ── 역량 현황 칩 ── */
 .skill-status-section { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
+
+/* ── 결과 요약 탭 — 획득 역량 스킬 섹션 ── */
+.sum-skill-section { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.sum-skill-track {}
+.sum-skill-track-label { font-size: 0.76rem; font-weight: 700; margin-bottom: 7px; }
+.sum-skill-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 
 /* ── 스킬 세부 카드 ── */
 .skill-detail-list { display:flex; flex-direction:column; gap:12px; }
@@ -618,6 +656,97 @@ footer {
 .verdict-warn { background:#FFFBEB; color:#92400E; }
 .verdict-bad { background:#FEF2F2; color:#991B1B; }
 .verdict-label { font-weight:700; margin-right:4px; }
+
+/* ── 행동 분석 모달 ── */
+.bm-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.bm-dialog {
+  background: #fff; border-radius: 16px;
+  width: 100%; max-width: 1060px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.bm-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 22px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.bm-header-left { display: flex; align-items: center; gap: 10px; }
+.bm-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+.bm-subtitle { font-size: 0.82rem; color: var(--text-sub); font-weight: 500; }
+.bm-close {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: none; background: var(--bg); color: var(--text-sub);
+  font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.bm-close:hover { background: var(--border); }
+.bm-body {
+  display: flex; flex: 1; overflow: hidden;
+}
+
+/* 왼쪽: 동영상 */
+.bm-video-section {
+  flex: 1.4; display: flex; flex-direction: column;
+  background: #111; border-right: 1px solid var(--border);
+}
+.bm-video-screen {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+}
+.bm-video-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  color: #4B5563;
+}
+.bm-video-placeholder svg { width: 64px; height: 64px; opacity: 0.5; }
+.bm-video-placeholder p { font-size: 0.85rem; color: #6B7280; }
+.bm-video-controls {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; background: #1a1a1a; flex-shrink: 0;
+}
+.bm-play-btn {
+  width: 30px; height: 30px; border-radius: 50%; border: none;
+  background: var(--primary); color: #fff;
+  font-size: 0.7rem; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.bm-progress-wrap {
+  flex: 1; height: 4px; background: #3a3a3a; border-radius: 99px; overflow: hidden; cursor: pointer;
+}
+.bm-progress-bar { height: 100%; width: 0%; background: var(--primary); border-radius: 99px; transition: width 0.3s; }
+.bm-time-display { font-size: 0.72rem; color: #9CA3AF; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* 오른쪽: 타임라인 */
+.bm-timeline-section {
+  width: 300px; flex-shrink: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.bm-timeline-title {
+  padding: 14px 18px 10px; font-size: 0.82rem; font-weight: 700;
+  color: var(--text); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.bm-timeline-list { flex: 1; overflow-y: auto; padding: 10px 0; }
+.bm-event {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 9px 18px; transition: background 0.1s; cursor: default;
+}
+.bm-event:hover { background: var(--bg); }
+.bm-event-dot-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 3px; }
+.bm-event-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.bm-event-line { width: 1px; flex: 1; min-height: 14px; background: var(--border); margin-top: 4px; }
+.bm-event:last-child .bm-event-line { display: none; }
+.bm-event-content { flex: 1; min-width: 0; }
+.bm-event-time { font-size: 0.69rem; color: var(--text-mute); font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+.bm-event-label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+.bm-event-detail { font-size: 0.72rem; color: var(--text-sub); margin-top: 2px; }
+.bm-badge {
+  display: inline-block; font-size: 0.65rem; font-weight: 700;
+  padding: 1px 6px; border-radius: 99px; margin-top: 4px;
+}
 
 /* ── 반응형 ── */
 @media (max-width: 680px) {

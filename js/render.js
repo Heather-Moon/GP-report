@@ -68,17 +68,10 @@ function generatePersonAssessment(e) {
     `전체 평균 대비 ${diffStr} (평균 ${avgScore}점)으로 ` +
     (diff >= 10 ? '우수한' : diff >= 0 ? '평균 수준의' : '개선이 필요한') +
     ` 성과를 보였습니다.` +
-    (strongTracks.length ? ` ${strongTracks.map(t=>t.name).join(', ')} 분야에서 강점을 발휘했습니다.` : '') +
-    (weakTracks.length   ? ` ${weakTracks.map(t=>t.name).join(', ')} 분야의 보완이 권장됩니다.` : '');
+    (strongTracks.length ? ` 강점: ${strongTracks.map(t=>t.name).join(', ')}.` : '') +
+    (weakTracks.length   ? ` 개선 필요: ${weakTracks.map(t=>t.name).join(', ')}.` : '');
 
-  const strengths  = strongTracks.map(t => t.name);
-  const improvements = weakTracks.map(t => t.name);
-  // add missing skills to improvement
-  tracks.forEach(t => t.skills.filter(s => s.level === 'missing').forEach(s => {
-    if (!improvements.includes(s.name)) improvements.push(s.name);
-  }));
-
-  return { text, strengths, improvements: improvements.slice(0,5) };
+  return { text };
 }
 
 function generateTrackAssessment(e, trackIdx) {
@@ -107,11 +100,7 @@ function generateTrackAssessment(e, trackIdx) {
    ASSESSMENT HTML BUILDER
 ══════════════════════════════ */
 function assessmentHTML(assessment) {
-  return `<div class="comment-text">${assessment.text}</div>
-    ${assessment.strengths.length ? `<div class="tag-section-lbl">강점</div>
-    <div class="tag-group">${assessment.strengths.map(s=>`<span class="tag tag-strength">${s}</span>`).join('')}</div>` : ''}
-    ${assessment.improvements.length ? `<div class="tag-section-lbl" style="margin-top:8px;">개선 필요</div>
-    <div class="tag-group">${assessment.improvements.map(s=>`<span class="tag tag-improve">${s}</span>`).join('')}</div>` : ''}`;
+  return `<div class="comment-text">${assessment.text}</div>`;
 }
 
 /* ══════════════════════════════
@@ -330,22 +319,48 @@ function renderSummaryTab(e) {
   const n = completedSorted.length;
   const scoreCol = trackColor(e.totalScore);
 
+  // 전체 제한시간을 H:MM:SS 형식으로 변환
+  const tlH = (EVALUATION.timeLimit.match(/(\d+)시간/) || ['','0'])[1];
+  const tlM = (EVALUATION.timeLimit.match(/(\d+)분/)   || ['','0'])[1];
+  const timeLimitHMS = `${tlH}:${String(tlM).padStart(2,'0')}:00`;
+
+  // 점수 분포 계산
+  const totalScores = completedSorted.map(x => x.totalScore).sort((a,b) => a-b);
+  const avg = Math.round(totalScores.reduce((s,v) => s+v, 0) / totalScores.length * 10) / 10;
+  const mid = Math.floor(totalScores.length / 2);
+  const median = totalScores.length % 2 === 0
+    ? (totalScores[mid-1] + totalScores[mid]) / 2
+    : totalScores[mid];
+  const std = Math.round(Math.sqrt(totalScores.reduce((s,v) => s+(v-avg)**2, 0) / totalScores.length) * 10) / 10;
+
   el.innerHTML = `
-    <div class="summary-stats-grid">
-      <div class="ss-card">
-        <div class="ss-val" style="color:${scoreCol};">${e.totalScore}<small>점</small></div>
-        <div class="ss-label">총점</div>
-        <div class="ss-sub">${e.totalScore >= 70 ? '합격 기준 충족' : '합격 기준 미달'}</div>
+    <div class="compare-card" style="margin-bottom:16px;">
+      <div class="ss-block-title">평가 결과</div>
+      <div class="summary-top-grid">
+        <div class="ss-card-flat">
+          <div class="ss-val" style="color:${scoreCol};">${e.totalScore}<small>점</small></div>
+          <div class="ss-label">총점</div>
+          <div class="ss-sub">${e.totalScore >= 70 ? '합격 기준 충족' : '합격 기준 미달'}</div>
+        </div>
+        <div class="ss-card-flat">
+          <div class="ss-val">${rank}<small>/${n}명</small></div>
+          <div class="ss-label">순위</div>
+          <div class="ss-sub">전체 응시자 기준</div>
+        </div>
+        <div class="ss-card-flat">
+          <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${e.time || '-'}<br><small style="font-size:0.6em; color:var(--text-mute);">/ ${timeLimitHMS}</small></div>
+          <div class="ss-label">소요시간</div>
+        </div>
       </div>
-      <div class="ss-card">
-        <div class="ss-val">${acq}<small>/${total}개</small></div>
-        <div class="ss-label">획득한 역량</div>
-        <div class="ss-sub">스킬 확보율 ${e.rate}%</div>
-      </div>
-      <div class="ss-card">
-        <div class="ss-val">${rank}<small>/${n}명</small></div>
-        <div class="ss-label">순위</div>
-        <div class="ss-sub">전체 응시자 기준</div>
+      <div class="ss-divider"></div>
+      <div class="summary-track-grid">
+        ${tracks.map(t => {
+          const shortName = t.name.replace('클라우드 & 분산 시스템 아키텍처','클라우드 & 분산 시스템');
+          return `<div class="ss-card-flat">
+            <div class="ss-val" style="color:${t.color};">${t.score}<small>점</small></div>
+            <div class="ss-label">${shortName}</div>
+          </div>`;
+        }).join('')}
       </div>
     </div>
 
@@ -392,6 +407,7 @@ function renderTrackTab(e, trackIdx) {
   const median = n % 2 === 0
     ? (trackScores[n/2-1] + trackScores[n/2]) / 2
     : trackScores[Math.floor(n/2)];
+  const std = Math.round(Math.sqrt(trackScores.reduce((s,v) => s+(v-avg)**2, 0) / n) * 10) / 10;
 
   const sorted = [...completed].sort((a,b) => b.tracks[trackIdx].score - a.tracks[trackIdx].score);
   const rank = sorted.findIndex(x => x.id === e.id) + 1;
@@ -405,65 +421,91 @@ function renderTrackTab(e, trackIdx) {
   const meVals  = track.skills.map(s => s.level === 'acquired' ? 100 : s.level === 'partial' ? 50 : 0);
   const avgVals = trackSkillRates;
 
-  const svgSize = total >= 6 ? 260 : 220;
+  const timeLimitHMS = TRACKS_META[trackIdx].timeLimit || '0:00:00';
+
+  const svgSize = total >= 6 ? 320 : 300;
   const radarId = `p-radar-t${trackIdx}`;
   const tipId   = `p-radar-t${trackIdx}-tip`;
   const kdeId   = `p-kde-t${trackIdx}`;
 
   el.innerHTML = `
-    <div class="track-desc-box">${meta.desc}</div>
-
-    <div class="track-stat-grid">
-      <div class="tsg-card">
-        <div class="tsg-val" style="color:${track.color};">${track.score}<small>/100</small></div>
-        <div class="tsg-label">트랙 점수</div>
-      </div>
-      <div class="tsg-card">
-        <div class="tsg-val">${rank}<small>/${n}명</small></div>
-        <div class="tsg-label">등수</div>
-      </div>
-      <div class="tsg-card">
-        <div class="tsg-val" style="font-size:1.2rem;">${track.time}</div>
-        <div class="tsg-label">소요시간</div>
-      </div>
-      <div class="tsg-card">
-        <div class="tsg-val" style="color:${rateColor(track.rate)};">${acq}<small>/${total}개</small></div>
-        <div class="tsg-label">획득 역량 (${track.rate}%)</div>
+    <div class="compare-card compare-card-sm" style="margin-bottom:16px;">
+      <div class="ss-block-title">평가 결과</div>
+      <div class="track-stat-grid track-stat-grid-4">
+        <div class="ss-card-flat">
+          <div class="ss-val" style="color:${track.color};">${track.score}<small>점</small></div>
+          <div class="ss-label">트랙 점수</div>
+        </div>
+        <div class="ss-card-flat">
+          <div class="ss-val">${rank}<small>/${n}명</small></div>
+          <div class="ss-label">순위</div>
+        </div>
+        <div class="ss-card-flat">
+          <div class="ss-val" style="color:${rateColor(track.rate)};">${acq}<small>/${total}개</small></div>
+          <div class="ss-label">역량 확보</div>
+        </div>
+        <div class="ss-card-flat">
+          <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${track.time}<br><small style="font-size:0.6em;color:var(--text-mute);">/ ${timeLimitHMS}</small></div>
+          <div class="ss-label">소요시간</div>
+        </div>
       </div>
     </div>
 
-    <div class="sec-title" style="margin-top:4px;">점수 분포</div>
-    <div class="compare-card">
-      <svg id="${kdeId}" class="chart-svg" height="130" viewBox="0 0 360 130"></svg>
-    </div>
-
-    <div class="sec-title" style="margin-top:16px;">역량별 분석</div>
-    <div class="compare-card">
-      <div style="display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+    <div class="compare-card" style="margin-bottom:16px;">
+      <div class="ss-block-title">점수 분포</div>
+      <div class="kde-outer">
+        <div class="kde-graph-area">
+          <svg id="${kdeId}" class="chart-svg" height="160" viewBox="0 0 360 160"></svg>
+          <div class="kde-legend">
+            <div class="kde-legend-item">
+              <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
+            </div>
+            <div class="kde-legend-item">
+              <span class="kde-leg-line" style="border-color:#16A34A; border-style:solid;"></span>합격선 (80점)
+            </div>
+          </div>
+        </div>
+        <div class="kde-stats-panel">
+          <div class="kde-stat">
+            <div class="kde-stat-val">${avg}점</div>
+            <div class="kde-stat-lbl">평균</div>
+          </div>
+          <div class="kde-stat">
+            <div class="kde-stat-val">${median}점</div>
+            <div class="kde-stat-lbl">중앙값</div>
+          </div>
+          <div class="kde-stat">
+            <div class="kde-stat-val">${std}점</div>
+            <div class="kde-stat-lbl">표준편차</div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-divider"></div>
+      <div class="ss-block-title">역량별 분석</div>
+      <div class="radar-center-wrap">
         <div class="radar-wrap">
           <svg id="${radarId}" width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}"></svg>
           <div id="${tipId}" class="radar-tip"></div>
         </div>
-        <div style="padding-top:8px;">
-          <div class="radar-legend-row">
-            <div class="radar-legend-item"><div class="rl-dot" style="background:${track.color};"></div>나</div>
-            <div class="radar-legend-item"><div class="rl-dot" style="background:#94A3B8;border:1px dashed #94A3B8;"></div>전체 평균</div>
-          </div>
-          <div style="margin-top:12px; display:flex; flex-direction:column; gap:5px;">
-            ${track.skills.map((s, si) => {
-              const col = rateColor(track.rate);
-              return `<div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;">
-                <div style="width:8px;height:8px;border-radius:50%;background:${s.level==='acquired'?'var(--acquired)':s.level==='partial'?'var(--partial)':'var(--missing)'};flex-shrink:0;"></div>
-                <span style="color:var(--text-sub);">${s.name}</span>
-                <span style="margin-left:auto;font-weight:700;color:${s.level==='acquired'?'var(--acquired)':s.level==='partial'?'var(--partial)':'var(--missing)'};">${s.level==='acquired'?'획득':s.level==='partial'?'보완':'미획득'}</span>
-              </div>`;
-            }).join('')}
-          </div>
+        <div class="radar-legend-row" style="justify-content:center; margin-top:10px;">
+          <div class="radar-legend-item"><div class="rl-dot" style="background:${track.color};"></div>나</div>
+          <div class="radar-legend-item"><div class="rl-dot" style="background:#94A3B8; border:1px dashed #94A3B8;"></div>전체 평균</div>
+        </div>
+        <div class="track-skill-status-grid">
+          ${track.skills.map(s => {
+            const lvlColor = s.level === 'acquired' ? 'var(--acquired)' : s.level === 'partial' ? 'var(--partial)' : 'var(--missing)';
+            const lvlLabel = s.level === 'acquired' ? '획득' : s.level === 'partial' ? '보완' : '미획득';
+            return `<div class="track-skill-status-row">
+              <div class="track-skill-dot" style="background:${lvlColor};"></div>
+              <span class="track-skill-name">${s.name}</span>
+              <span class="track-skill-lvl" style="color:${lvlColor};">${lvlLabel}</span>
+            </div>`;
+          }).join('')}
         </div>
       </div>
     </div>
 
-    <div class="sec-title" style="margin-top:16px;">평가 총평</div>
+    <div class="sec-title">평가 총평</div>
     <div class="comment-box">${assessmentHTML(generateTrackAssessment(e, trackIdx))}</div>
 
     <div class="sec-title" style="margin-top:16px;">스킬별 세부 결과</div>

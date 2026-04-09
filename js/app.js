@@ -11,6 +11,11 @@ const ROWS_PER_PAGE  = 5;
 /* ══════════════════════════════
    NAVIGATION
 ══════════════════════════════ */
+function goMain(tab) {
+  navigate('main');
+  setMainTab(tab || 'results');
+}
+
 function navigate(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
@@ -21,11 +26,11 @@ function navigate(page) {
   if (page === 'main') {
     bc.innerHTML = '';
   } else if (page === 'person') {
-    bc.innerHTML = `<span class="crumb-link" onclick="navigate('main')">대시보드</span>
+    bc.innerHTML = `<span class="crumb-link" onclick="goMain('results')">대시보드</span>
       <span class="crumb-sep">›</span><span>${pName}</span>`;
   } else if (page === 'detail') {
     const tName = TRACKS_META[selectedTrackIdx].name;
-    bc.innerHTML = `<span class="crumb-link" onclick="navigate('main')">대시보드</span>
+    bc.innerHTML = `<span class="crumb-link" onclick="goMain('results')">대시보드</span>
       <span class="crumb-sep">›</span>
       <span class="crumb-link" onclick="navigate('person')">${pName}</span>
       <span class="crumb-sep">›</span><span>${tName}</span>`;
@@ -131,9 +136,6 @@ function openPerson(id) {
   document.getElementById('p-date').textContent = '📅 ' + e.date;
   document.getElementById('p-time-meta').textContent = e.status === 'completed' ? '⏱ ' + e.time : '';
 
-  // 행동 분석 패널 초기화
-  document.getElementById('behavior-panel').style.display = 'none';
-
   // 탭 초기화
   setPersonTab(0);
 
@@ -158,9 +160,68 @@ function setPersonTab(i) {
   });
 }
 
+/* ══════════════════════════════
+   행동 분석 모달
+══════════════════════════════ */
+const BEHAVIOR_EVENTS = [
+  { time:'00:03:12', label:'화면 전환', detail:'외부 앱으로 전환 (4.1초)', severity:'high' },
+  { time:'00:08:47', label:'붙여넣기',  detail:'Ctrl+V 감지 — 코드 에디터', severity:'high' },
+  { time:'00:15:03', label:'복사',      detail:'Ctrl+C 감지', severity:'medium' },
+  { time:'00:22:58', label:'탭 전환',   detail:'브라우저 새 탭 이동 (7.8초)', severity:'medium' },
+  { time:'00:31:20', label:'붙여넣기',  detail:'Ctrl+V 감지 — 답안 영역', severity:'high' },
+  { time:'00:44:05', label:'화면 전환', detail:'외부 앱으로 전환 (12.3초)', severity:'high' },
+  { time:'00:52:34', label:'우클릭',    detail:'컨텍스트 메뉴 사용', severity:'low' },
+  { time:'01:05:18', label:'복사',      detail:'Ctrl+C 감지', severity:'medium' },
+  { time:'01:12:44', label:'탭 전환',   detail:'브라우저 새 탭 이동 (5.2초)', severity:'medium' },
+  { time:'01:21:09', label:'붙여넣기',  detail:'Ctrl+V 감지 — 코드 에디터', severity:'high' },
+  { time:'01:38:27', label:'화면 전환', detail:'외부 앱으로 전환 (9.6초)', severity:'high' },
+  { time:'01:49:53', label:'우클릭',    detail:'컨텍스트 메뉴 사용', severity:'low' },
+  { time:'02:01:31', label:'복사',      detail:'Ctrl+C 감지', severity:'medium' },
+  { time:'02:11:08', label:'붙여넣기',  detail:'Ctrl+V 감지 — 답안 영역', severity:'high' },
+];
+
+const SEVERITY_COLOR = {
+  high:   { dot:'#DC2626', badge:'#FEF2F2', text:'#991B1B', label:'위험' },
+  medium: { dot:'#D97706', badge:'#FFFBEB', text:'#92400E', label:'주의' },
+  low:    { dot:'#1565C0', badge:'#EBF3FF', text:'#1565C0', label:'참고' },
+};
+
 function toggleBehaviorPanel() {
-  const p = document.getElementById('behavior-panel');
-  p.style.display = p.style.display === 'none' ? '' : 'none';
+  const modal = document.getElementById('behavior-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // 응시자 이름 표시
+  const nameEl = document.getElementById('bm-name');
+  if (selectedExaminee) nameEl.textContent = selectedExaminee.name;
+
+  // 타임라인 렌더링
+  const list = document.getElementById('bm-timeline-list');
+  list.innerHTML = BEHAVIOR_EVENTS.map(ev => {
+    const s = SEVERITY_COLOR[ev.severity];
+    return `<div class="bm-event">
+      <div class="bm-event-dot-wrap">
+        <div class="bm-event-dot" style="background:${s.dot};"></div>
+        <div class="bm-event-line"></div>
+      </div>
+      <div class="bm-event-content">
+        <div class="bm-event-time">${ev.time}</div>
+        <div class="bm-event-label">${ev.label}</div>
+        <div class="bm-event-detail">${ev.detail}</div>
+        <span class="bm-badge" style="background:${s.badge};color:${s.text};">${s.label}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function closeBehaviorModal(e) {
+  if (e && e.target !== document.getElementById('behavior-modal')) return;
+  document.getElementById('behavior-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function toggleBmPlay(btn) {
+  btn.textContent = btn.textContent === '▶' ? '⏸' : '▶';
 }
 
 /* ══════════════════════════════
