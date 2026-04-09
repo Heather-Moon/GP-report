@@ -127,8 +127,9 @@ function setScoreTab(i) {
 
 function renderScoreCurve(i) {
   const statsEl = document.getElementById('ins-score-stats');
+  const svg = document.getElementById('ins-score-curve');
+
   if (i === 0) {
-    // 전체 평가 결과
     const stats = computeStats();
     statsEl.innerHTML = [
       { lbl: '평균',    val: stats.avg+'점',              color: '#1565C0' },
@@ -136,9 +137,11 @@ function renderScoreCurve(i) {
       { lbl: '범위',    val: stats.min+'~'+stats.max+'점' },
       { lbl: '표준편차', val: 'σ '+stats.std },
     ].map(s=>`<div class="ins-stat"><span class="ins-stat-lbl">${s.lbl}</span><span class="ins-stat-val"${s.color?' style="color:'+s.color+';"':''}>${s.val}</span></div>`).join('');
+    const h = Math.max(statsEl.getBoundingClientRect().height, 140);
+    svg.setAttribute('height', h);
+    svg.setAttribute('viewBox', `0 0 360 ${h}`);
     renderKDECurve('ins-score-curve', stats.scores, stats.avg, stats.median, null, '#1565C0');
   } else {
-    // 과목별 (i-1 번째 트랙)
     const trackIdx = i - 1;
     const completed = EXAMINEES.filter(e => e.status==='completed' && e.tracks.length>0);
     const trackScores = completed.map(e => e.tracks[trackIdx].score);
@@ -147,11 +150,16 @@ function renderScoreCurve(i) {
     const n = sorted.length;
     const median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
     const col = trackColor(avg);
+    const std = Math.round(Math.sqrt(trackScores.reduce((s,v)=>s+(v-avg)**2,0)/trackScores.length)*10)/10;
     statsEl.innerHTML = [
-      { lbl: '평균',   val: avg+'점',                        color: col },
-      { lbl: '중앙값', val: median+'점',                     color: '#7C3AED' },
-      { lbl: '범위',   val: sorted[0]+'~'+sorted[n-1]+'점' },
+      { lbl: '평균',    val: avg+'점',                        color: col },
+      { lbl: '중앙값',  val: median+'점',                     color: '#7C3AED' },
+      { lbl: '범위',    val: sorted[0]+'~'+sorted[n-1]+'점' },
+      { lbl: '표준편차', val: 'σ '+std },
     ].map(s=>`<div class="ins-stat"><span class="ins-stat-lbl">${s.lbl}</span><span class="ins-stat-val"${s.color?' style="color:'+s.color+';"':''}>${s.val}</span></div>`).join('');
+    const h = Math.max(statsEl.getBoundingClientRect().height, 140);
+    svg.setAttribute('height', h);
+    svg.setAttribute('viewBox', `0 0 360 ${h}`);
     renderKDECurve('ins-score-curve', trackScores, avg, median, null, col);
   }
 }

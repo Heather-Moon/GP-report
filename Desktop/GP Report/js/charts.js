@@ -37,8 +37,8 @@ function hexAlpha(hex, a) {
 function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
   const svg = clearSvg(svgId); if (!svg) return;
   const W=360, H=parseInt(svg.getAttribute('height')||'120'),
-        padL=28, padR=18, padT=14, padB=24;
-  const xMin=30, xMax=105, nPts=120;
+        padL=28, padR=6, padT=14, padB=24;
+  const xMin=30, xMax=102, nPts=120;
   const bw = Math.max(7, 10 - scores.length * 0.3); // adaptive bandwidth
   const col = color || '#1565C0';
 
@@ -52,6 +52,7 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
   const sx = x => padL + ((x-xMin)/(xMax-xMin))*cW;
   const sy = y => padT + cH - (y/maxY)*cH;
 
+
   // Fill area — rgba 직접 사용 (file:// 프로토콜에서도 안전하게 동작)
   const fillD = [`M${sx(xs[0])},${sy(0)}`];
   xs.forEach((x,i) => fillD.push(`L${sx(x)},${sy(ys[i])}`));
@@ -63,7 +64,7 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
   svg.appendChild(svgEl('path', {d:lineD, fill:'none', stroke:col, 'stroke-width':'2.5',
     'stroke-linecap':'round', 'stroke-linejoin':'round'}));
 
-  // X axis
+  // X축 선 + 눈금 + 레이블
   svg.appendChild(svgEl('line', {x1:padL, y1:H-padB, x2:W-padR, y2:H-padB, stroke:'#E5E7EB', 'stroke-width':'1'}));
   [40,50,60,70,80,90,100].forEach(v => {
     svg.appendChild(svgEl('line', {x1:sx(v), y1:H-padB, x2:sx(v), y2:H-padB+3, stroke:'#D1D5DB','stroke-width':'1'}));
