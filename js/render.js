@@ -349,30 +349,32 @@ function renderSummaryTab(e) {
       </div>
     </div>
 
-    <div class="sec-title" style="margin-top:4px;">과목별 점수</div>
+    <div class="sec-title" style="margin-top:4px;">역량 획득 현황</div>
     <div class="compare-card">
       ${tracks.map(t => {
-        const col = trackColor(t.score);
-        return `<div class="track-score-bar">
-          <div class="tsb-label">${t.name.replace('클라우드 & 분산 시스템 아키텍처','클라우드 & 분산 시스템')}</div>
-          <div class="tsb-bar-bg"><div class="tsb-bar-fill" style="width:${t.score}%;background:${col};"></div></div>
-          <div class="tsb-val" style="color:${col};">${t.score}<span style="font-size:0.7em;color:var(--text-mute);">/100</span></div>
+        const acqCount   = t.skills.filter(s => s.level === 'acquired').length;
+        const totalCount = t.skills.length;
+        const shortName  = t.name.replace('클라우드 & 분산 시스템 아키텍처','클라우드 & 분산 시스템');
+        return `<div class="track-acq-card">
+          <div class="track-acq-header">
+            <div class="track-acq-score" style="color:${t.color};">${t.score}<small>/100</small></div>
+            <div class="track-acq-name">${shortName}</div>
+            <div class="track-acq-rate" style="background:${t.colorBg};color:${t.color};">${acqCount}/${totalCount}개&nbsp; ${t.rate}%</div>
+          </div>
+          <div class="track-acq-skills">
+            ${t.skills.map(s => `
+              <div class="track-acq-skill-row">
+                <span class="badge ${LEVEL_CLASS[s.level]}">${LEVEL_LABEL[s.level]}</span>
+                <span class="track-acq-skill-name">${s.name}</span>
+              </div>`).join('')}
+          </div>
         </div>`;
       }).join('')}
-    </div>
-
-    <div class="sec-title" style="margin-top:16px;">점수 분포</div>
-    <div class="compare-card">
-      <svg id="p-kde-summary" class="chart-svg" height="140" viewBox="0 0 360 140"></svg>
     </div>
 
     <div class="sec-title" style="margin-top:16px;">시험 결과 총평</div>
     <div class="comment-box">${assessmentHTML(generatePersonAssessment(e))}</div>
   `;
-
-  const scores = EXAMINEES.filter(x => x.status === 'completed').map(x => x.totalScore).sort((a,b) => a-b);
-  const stats = computeStats();
-  renderKDECurve('p-kde-summary', scores, stats.avg, stats.median, e.totalScore, '#1565C0');
 }
 
 /* ══════════════════════════════
