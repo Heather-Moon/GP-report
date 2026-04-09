@@ -36,10 +36,10 @@ function hexAlpha(hex, a) {
 ══════════════════════════════ */
 function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
   const svg = clearSvg(svgId); if (!svg) return;
-  const W=360, H=parseInt(svg.getAttribute('height')||'120'),
-        padL=28, padR=6, padT=14, padB=24;
+  const W=360, H=parseInt(svg.getAttribute('height')||'160'),
+        padL=32, padR=10, padT=22, padB=28;
   const xMin=30, xMax=102, nPts=120;
-  const bw = Math.max(7, 10 - scores.length * 0.3); // adaptive bandwidth
+  const bw = Math.max(7, 10 - scores.length * 0.3);
   const col = color || '#1565C0';
 
   // KDE density
@@ -52,50 +52,90 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
   const sx = x => padL + ((x-xMin)/(xMax-xMin))*cW;
   const sy = y => padT + cH - (y/maxY)*cH;
 
+  // 점수 구간 배경 (불합격: 좌측 끝~80점 / 합격: 80점~우측 끝)
+  svg.appendChild(svgEl('rect', { x:padL,   y:padT, width:sx(80)-padL,   height:cH, fill:'rgba(220,38,38,0.07)'  }));
+  svg.appendChild(svgEl('rect', { x:sx(80), y:padT, width:W-padR-sx(80), height:cH, fill:'rgba(22,163,74,0.08)'  }));
 
-  // Fill area — rgba 직접 사용 (file:// 프로토콜에서도 안전하게 동작)
-  const fillD = [`M${sx(xs[0])},${sy(0)}`];
-  xs.forEach((x,i) => fillD.push(`L${sx(x)},${sy(ys[i])}`));
-  fillD.push(`L${sx(xs[nPts-1])},${sy(0)} Z`);
-  svg.appendChild(svgEl('path', {d:fillD.join(' '), fill:hexAlpha(col||'#1565C0', 0.15), stroke:'none'}));
+  // 구간 레이블 — 차트 중간 높이에 배치
+  const midY = padT + cH * 0.72;
+  [
+    ['불합격', sx((40+80)/2), 'rgba(220,38,38,0.45)'],
+    ['합격',   sx((80+100)/2), 'rgba(22,163,74,0.55)'],
+  ].forEach(([lbl, xv, fill]) => {
+    const t = svgEl('text', {x:xv, y:midY, 'text-anchor':'middle',
+      'font-size':'13', fill, 'font-weight':'700', 'letter-spacing':'1'});
+    t.textContent = lbl; svg.appendChild(t);
+  });
 
-  // Curve
-  const lineD = xs.map((x,i) => `${i===0?'M':'L'}${sx(x).toFixed(1)},${sy(ys[i]).toFixed(1)}`).join(' ');
-  svg.appendChild(svgEl('path', {d:lineD, fill:'none', stroke:col, 'stroke-width':'2.5',
-    'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+  // 합격선 (80점) — 초록 실선
+  const passX = sx(80);
+  svg.appendChild(svgEl('line', {x1:passX, y1:padT, x2:passX, y2:H-padB,
+    stroke:'#16A34A', 'stroke-width':'2'}));
 
-  // X축 선 + 눈금 + 레이블
-  svg.appendChild(svgEl('line', {x1:padL, y1:H-padB, x2:W-padR, y2:H-padB, stroke:'#E5E7EB', 'stroke-width':'1'}));
+  // X축
+  svg.appendChild(svgEl('line', {x1:padL, y1:H-padB, x2:W-padR, y2:H-padB, stroke:'#D1D5DB','stroke-width':'1'}));
   [40,50,60,70,80,90,100].forEach(v => {
-    svg.appendChild(svgEl('line', {x1:sx(v), y1:H-padB, x2:sx(v), y2:H-padB+3, stroke:'#D1D5DB','stroke-width':'1'}));
-    const t = svgEl('text', {x:sx(v), y:H-6, 'text-anchor':'middle', 'font-size':'8.5', fill:'#9CA3AF'});
+    const isMark = v === 80;
+    svg.appendChild(svgEl('line', {x1:sx(v), y1:H-padB, x2:sx(v), y2:H-padB+4, stroke: isMark ? '#9CA3AF' : '#D1D5DB','stroke-width': isMark ? '2' : '1'}));
+    const t = svgEl('text', {x:sx(v), y:H-7, 'text-anchor':'middle', 'font-size':'11',
+      fill: isMark ? '#6B7280' : '#9CA3AF', 'font-weight': isMark ? '700' : '500'});
     t.textContent = v; svg.appendChild(t);
   });
 
-  // Avg line
+  // 채움 영역
+  const fillD = [`M${sx(xs[0])},${sy(0)}`];
+  xs.forEach((x,i) => fillD.push(`L${sx(x)},${sy(ys[i])}`));
+  fillD.push(`L${sx(xs[nPts-1])},${sy(0)} Z`);
+  svg.appendChild(svgEl('path', {d:fillD.join(' '), fill:hexAlpha(col, 0.22), stroke:'none'}));
+
+  // 커브 선
+  const lineD = xs.map((x,i) => `${i===0?'M':'L'}${sx(x).toFixed(1)},${sy(ys[i]).toFixed(1)}`).join(' ');
+  svg.appendChild(svgEl('path', {d:lineD, fill:'none', stroke:col, 'stroke-width':'3',
+    'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+
+  // 평균선 — 주황 점선
   if (avgVal != null) {
     const ax = sx(avgVal);
-    svg.appendChild(svgEl('line', {x1:ax, y1:padT, x2:ax, y2:H-padB, stroke:'#1565C0','stroke-width':'1.5','stroke-dasharray':'4,3'}));
-    const at = svgEl('text', {x:ax+3, y:padT+9, 'font-size':'8','fill':'#1565C0','font-weight':'700'});
-    at.textContent='평균 '+avgVal; svg.appendChild(at);
+    svg.appendChild(svgEl('line', {x1:ax, y1:padT, x2:ax, y2:H-padB,
+      stroke:'#F59E0B', 'stroke-width':'2', 'stroke-dasharray':'5,3'}));
   }
-  // Median line
-  if (medVal != null && Math.abs(sx(medVal)-sx(avgVal)) > 4) {
-    const mx = sx(medVal);
-    svg.appendChild(svgEl('line', {x1:mx, y1:padT, x2:mx, y2:H-padB, stroke:'#7C3AED','stroke-width':'1.5','stroke-dasharray':'4,3'}));
-    const mt = svgEl('text', {x:mx+3, y:padT+18, 'font-size':'8','fill':'#7C3AED','font-weight':'700'});
-    mt.textContent='중앙 '+medVal; svg.appendChild(mt);
-  } else if (medVal != null) {
-    const mx = sx(medVal);
-    const mt = svgEl('text', {x:mx-3, y:padT+18, 'text-anchor':'end','font-size':'8','fill':'#7C3AED','font-weight':'700'});
-    mt.textContent='중앙 '+medVal; svg.appendChild(mt);
-  }
-  // Personal marker
+
+  // 응시자 마커
   if (markerScore != null) {
     const px = sx(markerScore);
-    svg.appendChild(svgEl('line', {x1:px, y1:padT, x2:px, y2:H-padB, stroke:'#DC2626','stroke-width':'2'}));
-    const pt2 = svgEl('text', {x:px, y:padT+5, 'text-anchor':'middle','font-size':'8','fill':'#DC2626','font-weight':'700'});
-    pt2.textContent='나'; svg.appendChild(pt2);
+
+    // 커브 위 점의 y값 계산
+    const markerDensity = scores.reduce((s,v) => {
+      const z = (markerScore - v) / bw; return s + Math.exp(-0.5*z*z);
+    }, 0);
+    const dotY = sy(markerDensity);
+
+    // 커브 위 점 (흰 테두리 강조)
+    svg.appendChild(svgEl('circle', {cx:px, cy:dotY, r:'7', fill:'#fff', stroke:col, 'stroke-width':'3'}));
+    svg.appendChild(svgEl('circle', {cx:px, cy:dotY, r:'3.5', fill:col}));
+
+    // 콜아웃 박스 (점 위에 떠 있는 형태)
+    const boxW = 72, boxH = 36, boxR = 8;
+    // 콜아웃 x 위치: 오른쪽으로 치우치면 왼쪽으로
+    const boxX = px + boxW/2 + 6 > W - padR ? px - boxW/2 - 6 : px + 6;
+    const boxY = dotY - boxH - 10;
+    const arrowX = px;
+    const arrowY = dotY - 10;
+
+    svg.appendChild(svgEl('rect', {x:boxX - boxW/2, y:boxY, width:boxW, height:boxH, rx:boxR, fill:col}));
+    // 화살표 삼각형
+    svg.appendChild(svgEl('polygon', {
+      points:`${arrowX},${arrowY} ${arrowX-6},${boxY+boxH} ${arrowX+6},${boxY+boxH}`,
+      fill:col
+    }));
+    // "응시자" 라벨
+    const lbl1 = svgEl('text', {x:boxX, y:boxY+13, 'text-anchor':'middle',
+      'font-size':'10', fill:'rgba(255,255,255,0.85)', 'font-weight':'600'});
+    lbl1.textContent = '응시자'; svg.appendChild(lbl1);
+    // 점수
+    const lbl2 = svgEl('text', {x:boxX, y:boxY+28, 'text-anchor':'middle',
+      'font-size':'13', fill:'#fff', 'font-weight':'800'});
+    lbl2.textContent = markerScore+'점'; svg.appendChild(lbl2);
   }
 }
 
@@ -443,11 +483,12 @@ function renderRadar(svgId, axes, color, legendId) {
 function renderDualRadar(svgId, labels, meVals, avgVals, color, tooltipId) {
   const svg = document.getElementById(svgId); if (!svg) return;
   svg.innerHTML = '';
+  svg.setAttribute('overflow', 'visible');
   const n = labels.length;
   const W = parseInt(svg.getAttribute('width') || '240');
   const H = parseInt(svg.getAttribute('height') || '240');
   const cx = W / 2, cy = H / 2;
-  const R = Math.min(cx, cy) - 38;
+  const R = Math.min(cx, cy) - 62;
   const step = (2 * Math.PI) / n;
   const start = -Math.PI / 2;
 
@@ -480,38 +521,53 @@ function renderDualRadar(svgId, labels, meVals, avgVals, color, tooltipId) {
   svg.appendChild(svgEl('polygon', { points: mePts,
     fill: hexAlpha(color, 0.18), stroke: color, 'stroke-width': '2.2' }));
 
-  // 라벨
+  // 라벨 + 점
+  const tip = tooltipId ? document.getElementById(tooltipId) : null;
+
   labels.forEach((lbl, i) => {
     const a = start + i * step;
-    const lx = cx + (R + 26) * Math.cos(a);
-    const ly = cy + (R + 26) * Math.sin(a);
-    const anchor = Math.abs(Math.cos(a)) < 0.1 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
-    const short = lbl.length > 9 ? lbl.slice(0, 8) + '…' : lbl;
-    const t = svgEl('text', { x: lx, y: ly + 4, 'text-anchor': anchor,
-      'font-size': '9', fill: '#374151', 'font-weight': '600' });
-    t.textContent = short;
-    svg.appendChild(t);
-  });
+    const lx = cx + (R + 22) * Math.cos(a);
+    const ly = cy + (R + 22) * Math.sin(a);
+    const anchor = Math.abs(Math.cos(a)) < 0.15 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
 
-  // 점 + 호버 히트 영역
-  const tip = tooltipId ? document.getElementById(tooltipId) : null;
-  labels.forEach((lbl, i) => {
-    const [mx, my] = pt(i, meVals[i]);
-    const [ax, ay] = pt(i, avgVals[i]);
-    // avg dot
-    svg.appendChild(svgEl('circle', { cx: ax, cy: ay, r: '3.5', fill: '#94A3B8', stroke: 'white', 'stroke-width': '1.5' }));
-    // me dot
-    svg.appendChild(svgEl('circle', { cx: mx, cy: my, r: '4.5', fill: color, stroke: 'white', 'stroke-width': '2' }));
-    // transparent hit circle along axis
-    const [hx, hy] = pt(i, 100);
-    const hitEl = svgEl('circle', { cx: hx, cy: hy, r: '20', fill: 'transparent', style: 'cursor:pointer;' });
-    hitEl.addEventListener('mouseenter', () => {
+    // 공백 기준으로 두 줄 분리, 없으면 중간에서 분리
+    let lines;
+    const spaceIdx = lbl.indexOf(' ');
+    if (lbl.length <= 8) {
+      lines = [lbl];
+    } else if (spaceIdx > 0 && spaceIdx < lbl.length - 1) {
+      lines = [lbl.slice(0, spaceIdx), lbl.slice(spaceIdx + 1)];
+    } else {
+      const mid = Math.ceil(lbl.length / 2);
+      lines = [lbl.slice(0, mid), lbl.slice(mid)];
+    }
+
+    const lineH = 12;
+    const totalH = lines.length * lineH;
+    const t = svgEl('text', { x: lx, y: ly - totalH / 2 + 4, 'text-anchor': anchor,
+      'font-size': '10', fill: '#374151', 'font-weight': '600', style: 'cursor:pointer; user-select:none;' });
+
+    lines.forEach((line, li) => {
+      const ts = svgEl('tspan', { x: lx, dy: li === 0 ? '0' : `${lineH}` });
+      ts.textContent = line;
+      t.appendChild(ts);
+    });
+
+    t.addEventListener('mouseenter', () => {
       if (tip) {
-        tip.innerHTML = `<strong>${lbl}</strong><br>내 점수 ${meVals[i]}% &nbsp;|&nbsp; 전체 평균 ${avgVals[i]}%`;
+        tip.innerHTML = `<strong>${lbl}</strong><br>나&nbsp;${meVals[i]}%&nbsp;&nbsp;|&nbsp;&nbsp;전체 평균&nbsp;${avgVals[i]}%`;
         tip.style.display = 'block';
       }
     });
-    hitEl.addEventListener('mouseleave', () => { if (tip) tip.style.display = 'none'; });
-    svg.appendChild(hitEl);
+    t.addEventListener('mouseleave', () => { if (tip) tip.style.display = 'none'; });
+    svg.appendChild(t);
+  });
+
+  // 점 (dot only, 히트 영역 제거)
+  labels.forEach((lbl, i) => {
+    const [mx, my] = pt(i, meVals[i]);
+    const [ax, ay] = pt(i, avgVals[i]);
+    svg.appendChild(svgEl('circle', { cx: ax, cy: ay, r: '3.5', fill: '#94A3B8', stroke: 'white', 'stroke-width': '1.5' }));
+    svg.appendChild(svgEl('circle', { cx: mx, cy: my, r: '4.5', fill: color, stroke: 'white', 'stroke-width': '2' }));
   });
 }

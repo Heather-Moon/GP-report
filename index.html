@@ -11,7 +11,7 @@
 
   <!-- ─── 탑바 ─── -->
   <nav class="topbar">
-    <div class="topbar-brand" onclick="navigate('main')">
+    <div class="topbar-brand" onclick="goMain('results')">
       <div class="brand-icon">
         <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3zm0 5h14v2H3zm0 5h9v2H3z"/></svg>
       </div>
@@ -67,9 +67,17 @@
           <div class="insight-header">점수 분포</div>
           <div class="ins-tab-group" id="ins-score-tabs"></div>
           <!-- 차트(좌) + 통계(우) -->
-          <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:16px;">
+          <div style="display:flex; gap:8px; align-items:flex-start;">
             <div style="flex:1; min-width:0;">
               <svg id="ins-score-curve" class="chart-svg" height="130" viewBox="0 0 360 130"></svg>
+              <div class="kde-legend" style="margin-top:5px; margin-bottom:12px;">
+                <div class="kde-legend-item">
+                  <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
+                </div>
+                <div class="kde-legend-item">
+                  <span class="kde-leg-line" style="border-color:#16A34A; border-style:solid;"></span>합격선 (80점)
+                </div>
+              </div>
             </div>
             <div id="ins-score-stats" style="display:flex; flex-direction:column; gap:10px; min-width:110px; padding-top:6px;"></div>
           </div>
@@ -129,7 +137,7 @@
          PAGE 2: 평가자 개인 페이지
     ══════════════════════════════════ -->
     <div id="page-person" class="page">
-      <button class="back-btn" onclick="navigate('main')">← 목록으로</button>
+      <button class="back-btn" onclick="goMain('examinees')">← 목록으로</button>
 
       <!-- 응시자 헤더 -->
       <div class="person-header">
@@ -146,12 +154,7 @@
         <button class="behavior-btn" onclick="toggleBehaviorPanel()">행동 분석</button>
       </div>
 
-      <!-- 행동 분석 패널 -->
-      <div class="behavior-panel" id="behavior-panel" style="display:none;">
-        <span class="behavior-panel-label">행동 분석</span>
-        <button class="behavior-action-btn">영상</button>
-        <button class="behavior-action-btn">타임라인</button>
-      </div>
+      <!-- 행동 분석 패널 (제거됨 — 모달로 대체) -->
 
       <!-- 탭 네비게이션 -->
       <div class="person-tab-nav">
@@ -242,11 +245,49 @@
   </div><!-- /content-wrap -->
 
   <footer>© 2026 Codepresso, Inc. All Rights Reserved.</footer>
+
+  <!-- ── 행동 분석 모달 ── -->
+  <div id="behavior-modal" class="bm-overlay" style="display:none;" onclick="closeBehaviorModal(event)">
+    <div class="bm-dialog">
+      <div class="bm-header">
+        <div class="bm-header-left">
+          <span class="bm-title">행동 분석</span>
+          <span class="bm-subtitle" id="bm-name"></span>
+        </div>
+        <button class="bm-close" onclick="closeBehaviorModal()">✕</button>
+      </div>
+      <div class="bm-body">
+        <!-- 왼쪽: 동영상 -->
+        <div class="bm-video-section">
+          <div class="bm-video-screen">
+            <div class="bm-video-placeholder">
+              <svg viewBox="0 0 48 48" fill="none"><rect x="2" y="8" width="36" height="26" rx="3" stroke="#4B5563" stroke-width="2"/><path d="M38 19l8-5v20l-8-5V19z" stroke="#4B5563" stroke-width="2" stroke-linejoin="round"/><circle cx="20" cy="21" r="3" stroke="#6B7280" stroke-width="1.5"/></svg>
+              <p>화면 녹화 영상</p>
+            </div>
+          </div>
+          <div class="bm-video-controls">
+            <button class="bm-play-btn" onclick="toggleBmPlay(this)">▶</button>
+            <div class="bm-progress-wrap">
+              <div class="bm-progress-bar" id="bm-progress-bar"></div>
+            </div>
+            <span class="bm-time-display" id="bm-time-display">00:00 / 00:00</span>
+          </div>
+        </div>
+
+        <!-- 오른쪽: 타임라인 -->
+        <div class="bm-timeline-section">
+          <div class="bm-timeline-title">타임라인</div>
+          <div class="bm-timeline-list" id="bm-timeline-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /app -->
 
-<script src="js/data.js?v=20260409k"></script>
-<script src="js/charts.js?v=20260409k"></script>
-<script src="js/render.js?v=20260409k"></script>
-<script src="js/app.js?v=20260409k"></script>
+<script src="js/data.js?v=20260410a"></script>
+<script src="js/charts.js?v=20260410a"></script>
+<script src="js/render.js?v=20260410a"></script>
+<script src="js/app.js?v=20260410a"></script>
 </body>
 </html>
