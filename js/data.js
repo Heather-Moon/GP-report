@@ -272,8 +272,8 @@ function riskBadgeHTML(risk, large = false) {
   const detail = risk.level !== 'normal'
     ? ` <span style="font-size:0.68em;opacity:0.75;">(위험 ${risk.highCount} / 주의 ${risk.medCount})</span>`
     : '';
-  const pad = large ? '4px 12px' : '3px 9px';
-  const fs  = large ? '0.77rem' : '0.72rem';
+  const pad = large ? '6px 16px' : '3px 9px';
+  const fs  = large ? '0.88rem' : '0.72rem';
   return `<span style="display:inline-flex;align-items:center;gap:5px;background:${m.bg};color:${m.color};padding:${pad};border-radius:99px;font-size:${fs};font-weight:700;white-space:nowrap;">
     <span style="width:7px;height:7px;border-radius:50%;background:${m.dot};flex-shrink:0;"></span>${m.label}${detail}</span>`;
 }

@@ -145,41 +145,35 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
 ══════════════════════════════ */
 function renderMainScoreHistogram(svgId, scores, avgVal, markerScore) {
   const svg = clearSvg(svgId); if (!svg) return;
-  const W = 380, H = 170, padL = 36, padR = 16, padT = 16, padB = 32;
+  const W = 380, H = 220, padL = 36, padR = 16, padT = 16, padB = 32;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.setAttribute('height', H);
 
-  const bins   = [0, 20, 40, 60, 80, 100];
-  const nBins  = bins.length - 1;
+  const bins  = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  const nBins = bins.length - 1;  // 10
   const counts = Array(nBins).fill(0);
   scores.forEach(s => {
-    const i = Math.min(Math.floor(s / 20), nBins - 1);
+    const i = Math.min(Math.floor(s / 10), nBins - 1);
     if (i >= 0) counts[i]++;
   });
   const maxC = Math.max(...counts, 1);
-  // Y축 최대값: maxC보다 1 크게 (여백)
   const yMax = maxC + 1;
   const bW   = (W - padL - padR) / nBins;
   const cH   = H - padT - padB;
   const sx   = v => padL + (v / 100) * (W - padL - padR);
   const sy   = c => padT + cH - (c / yMax) * cH;
 
-  // 합격/불합격 배경 (연하게)
-  svg.appendChild(svgEl('rect', { x: padL, y: padT, width: sx(80) - padL, height: cH, fill: 'rgba(0,0,0,0.025)' }));
-  svg.appendChild(svgEl('rect', { x: sx(80), y: padT, width: W - padR - sx(80), height: cH, fill: 'rgba(22,163,74,0.04)' }));
-
   // Y축 수평 그리드 + 눈금
   for (let v = 0; v <= maxC; v++) {
     const y = sy(v);
     svg.appendChild(svgEl('line', { x1: padL, y1: y, x2: W - padR, y2: y,
-      stroke: v === 0 ? '#D1D5DB' : '#F3F4F6', 'stroke-width': v === 0 ? '1' : '1' }));
+      stroke: v === 0 ? '#D1D5DB' : '#F3F4F6', 'stroke-width': '1' }));
     const t = svgEl('text', { x: padL - 6, y: y, 'text-anchor': 'end', 'dominant-baseline': 'middle',
       'font-size': '10', fill: '#9CA3AF' });
-    t.textContent = v;
-    svg.appendChild(t);
+    t.textContent = v; svg.appendChild(t);
   }
 
-  // 막대 (단일 색상)
+  // 막대 (점수 구간별 단색)
   counts.forEach((c, i) => {
     if (c === 0) return;
     const x  = padL + i * bW;
@@ -189,34 +183,24 @@ function renderMainScoreHistogram(svgId, scores, avgVal, markerScore) {
       fill: '#1565C0', rx: 4, opacity: '0.82' }));
   });
 
-  // X축 구간 레이블 (막대 하단 중앙)
-  counts.forEach((_, i) => {
-    const x   = padL + i * bW + bW / 2;
-    const lbl = bins[i] + '~' + bins[i + 1];
-    const t   = svgEl('text', { x, y: H - 10, 'text-anchor': 'middle',
-      'font-size': '10', fill: '#6B7280' });
-    t.textContent = lbl;
-    svg.appendChild(t);
-    // 구간 경계 눈금
-    svg.appendChild(svgEl('line', { x1: padL + i * bW, y1: H - padB, x2: padL + i * bW, y2: H - padB + 4,
+  // X축 경계 눈금 + 레이블 (짝수 경계만 표시: 0, 20, 40, 60, 80, 100)
+  bins.forEach((b, i) => {
+    const x = padL + i * bW;
+    svg.appendChild(svgEl('line', { x1: x, y1: H - padB, x2: x, y2: H - padB + 4,
       stroke: '#D1D5DB', 'stroke-width': '1' }));
+    if (i % 2 === 0) {
+      const t = svgEl('text', { x, y: H - 10, 'text-anchor': 'middle',
+        'font-size': '9', fill: '#6B7280' });
+      t.textContent = b; svg.appendChild(t);
+    }
   });
-  svg.appendChild(svgEl('line', { x1: W - padR, y1: H - padB, x2: W - padR, y2: H - padB + 4,
-    stroke: '#D1D5DB', 'stroke-width': '1' }));
-
-  // 합격선 (80점) — 초록 실선 + 레이블
-  const passX = sx(80);
-  svg.appendChild(svgEl('line', { x1: passX, y1: padT, x2: passX, y2: H - padB,
-    stroke: '#16A34A', 'stroke-width': '2' }));
-  const pt = svgEl('text', { x: passX + 4, y: padT + 11, 'font-size': '9', fill: '#16A34A', 'font-weight': '700' });
-  pt.textContent = '합격선'; svg.appendChild(pt);
 
   // 평균선 — 주황 점선 + 레이블
   if (avgVal != null) {
     const ax = sx(avgVal);
     svg.appendChild(svgEl('line', { x1: ax, y1: padT, x2: ax, y2: H - padB,
       stroke: '#F59E0B', 'stroke-width': '2', 'stroke-dasharray': '5,3' }));
-    const at = svgEl('text', { x: ax + 4, y: padT + 23, 'font-size': '9', fill: '#F59E0B', 'font-weight': '700' });
+    const at = svgEl('text', { x: ax + 4, y: padT + 11, 'font-size': '9', fill: '#F59E0B', 'font-weight': '700' });
     at.textContent = '평균(' + avgVal + '점)'; svg.appendChild(at);
   }
 
@@ -574,11 +558,11 @@ function renderRadar(svgId, axes, color, legendId) {
 ══════════════════════════════ */
 function renderTimeHistogram(svgId, timesInSec, limitSec) {
   const svg = clearSvg(svgId); if (!svg) return;
-  const W = 380, H = 170, padL = 36, padR = 16, padT = 16, padB = 32;
+  const W = 380, H = 220, padL = 36, padR = 16, padT = 16, padB = 32;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.setAttribute('height', H);
 
-  const numBins = 5;
+  const numBins = 10;
   const binSec  = limitSec / numBins;
   const counts  = Array(numBins).fill(0);
   const validTimes = timesInSec.filter(t => t > 0);
@@ -602,11 +586,10 @@ function renderTimeHistogram(svgId, timesInSec, limitSec) {
       stroke: v === 0 ? '#D1D5DB' : '#F3F4F6', 'stroke-width': '1' }));
     const t = svgEl('text', { x: padL - 6, y: y, 'text-anchor': 'end', 'dominant-baseline': 'middle',
       'font-size': '10', fill: '#9CA3AF' });
-    t.textContent = v;
-    svg.appendChild(t);
+    t.textContent = v; svg.appendChild(t);
   }
 
-  // 막대 (단일 색상)
+  // 막대 (시간대별 단색: 빠를수록 초록 → 느릴수록 빨강)
   counts.forEach((c, i) => {
     if (c === 0) return;
     const x  = padL + i * bW;
@@ -616,20 +599,17 @@ function renderTimeHistogram(svgId, timesInSec, limitSec) {
       fill: '#1565C0', rx: 4, opacity: '0.82' }));
   });
 
-  // X축 구간 레이블
-  counts.forEach((_, i) => {
-    const x   = padL + i * bW + bW / 2;
-    const lo  = binMins[i], hi = binMins[i + 1];
-    const lbl = lo + '~' + hi + '분';
-    const t   = svgEl('text', { x, y: H - 10, 'text-anchor': 'middle',
-      'font-size': '10', fill: '#6B7280' });
-    t.textContent = lbl;
-    svg.appendChild(t);
-    svg.appendChild(svgEl('line', { x1: padL + i * bW, y1: H - padB, x2: padL + i * bW, y2: H - padB + 4,
+  // X축 경계 눈금 + 레이블 (짝수 경계만 표시)
+  for (let i = 0; i <= numBins; i++) {
+    const x = padL + i * bW;
+    svg.appendChild(svgEl('line', { x1: x, y1: H - padB, x2: x, y2: H - padB + 4,
       stroke: '#D1D5DB', 'stroke-width': '1' }));
-  });
-  svg.appendChild(svgEl('line', { x1: W - padR, y1: H - padB, x2: W - padR, y2: H - padB + 4,
-    stroke: '#D1D5DB', 'stroke-width': '1' }));
+    if (i % 2 === 0) {
+      const t = svgEl('text', { x, y: H - 10, 'text-anchor': 'middle',
+        'font-size': '9', fill: '#6B7280' });
+      t.textContent = binMins[i] + '분'; svg.appendChild(t);
+    }
+  }
 
   // 평균선 — 주황 점선
   if (validTimes.length) {

@@ -399,17 +399,17 @@ function renderSummaryTab(e) {
       <div style="display:grid; grid-template-columns:repeat(3,1fr);" class="summary-meta-grid">
         <div class="ss-card-flat">
           <div class="ss-val">${rank}<small>/${n}명</small></div>
+          <div class="ss-sub">${getPercentile(e.totalScore, totalScores)}</div>
           <div class="ss-label">순위</div>
-          <div class="ss-sub">${getPercentile(e.totalScore, totalScores)} <span style="color:var(--text-mute);font-size:0.9em;">(해당 평가)</span></div>
         </div>
         <div class="ss-card-flat">
           <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${e.time || '-'}<br><small style="font-size:0.6em; color:var(--text-mute);">/ ${timeLimitHMS}</small></div>
           <div class="ss-label">소요시간</div>
         </div>
         <div class="ss-card-flat">
-          <div class="ss-label" style="margin-bottom:6px;">부정행위 지표</div>
-          <div style="margin-bottom:8px;">${e.behaviorRisk ? riskBadgeHTML(e.behaviorRisk) : '-'}</div>
-          <button class="behavior-btn behavior-btn-sm" onclick="toggleBehaviorPanel()">행동 분석</button>
+          <div class="ss-val" style="font-size:1rem;">${e.behaviorRisk ? riskBadgeHTML(e.behaviorRisk, true) : '-'}</div>
+          <span onclick="toggleBehaviorPanel()" style="font-size:0.72rem; color:var(--primary); cursor:pointer; font-weight:600; opacity:0.8; margin-bottom:4px; display:inline-block;">행동 분석 →</span>
+          <div class="ss-label">부정행위 지표</div>
         </div>
       </div>
     </div>
@@ -460,6 +460,21 @@ function renderSummaryTab(e) {
           ${ti < tracks.length - 1 ? '<div class="donut-separator"></div>' : ''}`;
         }).join('')}
       </div>
+    </div>
+
+    <!-- 평가 구성 -->
+    <div class="compare-card" style="margin-bottom:16px;">
+      <div class="ss-block-title">평가 구성</div>
+      ${TRACKS_META.map((meta, i) => `
+        <div style="${i > 0 ? 'border-top:1px solid var(--border); margin-top:12px; padding-top:12px;' : ''}">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <span style="font-size:1rem;">${meta.icon}</span>
+            <span style="font-size:0.86rem; font-weight:700; color:var(--text);">${meta.name}</span>
+            <span class="badge badge-level" style="flex-shrink:0;">${meta.level}</span>
+          </div>
+          <div style="font-size:0.82rem; line-height:1.75; color:var(--text-sub);">${meta.desc.replace(/\n/g, '<br><br>')}</div>
+        </div>
+      `).join('')}
     </div>
 
     <div class="sec-title">시험 결과 총평</div>
@@ -515,14 +530,6 @@ function renderTrackTab(e, trackIdx) {
   const kdeId   = `p-kde-t${trackIdx}`;
 
   el.innerHTML = `
-    <div class="track-desc-block">
-      <div class="track-desc-header">
-        <span class="tdc-icon">${meta.icon}</span>
-        <span class="tdc-title">${meta.name}</span>
-        <span class="tdc-level badge badge-level">${meta.level}</span>
-      </div>
-      <div class="track-desc-text">${meta.desc.replace(/\n/g, '<br><br>')}</div>
-    </div>
 
     <div class="compare-card compare-card-sm" style="margin-bottom:16px;">
       <div class="ss-block-title">평가 결과</div>
@@ -617,7 +624,7 @@ function renderTrackTab(e, trackIdx) {
           e.trackAssessments[trackIdx].skillTexts && e.trackAssessments[trackIdx].skillTexts[s.name];
         const verdict = s.level === 'acquired'
           ? { cls: 'verdict-good', label: '강점',
-              text: realSkill || ('역량을 성공적으로 확보했습니다.' + (rate < 50 ? ' 전체 획득률이 낮은 난이도 높은 역량으로, 높은 수준의 실력을 입증했습니다.' : '')) }
+              text: realSkill || ('역량을 성공적으로 확보했습니다.' + (rate < 50 ? ' 응시자 평균 획득률이 낮은 난이도 높은 역량으로, 높은 수준의 실력을 입증했습니다.' : '')) }
           : s.level === 'partial'
           ? { cls: 'verdict-warn', label: '보완',
               text: realSkill || '역량의 일부를 확보했습니다. 추가 학습을 통해 완전한 획득을 권장합니다.' }
@@ -627,7 +634,6 @@ function renderTrackTab(e, trackIdx) {
           <div class="sdc-header">
             <span class="badge ${LEVEL_CLASS[s.level]}">${LEVEL_LABEL[s.level]}</span>
             <span class="sdc-name">${s.name}</span>
-            <span class="sdc-rate" style="color:${rateCol};">전체 획득률 ${rate}%</span>
           </div>
           <div class="sdc-desc">${s.desc}</div>
           <div class="sdc-verdict ${verdict.cls}"><span class="verdict-label">${verdict.label}</span>${verdict.text}</div>
