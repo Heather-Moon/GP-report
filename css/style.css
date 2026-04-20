@@ -930,13 +930,13 @@ footer {
   .info-icon { display: none !important; }
 
   /* 트랙 반복 헤더 */
-  .print-track-table { display: table !important; width: 100%; border-collapse: collapse; }
-  .print-track-table > thead { display: table-header-group !important; }
-  .print-track-table > thead > tr { display: table-row !important; }
-  .print-track-table > thead > tr > td { display: table-cell !important; padding-bottom: 10px; }
-  .print-track-table > tbody { display: table-row-group !important; }
-  .print-track-table > tbody > tr { display: table-row !important; }
-  .print-track-table > tbody > tr > td { display: table-cell !important; width: 100%; }
+  .print-track-table { display: table !important; width: 100%; border-collapse: collapse; border: none; }
+  .print-track-table > thead { display: table-header-group !important; border: none !important; }
+  .print-track-table > thead > tr { display: table-row !important; border: none !important; }
+  .print-track-table > thead > tr > td { display: table-cell !important; padding-bottom: 10px; border: none !important; }
+  .print-track-table > tbody { display: table-row-group !important; border: none !important; }
+  .print-track-table > tbody > tr { display: table-row !important; border: none !important; }
+  .print-track-table > tbody > tr > td { display: table-cell !important; width: 100%; border: none !important; padding-top: 0 !important; }
   .print-track-title {
     display: block !important;
     font-size: 0.95rem; font-weight: 800;

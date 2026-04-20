@@ -137,12 +137,12 @@ function openPerson(id) {
   // 헤더 채우기
   document.getElementById('p-avatar').textContent = e.name[1] || e.name[0];
   document.getElementById('p-name').textContent = e.name;
-  document.getElementById('p-email').textContent = e.email;
+  document.getElementById('p-email').textContent = '✉ ' + e.email;
   document.getElementById('p-status').innerHTML = e.status === 'completed'
     ? '<span class="badge badge-complete">평가 완료</span>'
     : '<span class="badge" style="background:#F3F4F6;color:var(--text-sub);">미완료</span>';
-  document.getElementById('p-date').textContent = e.date;
-  document.getElementById('p-time-meta').textContent = e.status === 'completed' ? e.time : '';
+  document.getElementById('p-date').textContent = '📅 ' + e.date;
+  document.getElementById('p-time-meta').textContent = e.status === 'completed' ? '⏱ ' + e.time : '';
 
   // 탭 초기화
   setPersonTab(0);
