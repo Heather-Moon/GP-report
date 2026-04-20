@@ -162,7 +162,7 @@ function renderSkillDonuts() {
     const pct = Math.round(acq/tot*100);
     const avgAcqT = Math.round(acq/completed.length*10)/10;
     return { label: ['분산 아키텍처','클라우드 컴퓨팅','Python'][ti],
-      acq, tot, color: trackColor(pct),
+      acq, tot, color: TRACK_COLORS[ti],
       labelInner: `${avgAcqT}/${meta.skills.length}` };
   });
 
@@ -298,7 +298,7 @@ function generateGroupAssessment() {
       (t.avg >= 80 ? '우수한 성과를 보였습니다.' : t.avg >= 65 ? '전반적으로 양호한 수준입니다.' : '전체 평균이 낮아 보완이 필요합니다.') +
       (tStrongSkills.length ? ` ${tStrongSkills.slice(0,3).join(', ')} 역량에서 높은 획득률을 보였습니다.` : '') +
       (tWeakSkills.length   ? ` ${tWeakSkills.slice(0,3).join(', ')} 역량의 집중 학습이 권장됩니다.` : '');
-    return { name: t.name, text: tText, color: trackColor(t.avg) };
+    return { name: t.name, text: tText, color: TRACK_COLORS[ti] };
   });
 
   return {
@@ -381,7 +381,7 @@ function renderSummaryTab(e) {
       <div class="ss-block-title">평가 결과</div>
       <!-- Row 1: 총점 + 트랙별 점수 -->
       <div style="display:grid; grid-template-columns:repeat(4,1fr);" class="summary-score-grid">
-        <div class="ss-card-flat">
+        <div class="ss-card-flat" style="border-right:1px solid var(--border);">
           <div class="ss-val" style="color:${scoreCol};">${e.totalScore}<small>점</small></div>
           <div class="ss-label">총점</div>
           <div class="ss-sub">${e.totalScore >= 70 ? '합격 기준 충족' : '합격 기준 미달'}</div>
@@ -468,7 +468,6 @@ function renderSummaryTab(e) {
       ${TRACKS_META.map((meta, i) => `
         <div style="${i > 0 ? 'border-top:1px solid var(--border); margin-top:12px; padding-top:12px;' : ''}">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <span style="font-size:1rem;">${meta.icon}</span>
             <span style="font-size:0.86rem; font-weight:700; color:var(--text);">${meta.name}</span>
             <span class="badge badge-level" style="flex-shrink:0;">${meta.level}</span>
           </div>
@@ -530,6 +529,9 @@ function renderTrackTab(e, trackIdx) {
   const kdeId   = `p-kde-t${trackIdx}`;
 
   el.innerHTML = `
+  <table class="print-track-table">
+    <thead><tr><td><div class="print-track-title">${meta.name}</div></td></tr></thead>
+    <tbody><tr><td>
 
     <div class="compare-card compare-card-sm" style="margin-bottom:16px;">
       <div class="ss-block-title">평가 결과</div>
@@ -540,8 +542,8 @@ function renderTrackTab(e, trackIdx) {
         </div>
         <div class="ss-card-flat">
           <div class="ss-val">${rank}<small>/${n}명</small></div>
+          <div class="ss-sub">${getPercentile(track.score, trackScores)}</div>
           <div class="ss-label">순위</div>
-          <div class="ss-sub">${getPercentile(track.score, trackScores)} <span style="color:var(--text-mute);font-size:0.9em;">(해당 평가)</span></div>
         </div>
         <div class="ss-card-flat">
           <div class="ss-val" style="color:${rateColor(track.rate)};">${acq}<small>/${total}개</small></div>
@@ -626,9 +628,9 @@ function renderTrackTab(e, trackIdx) {
           ? { cls: 'verdict-good', label: '강점',
               text: realSkill || ('역량을 성공적으로 확보했습니다.' + (rate < 50 ? ' 응시자 평균 획득률이 낮은 난이도 높은 역량으로, 높은 수준의 실력을 입증했습니다.' : '')) }
           : s.level === 'partial'
-          ? { cls: 'verdict-warn', label: '보완',
+          ? { cls: 'verdict-warn', label: '약점',
               text: realSkill || '역량의 일부를 확보했습니다. 추가 학습을 통해 완전한 획득을 권장합니다.' }
-          : { cls: 'verdict-bad', label: '단점',
+          : { cls: 'verdict-bad', label: '약점',
               text: realSkill || ('역량 확보가 이루어지지 않았습니다. ' + (rate >= 60 ? '전체 응시자 중 상당수가 획득한 역량으로 집중적인 보완이 필요합니다.' : '높은 난이도의 역량이므로 심층 학습을 권장합니다.')) };
         return `<div class="skill-detail-card">
           <div class="sdc-header">
@@ -640,6 +642,9 @@ function renderTrackTab(e, trackIdx) {
         </div>`;
       }).join('')}
     </div>
+
+    </td></tr></tbody>
+  </table>
   `;
 
   renderKDECurve(kdeId, trackScores, avg, median, track.score, track.color);

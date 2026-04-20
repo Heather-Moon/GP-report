@@ -204,6 +204,13 @@ function renderMainScoreHistogram(svgId, scores, avgVal, markerScore) {
     at.textContent = '평균(' + avgVal + '점)'; svg.appendChild(at);
   }
 
+  // 합격선 (80점) — 초록 실선
+  const passX = sx(80);
+  svg.appendChild(svgEl('line', { x1: passX, y1: padT, x2: passX, y2: H - padB,
+    stroke: '#16A34A', 'stroke-width': '2' }));
+  const pt = svgEl('text', { x: passX + 4, y: padT + 22, 'font-size': '9', fill: '#16A34A', 'font-weight': '700' });
+  pt.textContent = '합격선(80점)'; svg.appendChild(pt);
+
   // 개인 마커 (응시자 개인 페이지용)
   if (markerScore != null) {
     const px = sx(markerScore);

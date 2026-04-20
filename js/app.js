@@ -6,7 +6,7 @@ let selectedExaminee = null;
 let selectedTrackIdx = 0;
 let tableFilter      = 'all';
 let tableCurrentPage = 1;
-const ROWS_PER_PAGE  = 5;
+let ROWS_PER_PAGE    = 5;
 
 /* ══════════════════════════════
    NAVIGATION
@@ -85,6 +85,7 @@ function renderTable() {
       <td>${e.status === 'completed'
         ? '<span class="badge badge-complete">완료</span>'
         : '<span class="badge" style="background:#F3F4F6; color:var(--text-sub);">미완료</span>'}</td>
+      <td style="color:var(--text-sub); font-size:0.82rem;">${e.date || '-'}</td>
       <td style="font-weight:800; color:var(--primary); font-size:1rem;">${e.totalScore !== null ? e.totalScore + '점' : '-'}</td>
       <td>
         ${e.rate !== null ? `
@@ -96,10 +97,10 @@ function renderTable() {
         </div>` : '-'}
       </td>
       <td style="color:var(--text-sub);">${e.time}</td>
-      <td>${riskBadgeHTML(e.behaviorRisk)}</td>
+      <td>${e.status === 'completed' ? riskBadgeHTML(e.behaviorRisk) : '-'}</td>
       <td><button class="td-btn" onclick="openPerson(${e.id})">결과 보기</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="6" style="text-align:center; color:var(--text-mute); padding:24px;">결과 없음</td></tr>`;
+  }).join('') || `<tr><td colspan="7" style="text-align:center; color:var(--text-mute); padding:24px;">결과 없음</td></tr>`;
 
   // 페이지네이션
   document.getElementById('pg-info').textContent =
@@ -120,6 +121,12 @@ function setPage(p) {
   renderTable();
 }
 
+function setRowsPerPage(v) {
+  ROWS_PER_PAGE = parseInt(v, 10);
+  tableCurrentPage = 1;
+  renderTable();
+}
+
 /* ══════════════════════════════
    개인 페이지
 ══════════════════════════════ */
@@ -130,12 +137,12 @@ function openPerson(id) {
   // 헤더 채우기
   document.getElementById('p-avatar').textContent = e.name[1] || e.name[0];
   document.getElementById('p-name').textContent = e.name;
-  document.getElementById('p-email').textContent = '✉ ' + e.email;
+  document.getElementById('p-email').textContent = e.email;
   document.getElementById('p-status').innerHTML = e.status === 'completed'
     ? '<span class="badge badge-complete">평가 완료</span>'
     : '<span class="badge" style="background:#F3F4F6;color:var(--text-sub);">미완료</span>';
-  document.getElementById('p-date').textContent = '📅 ' + e.date;
-  document.getElementById('p-time-meta').textContent = e.status === 'completed' ? '⏱ ' + e.time : '';
+  document.getElementById('p-date').textContent = e.date;
+  document.getElementById('p-time-meta').textContent = e.status === 'completed' ? e.time : '';
 
   // 탭 초기화
   setPersonTab(0);

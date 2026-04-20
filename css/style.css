@@ -803,6 +803,14 @@ footer {
   font-size: 0.82rem; line-height: 1.75; color: var(--text-sub);
 }
 
+/* ── 트랙 탭 반복 헤더 (화면: 투명 구조, 인쇄: 매 페이지 반복) ── */
+.print-track-table { display: contents; }
+.print-track-table > thead { display: none; }
+.print-track-table > tbody,
+.print-track-table > tbody > tr,
+.print-track-table > tbody > tr > td { display: contents; }
+.print-track-title { display: none; }
+
 /* ── 정보 아이콘 툴팁 ── */
 .info-icon {
   display: inline-flex;
@@ -854,7 +862,15 @@ footer {
 
 /* ── @media print ── */
 @media print {
-  @page { margin: 15mm 12mm; size: A4 portrait; }
+  @page {
+    margin: 15mm 12mm 20mm;
+    size: A4 portrait;
+    @bottom-center {
+      content: counter(page) " / " counter(pages);
+      font-size: 9pt;
+      color: #9CA3AF;
+    }
+  }
 
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
@@ -912,4 +928,21 @@ footer {
 
   /* 정보 아이콘 숨김 */
   .info-icon { display: none !important; }
+
+  /* 트랙 반복 헤더 */
+  .print-track-table { display: table !important; width: 100%; border-collapse: collapse; }
+  .print-track-table > thead { display: table-header-group !important; }
+  .print-track-table > thead > tr { display: table-row !important; }
+  .print-track-table > thead > tr > td { display: table-cell !important; padding-bottom: 10px; }
+  .print-track-table > tbody { display: table-row-group !important; }
+  .print-track-table > tbody > tr { display: table-row !important; }
+  .print-track-table > tbody > tr > td { display: table-cell !important; width: 100%; }
+  .print-track-title {
+    display: block !important;
+    font-size: 0.95rem; font-weight: 800;
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 8px;
+  }
+
 }

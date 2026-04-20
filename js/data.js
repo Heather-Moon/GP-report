@@ -256,6 +256,8 @@ const EXAMINEES = [
 /* ══════════════════════════════
    CONSTANTS & HELPERS
 ══════════════════════════════ */
+const TRACK_COLORS = ['#1565C0', '#7C3AED', '#0D9488'];
+
 const LEVEL_LABEL = { acquired: '획득', partial: '보완 필요', missing: '미획득' };
 const LEVEL_CLASS = { acquired: 'badge-acquired', partial: 'badge-partial', missing: 'badge-missing' };
 const LEVEL_COLOR = { acquired: '#16A34A', partial: '#D97706', missing: '#DC2626' };

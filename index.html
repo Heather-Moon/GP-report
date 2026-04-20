@@ -109,7 +109,7 @@
       <div id="main-tab-examinees" class="main-tab-content" style="display:none;">
         <div class="table-card">
           <div class="table-controls">
-            <input type="text" class="search-input" placeholder="🔍  이름 또는 이메일 검색" id="search-input" oninput="renderTable()" />
+            <input type="text" class="search-input" placeholder="이름 또는 이메일 검색" id="search-input" oninput="renderTable()" />
             <div class="filter-tabs">
               <button class="filter-tab active" onclick="setFilter('all',this)">전체</button>
               <button class="filter-tab" onclick="setFilter('completed',this)">완료</button>
@@ -120,12 +120,21 @@
               <option value="rate">스킬확보율순</option>
               <option value="time">소요시간순</option>
             </select>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-sub); white-space:nowrap;">
+              표시 인원
+              <select class="sort-select" id="rows-per-page" onchange="setRowsPerPage(this.value)">
+                <option value="5">5명</option>
+                <option value="10">10명</option>
+                <option value="20">20명</option>
+              </select>
+            </label>
           </div>
           <table>
             <thead>
               <tr>
                 <th>응시자</th>
                 <th>상태</th>
+                <th>평가일자</th>
                 <th>총점</th>
                 <th>스킬 확보율</th>
                 <th>소요시간</th>
@@ -194,22 +203,18 @@
       <div class="sec-title" id="d-track-title">트랙 세부 내용</div>
       <div class="summary-4">
         <div class="summary-card">
-          <div class="sc-icon">📝</div>
           <div class="sc-value" id="d-score" style="color:var(--primary);">55<small>/100</small></div>
           <div class="sc-label">트랙 점수</div>
         </div>
         <div class="summary-card">
-          <div class="sc-icon">💡</div>
           <div class="sc-value" id="d-rate" style="color:var(--partial);">47.8<small>%</small></div>
           <div class="sc-label">스킬 확보율</div>
         </div>
         <div class="summary-card">
-          <div class="sc-icon">⏱</div>
           <div class="sc-value" id="d-time" style="color:var(--text); font-size:1.5rem;">08:20</div>
           <div class="sc-label">소요시간</div>
         </div>
         <div class="summary-card">
-          <div class="sc-icon">📊</div>
           <div class="sc-value" id="d-vs-avg" style="color:var(--primary);">-</div>
           <div class="sc-label">전체 평균 대비</div>
           <div class="sc-sub" id="d-vs-avg-sub" style="font-size:0.7rem; color:var(--text-mute); margin-top:4px;"></div>
