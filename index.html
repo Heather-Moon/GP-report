@@ -47,7 +47,7 @@
           </div>
           <div class="esi-divider"></div>
           <div class="esi-item">
-            <span class="esi-lbl" style="margin-bottom:3px;">평균 스킬 확보율</span>
+            <span class="esi-lbl" style="margin-bottom:3px; display:flex; align-items:center; gap:5px;">평균 스킬 확보율 <span class="info-icon">?<span class="info-tip">완료 응시자 각각의 스킬 확보율을 평균낸 값입니다. 개인별 스킬 확보율은 해당 응시자가 획득한 역량 수를 전체 역량 수로 나눈 비율입니다.</span></span></span>
             <span class="esi-val warn" id="main-esi-rate">71.7<span style="font-size:0.75em;font-weight:600;">%</span></span>
           </div>
         </div>
@@ -64,7 +64,7 @@
         <!-- 인사이트 통합 카드 -->
         <div class="insight-card" style="margin-bottom:16px;">
           <!-- 점수 분포 + 탭 -->
-          <div class="insight-header">점수 분포</div>
+          <div class="insight-header">점수 분포 <span class="info-icon">?<span class="info-tip">전체 응시자의 점수를 히스토그램으로 시각화합니다. 점선(황색)은 평균, 실선(초록)은 합격선(80점)을 나타냅니다.</span></span></div>
           <div class="ins-tab-group" id="ins-score-tabs"></div>
           <!-- 차트(좌) + 통계(우) -->
           <div style="display:flex; gap:8px; align-items:flex-start;">
@@ -95,7 +95,7 @@
           <!-- 구분선 -->
           <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
           <!-- 하단: 역량 획득 현황 -->
-          <div class="insight-header">역량 획득 현황</div>
+          <div class="insight-header">역량 획득 현황 <span class="info-icon">?<span class="info-tip">응시자별로 각 역량(스킬)을 획득했는지 집계하여 트랙별 도넛 차트로 표시합니다. 도넛 안의 숫자는 인당 평균 획득 역량 수 / 전체 역량 수입니다.</span></span></div>
           <div class="insight-stats" id="ins-skill-stats"></div>
           <div class="donut-row" id="ins-skill-donuts"></div>
         </div>

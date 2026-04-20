@@ -409,13 +409,13 @@ function renderSummaryTab(e) {
         <div class="ss-card-flat">
           <div class="ss-val" style="font-size:1rem;">${e.behaviorRisk ? riskBadgeHTML(e.behaviorRisk, true) : '-'}</div>
           <span onclick="toggleBehaviorPanel()" style="font-size:0.72rem; color:var(--primary); cursor:pointer; font-weight:600; opacity:0.8; margin-bottom:4px; display:inline-block;">행동 분석 →</span>
-          <div class="ss-label">부정행위 지표</div>
+          <div class="ss-label" style="display:flex;align-items:center;gap:4px;justify-content:center;">부정행위 지표 ${tooltipIcon('시험 중 감지된 이상행동을 종합한 위험도 지표입니다.<br><strong style=\\"color:#86efac;\\">정상</strong> 위험 이벤트 0건 + 주의 1건 이하<br><strong style=\\"color:#fcd34d;\\">주의</strong> 위험 이벤트 1~2건 또는 주의 2건 이상<br><strong style=\\"color:#fca5a5;\\">위험</strong> 위험 이벤트 3건 이상')}</div>
         </div>
       </div>
     </div>
 
     <div class="compare-card" style="margin-bottom:16px;">
-      <div class="ss-block-title">점수 분포</div>
+      <div class="ss-block-title" style="display:flex;align-items:center;gap:6px;">점수 분포 ${tooltipIcon('전체 응시자의 점수 분포를 커브 그래프로 시각화합니다. 점선(황색)은 평균, 실선(초록)은 합격선(80점)을 나타내며, 커브 위 색상 점과 점수 박스가 본인 점수의 위치입니다.')}</div>
       <div class="kde-outer">
         <div class="kde-graph-area">
           <svg id="p-sum-kde" class="chart-svg" height="160" viewBox="0 0 360 160"></svg>
@@ -444,7 +444,7 @@ function renderSummaryTab(e) {
         </div>
       </div>
       <div class="ss-divider"></div>
-      <div class="ss-block-title">획득 역량</div>
+      <div class="ss-block-title" style="display:flex;align-items:center;gap:6px;">획득 역량 ${tooltipIcon('응시자가 획득한 역량 수를 전체 역량 수 대비 도넛 차트로 표시합니다.')}</div>
       <div class="donut-row">
         <div class="donut-item">
           <svg id="p-sum-donut-all" width="84" height="84" viewBox="0 0 84 84"></svg>
@@ -555,7 +555,7 @@ function renderTrackTab(e, trackIdx) {
     </div>
 
     <div class="compare-card" style="margin-bottom:16px;">
-      <div class="ss-block-title">점수 분포</div>
+      <div class="ss-block-title" style="display:flex;align-items:center;gap:6px;">점수 분포 ${tooltipIcon('해당 트랙 응시자의 점수 분포를 커브 그래프로 시각화합니다. 점선(황색)은 평균, 실선(초록)은 합격선(80점)을 나타내며, 커브 위 색상 점과 점수 박스가 본인 점수의 위치입니다.')}</div>
       <div class="kde-outer">
         <div class="kde-graph-area">
           <svg id="${kdeId}" class="chart-svg" height="160" viewBox="0 0 360 160"></svg>
@@ -584,7 +584,7 @@ function renderTrackTab(e, trackIdx) {
         </div>
       </div>
       <div class="ss-divider"></div>
-      <div class="ss-block-title">역량별 분석</div>
+      <div class="ss-block-title" style="display:flex;align-items:center;gap:6px;">역량별 분석 ${tooltipIcon('각 역량의 획득 여부를 레이더(방사형) 차트로 시각화합니다. 색상선은 본인, 회색 점선은 전체 평균을 나타냅니다. 꼭짓점에 마우스를 올리면 역량명을 확인할 수 있습니다.')}</div>
       <div class="radar-center-wrap">
         <div class="radar-wrap">
           <svg id="${radarId}" width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}"></svg>

@@ -278,6 +278,10 @@ function riskBadgeHTML(risk, large = false) {
     <span style="width:7px;height:7px;border-radius:50%;background:${m.dot};flex-shrink:0;"></span>${m.label}${detail}</span>`;
 }
 
+function tooltipIcon(html) {
+  return `<span class="info-icon">?<span class="info-tip">${html}</span></span>`;
+}
+
 /* 점수 구간에 따른 트랙 컬러 */
 function trackColor(score)   { return score >= 80 ? '#16A34A' : score >= 60 ? '#D97706' : '#DC2626'; }
 function trackColorBg(score) { return score >= 80 ? '#F0FDF4' : score >= 60 ? '#FFFBEB' : '#FEF2F2'; }

@@ -803,6 +803,55 @@ footer {
   font-size: 0.82rem; line-height: 1.75; color: var(--text-sub);
 }
 
+/* ── 정보 아이콘 툴팁 ── */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  color: #6B7280;
+  font-size: 0.62rem;
+  font-weight: 700;
+  cursor: help;
+  position: relative;
+  flex-shrink: 0;
+  vertical-align: middle;
+  line-height: 1;
+}
+.info-icon:hover .info-tip { display: block; }
+.info-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1F2937;
+  color: #F9FAFB;
+  font-size: 0.72rem;
+  font-weight: 400;
+  padding: 10px 13px;
+  border-radius: 8px;
+  width: 240px;
+  z-index: 500;
+  line-height: 1.65;
+  white-space: normal;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  pointer-events: none;
+  text-align: left;
+}
+.info-tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1F2937;
+}
+.info-tip strong { color: #fff; font-weight: 600; }
+
 /* ── @media print ── */
 @media print {
   @page { margin: 15mm 12mm; size: A4 portrait; }
@@ -860,4 +909,7 @@ footer {
 
   /* 레이더 툴팁 숨김 */
   .radar-tip { display: none !important; }
+
+  /* 정보 아이콘 숨김 */
+  .info-icon { display: none !important; }
 }
