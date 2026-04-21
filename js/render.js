@@ -329,6 +329,21 @@ function renderInsightCharts() {
   // ─ 역량 획득 도넛 ─
   renderSkillDonuts();
 
+  // ─ 평가 구성 ─
+  const evalConfigEl = document.getElementById('ins-eval-config');
+  if (evalConfigEl) {
+    evalConfigEl.innerHTML = `<div class="ss-block-title">평가 구성</div>` +
+      TRACKS_META.map((meta, i) => `
+        <div style="${i > 0 ? 'border-top:1px solid var(--border); margin-top:12px; padding-top:12px;' : ''}">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <span style="font-size:0.86rem; font-weight:700; color:var(--text);">${meta.name}</span>
+            <span class="badge badge-level" style="flex-shrink:0;">${meta.level}</span>
+          </div>
+          <div style="font-size:0.82rem; line-height:1.75; color:var(--text-sub);">${meta.desc.replace(/\n/g, '<br><br>')}</div>
+        </div>
+      `).join('');
+  }
+
   // ─ 그룹 총평 ─
   const ga = generateGroupAssessment();
   const gaEl = document.getElementById('ins-group-assessment');
