@@ -123,12 +123,431 @@ const EXAMINEES = [
     ],
     tracks: [
       { score: 55, rate: 40.0, time: '0:08:20',
-        skillLevels: ['partial','acquired','partial','acquired','missing'] },
+        skillLevels: ['partial','acquired','partial','acquired','missing'],
+        answers: [
+          {
+            qNum: 1, type: 'multiple', skill: '분산 시스템 설계',
+            question: '분산 시스템에서 논리 시계(Logical Clock)를 사용하는 주된 목적은?',
+            options: ['① 물리 시계의 정확한 시각 동기화', '② 이벤트 간 인과 관계(Causality) 추적', '③ 네트워크 대역폭 측정', '④ 노드 간 CPU 부하 분산'],
+            answer: '① 물리 시계의 정확한 시각 동기화',
+            correctAnswer: '② 이벤트 간 인과 관계(Causality) 추적',
+          },
+          {
+            qNum: 2, type: 'multiple', skill: '분산 시스템 설계',
+            question: 'Saga 패턴에서 분산 트랜잭션 실패 시 데이터 정합성을 회복하는 방법은?',
+            options: ['① 2PC(Two-Phase Commit) 전환', '② 보상 트랜잭션(Compensating Transaction) 실행', '③ 전체 서비스 재시작', '④ 단일 데이터베이스 롤백'],
+            answer: '③ 전체 서비스 재시작',
+            correctAnswer: '② 보상 트랜잭션(Compensating Transaction) 실행',
+          },
+          {
+            qNum: 3, type: 'short', skill: '고성능 시스템 아키텍처 설계',
+            question: 'Cache-Aside(Lazy Loading) 패턴의 동작 원리와 Cache Stampede 방지 방법을 간략히 서술하시오.',
+            answer: 'Cache-Aside 패턴은 애플리케이션이 캐시를 먼저 조회하고, 캐시 미스 발생 시 DB에서 조회한 후 캐시에 저장하는 방식입니다. Cache Stampede 방지를 위해 Mutex Lock을 적용하여 동시 요청이 DB를 한 번만 조회하도록 하거나, TTL에 랜덤 지터(Jitter)를 추가하여 동시 만료를 분산할 수 있습니다.',
+          },
+          {
+            qNum: 4, type: 'essay', skill: '고성능 시스템 아키텍처 설계',
+            question: '고빈도 거래 시스템에서 비동기 처리 패턴을 활용하여 처리량과 응답 시간을 최적화하는 설계 방안을 서술하시오.',
+            answer: '고빈도 거래 시스템에서는 동기 호출 대신 메시지 큐(Kafka 등)를 이용한 비동기 처리로 서비스 간 결합도를 낮추고 피크 트래픽을 버퍼링합니다. 주문 처리와 같이 즉각적 응답이 필요한 경로는 캐시 레이어를 앞에 두어 DB 부하를 줄이고, 집계나 리포팅처럼 지연이 허용되는 처리는 이벤트 스트림으로 분리하여 백그라운드에서 수행합니다. 이를 통해 처리량을 높이고 응답 시간 안정성을 유지할 수 있습니다.',
+          },
+          {
+            qNum: 5, type: 'multiple', skill: '클라우드 네이티브 아키텍처 설계',
+            question: '불변 인프라(Immutable Infrastructure) 원칙에 따른 배포 방식으로 올바른 것은?',
+            options: ['① 운영 중인 서버에 직접 패치 적용', '② 새 이미지로 서버를 교체하고 기존 서버는 폐기', '③ 서버 내부 설정 파일 수동 수정 후 재시작', '④ 공유 가상머신에 여러 버전 동시 운영'],
+            answer: '② 새 이미지로 서버를 교체하고 기존 서버는 폐기',
+            correctAnswer: '② 새 이미지로 서버를 교체하고 기존 서버는 폐기',
+          },
+          {
+            qNum: 6, type: 'essay', skill: '아키텍처 평가 및 개선',
+            question: '이벤트 기반 아키텍처(EDA)를 도입한 시스템의 확장성과 일관성을 평가하기 위한 품질 속성 기준과 평가 방법을 서술하시오.',
+            answer: '이벤트 기반 아키텍처는 비동기 처리를 통해 서비스 간 결합도가 낮고 소비자를 독립적으로 확장할 수 있습니다. 확장성 평가는 처리량(TPS)이 컨슈머 추가에 따라 선형적으로 증가하는지, P99 지연 시간이 허용 범위를 벗어나지 않는지를 부하 테스트로 측정합니다. 일관성 평가는 이벤트 손실 여부, 중복 처리 방지(Idempotency) 적용 수준, 최종 일관성 도달 시간을 기준으로 합니다.',
+          },
+        ],
+      },
       { score: 90, rate: 100.0, time: '0:20:11',
-        skillLevels: ['acquired','acquired','acquired','acquired'] },
+        skillLevels: ['acquired','acquired','acquired','acquired'],
+        answers: [
+          {
+            qNum: 1, type: 'multiple', skill: '클라우드 컴퓨팅 개념과 구조',
+            question: '클라우드 서비스에서 사용량만큼 비용을 지불하는 과금 모델의 명칭과 주요 장점은?',
+            options: ['① 고정 라이선스 — 예측 가능한 비용', '② Pay-as-you-go — 초기 비용 없이 실제 사용량 기반 과금', '③ Reserved Instance — 장기 약정으로 높은 유연성', '④ Spot Instance — 온디맨드보다 항상 저렴'],
+            answer: '② Pay-as-you-go — 초기 비용 없이 실제 사용량 기반 과금',
+            correctAnswer: '② Pay-as-you-go — 초기 비용 없이 실제 사용량 기반 과금',
+          },
+          {
+            qNum: 2, type: 'essay', skill: '확장성과 복원력을 갖춘 클라우드 아키텍처 설계',
+            question: '멀티 AZ(Availability Zone) 구성과 멀티 리전 구성의 차이를 설명하고, 각각의 적합한 사용 시나리오를 서술하시오.',
+            answer: '멀티 AZ는 동일 리전 내 물리적으로 분리된 데이터센터에 자원을 이중화하여 단일 센터 장애에 대비하며, 낮은 지연으로 실시간 자동 Failover가 가능합니다. 대부분의 고가용성 요구사항을 충족합니다. 멀티 리전은 지리적으로 분리된 두 리전 이상에 서비스를 배포하여 리전 전체 장애나 자연재해에 대응합니다. 금융·의료처럼 RPO=0, RTO=수 분 이하가 필요하거나 글로벌 사용자에게 낮은 지연을 제공해야 하는 서비스에 적합합니다. 단, 데이터 일관성 유지와 비용 복잡도가 증가합니다.',
+          },
+          {
+            qNum: 3, type: 'short', skill: '실무 중심 클라우드 보안 및 규제 준수',
+            question: 'IAM 권한 에스컬레이션(Privilege Escalation) 공격을 방지하기 위한 두 가지 구체적인 방법을 서술하시오.',
+            answer: '1. 권한 경계(Permission Boundary) 설정 — 사용자나 역할이 부여할 수 있는 최대 권한 범위를 명시적으로 제한하여 더 높은 권한을 스스로 부여하지 못하도록 합니다. 2. 조직 수준 SCP(Service Control Policy) 적용 — 계정 전체에서 특정 관리 작업(iam:CreateRole, iam:AttachRolePolicy 등)을 차단하여 정책 우회를 원천적으로 방지합니다.',
+          },
+          {
+            qNum: 4, type: 'essay', skill: '클라우드 네트워크 및 성능 최적화',
+            question: '글로벌 서비스에서 CDN과 지연 시간 기반 라우팅을 결합하여 사용자 응답 속도를 개선하고 네트워크 비용을 절감하는 방안을 서술하시오.',
+            answer: 'CloudFront(CDN)를 활용하여 정적 자산과 자주 요청되는 API 응답을 엣지 로케이션에 캐싱하면 원본 서버 트래픽과 대역폭 비용을 줄일 수 있습니다. Route 53의 지연 시간 기반 라우팅(Latency-Based Routing)으로 각 사용자 요청을 응답 시간이 가장 짧은 리전으로 보내 체감 성능을 높입니다. 리전 간 데이터 전송 비용은 읽기 전용 데이터를 사용자 리전에 복제하여 크로스 리전 호출을 최소화하는 방식으로 줄이고, 엣지에서 캐싱 적중률을 높여 오리진 요청 자체를 감소시킵니다.',
+          },
+        ],
+      },
       { score: 95, rate: 100.0, time: '1:50:12',
-        skillLevels: ['acquired','acquired','acquired','acquired','acquired','acquired','acquired'] },
-    ]
+        skillLevels: ['acquired','acquired','acquired','acquired','acquired','acquired','acquired'],
+        answers: [
+          {
+            qNum: 1, type: 'code', skill: '람다, 고급 Python 모듈',
+            question: 'statistics 모듈과 람다 함수를 활용하여 데이터셋에서 짝수만 필터링한 후 평균·중앙값·표준편차를 반환하는 함수를 작성하시오.',
+            solutionCode: `import statistics
+
+def analyze_even_numbers(data):
+    even_filter = lambda x: x % 2 == 0
+    evens = list(filter(even_filter, data))
+
+    if not evens:
+        return None
+
+    return {
+        'mean': statistics.mean(evens),
+        'median': statistics.median(evens),
+        'std': round(statistics.stdev(evens) if len(evens) > 1 else 0, 2)
+    }`,
+            answer: `import statistics
+
+def analyze_even_numbers(data):
+    even_filter = lambda x: x % 2 == 0
+    evens = list(filter(even_filter, data))
+
+    if not evens:
+        return None
+
+    avg = statistics.mean(evens)
+    med = statistics.median(evens)
+    std = statistics.stdev(evens) if len(evens) > 1 else 0
+
+    return {'mean': avg, 'median': med, 'std': round(std, 2)}`,
+          },
+          {
+            qNum: 2, type: 'code', skill: '멀티스레딩, 데코레이터',
+            question: '스레드 안전한 로깅 데코레이터를 구현하시오. 함수 실행 전후 경과 시간을 기록하고, threading.Lock으로 동시 출력 충돌을 방지해야 합니다.',
+            solutionCode: `import threading
+import time
+from functools import wraps
+
+_log_lock = threading.Lock()
+
+def thread_safe_logger(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        elapsed = time.time() - start
+        with _log_lock:
+            print(f"[{func.__name__}] {elapsed:.4f}s")
+        return result
+    return wrapper
+
+@thread_safe_logger
+def process_data(items):
+    return [x * 2 for x in items]`,
+            answer: `import threading
+import time
+from functools import wraps
+
+_log_lock = threading.Lock()
+
+def thread_safe_logger(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        elapsed = time.time() - start
+        with _log_lock:
+            print(f"[{func.__name__}] {elapsed:.4f}s")
+        return result
+    return wrapper
+
+@thread_safe_logger
+def process_data(items):
+    return [x * 2 for x in items]`,
+          },
+          {
+            qNum: 3, type: 'code', skill: '파일 입출력',
+            question: '대용량 로그 파일을 줄 단위로 읽어 ERROR 로그만 output_path에 저장하시오. 예외 발생 시 error.log에 기록해야 합니다.',
+            solutionCode: `def filter_error_logs(input_path, output_path):
+    try:
+        with open(input_path, 'r', encoding='utf-8') as fin, \\
+             open(output_path, 'w', encoding='utf-8') as fout:
+            for line in fin:
+                if 'ERROR' in line:
+                    fout.write(line)
+    except FileNotFoundError as e:
+        with open('error.log', 'a', encoding='utf-8') as f:
+            f.write(f"FileNotFoundError: {e}\\n")
+    except IOError as e:
+        with open('error.log', 'a', encoding='utf-8') as f:
+            f.write(f"IOError: {e}\\n")`,
+            answer: `def filter_error_logs(input_path, output_path):
+    try:
+        with open(input_path, 'r', encoding='utf-8') as fin, \\
+             open(output_path, 'w', encoding='utf-8') as fout:
+            for line in fin:
+                if 'ERROR' in line:
+                    fout.write(line)
+    except FileNotFoundError as e:
+        with open('error.log', 'a') as f:
+            f.write(f"FileNotFoundError: {e}\\n")
+    except IOError as e:
+        with open('error.log', 'a') as f:
+            f.write(f"IOError: {e}\\n")`,
+          },
+          {
+            qNum: 4, type: 'code', skill: '데코레이터, 람다',
+            question: 'access_control 데코레이터를 구현하시오. allowed_roles와 현재 역할을 비교하는 람다를 내부에서 사용하며, 접근 거부 시 로그를 출력해야 합니다.',
+            solutionCode: `import threading
+import functools
+
+lock = threading.Lock()
+
+def access_control(allowed_roles):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(user_role, *args, **kwargs):
+            is_allowed = lambda role: role in allowed_roles
+            if not is_allowed(user_role):
+                with lock:
+                    print(f"ACCESS DENIED: {user_role}")
+                return None
+            return func(user_role, *args, **kwargs)
+        return wrapper
+    return decorator
+
+@access_control(['admin', 'manager'])
+def run_task(user_role, task):
+    return f"Running {task}"`,
+            answer: `import threading
+import functools
+
+def access_control(allowed_roles):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(user_role, *args, **kwargs):
+            is_allowed = lambda role: role in allowed_roles
+            if not is_allowed(user_role):
+                with lock:  # lock 미정의 — 런타임 오류
+                    print(f"ACCESS DENIE: {user_role}")  # 오타
+                return None
+
+            def wrapper(*args, **kwargs):  # wrapper 중복 정의
+                return func(user_role, *args, **kwargs)
+            return wrapper(*args, **kwargs)
+        return wrapper
+    return decorator
+
+@access_control(['admin', 'manager'])
+def run_task(user_role, task):
+    return f"Running {task}"`,
+          },
+          {
+            qNum: 5, type: 'code', skill: '고급 Python 모듈, 파일 입출력',
+            question: '상품 목록의 조합(combinations)을 생성하고 각 조합의 가격 통계를 계산하여 JSON 파일로 저장하는 프로그램을 작성하시오.',
+            solutionCode: `import itertools
+import statistics
+import json
+
+def calculate_statistics(prices):
+    return {
+        'mean': round(statistics.mean(prices), 2),
+        'max': max(prices),
+        'min': min(prices),
+    }
+
+def process_combinations(products, r=2):
+    combinations_data = []
+    for combo in itertools.combinations(products, r):
+        prices = [item['price'] for item in combo]
+        stats = calculate_statistics(prices)
+        combinations_data.append({
+            'items': [i['name'] for i in combo],
+            'stats': stats
+        })
+    return combinations_data
+
+def save_to_json(data, filepath):
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)`,
+            answer: `import itertools
+import statistics
+import json
+from collections import defaultdict
+
+def calcurate_statistics(prices):  # 오타: calcurate
+    return {
+        'mean': round(statistics.mean(prices), 2),
+        'max': max(prices),
+        'min': min(prices),
+    }
+
+def process_combinations(products, r=2):
+    combinattions_data = []  # 오타
+    for combo in itertools.combinations(products, r):
+        prices = [item['prodcut'] for item in combo]  # 오타: prodcut
+        stas = calcurate_statistics(prices)
+        combinattions_data.append({'items': list(combo), 'stats': stas})
+    return combinattions_data
+
+def save_to_json(data, filepath):
+    with oepn(filepath, 'w') as f:  # 오타: oepn
+        json.dump(data, f, ensure_ascii=False, indent=2)`,
+          },
+          {
+            qNum: 6, type: 'code', skill: '멀티스레딩, 멀티프로세싱',
+            question: 'Num_Threads개의 스레드로 데이터를 분할 정렬한 뒤 병합하는 함수를 구현하시오.',
+            solutionCode: `import threading
+
+NUM_THREADS = 4
+
+def parallel_sort(data, num_threads=NUM_THREADS):
+    chunk_size = max(1, len(data) // num_threads)
+    chunks = [data[i*chunk_size:(i+1)*chunk_size]
+              for i in range(num_threads)]
+    sorted_chunks = [None] * num_threads
+
+    def sort_chunk(idx, chunk):
+        sorted_chunks[idx] = sorted(chunk)
+
+    threads = []
+    for i, chunk in enumerate(chunks):
+        t = threading.Thread(target=sort_chunk, args=(i, chunk))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
+
+    result = []
+    for chunk in sorted_chunks:
+        result.extend(chunk)
+    return result
+
+def calculate_average(numbers):
+    if not numbers:
+        return 0
+    return sum(numbers) / len(numbers)`,
+            answer: `import threading
+
+Num_Threads = 4
+
+def parallel_sort(data, num_threads=Num_Threads):
+    chunk_size = len(data) // num_threads
+    chunks = [data[i*chunk_size:(i+1)*chunk_size] for i in range(num_threads)]
+    sorted_chunks = [None] * num_threads
+
+    def sort_chunk(idx, chunk):
+        sorted_chunks[idx] = sorted(chunk)
+
+    threads = []
+    for i, chunk in enumerate(chunks):
+        t = threading.Thread(target=sort_chunk, args=(i, chunk))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
+
+    result = []
+    for chunk in sorted_chunks:
+        result.extend(chunk)
+    print(result)  # return 없이 print만 사용
+
+def calculate_average(numbers):
+    return sum(numbers) / len(numbers)  # 빈 리스트 ZeroDivisionError 위험`,
+          },
+        ],
+      },
+    ],
+    staticAnalysis: [
+      {
+        trackIdx: 2,
+        trackName: 'Python',
+        problems: [
+      {
+        problemNum: 1,
+        title: '문제 1',
+        summary: '전반적으로 간결하고 명확한 코드 구조. 일부 변수명 PEP 8 권고 미준수',
+        metrics: [
+          { key: 'DUPLICATIONS',          label: '중복',        result: 'pass',    desc: '함수 단위 코드 분리, 중복 코드 없음' },
+          { key: 'CYCLOMATIC_COMPLEXITY', label: '복잡도',      result: 'pass',    desc: '단순 조건 분기, 전체 복잡도 양호' },
+          { key: 'BUGS',                  label: '잠재 버그',   result: 'pass',    desc: '논리 오류 없음, 예외 처리 적절' },
+          { key: 'CODING_STYLE',          label: '코딩 스타일', result: 'warning', desc: '일부 변수명 단일 문자 사용(x, f 등), PEP 8 권고 위반' },
+        ],
+        strengths: ['간결한 람다 표현식 활용', '표준 모듈 목적에 맞게 선택', '중복 없이 역할 분리'],
+        weaknesses: ['단일 문자 변수명 사용(x, f 등) — 가독성 저하'],
+      },
+      {
+        problemNum: 2,
+        title: '문제 2',
+        summary: '래퍼 구조 명확하고 동기화 적절. 데코레이터 내 중첩 조건문으로 복잡도 소폭 증가',
+        metrics: [
+          { key: 'DUPLICATIONS',          label: '중복',        result: 'pass',    desc: '래퍼 함수 단위 분리, 중복 없음' },
+          { key: 'CYCLOMATIC_COMPLEXITY', label: '복잡도',      result: 'warning', desc: '데코레이터 내 중첩 조건문, 분기 증가' },
+          { key: 'BUGS',                  label: '잠재 버그',   result: 'pass',    desc: '스레드 동기화 적절, race condition 없음' },
+          { key: 'CODING_STYLE',          label: '코딩 스타일', result: 'pass',    desc: '네이밍 규칙 일관적, 들여쓰기 정상' },
+        ],
+        strengths: ['스레드 안전한 동기화 구조', '래퍼 패턴 명확한 분리', '일관된 코딩 스타일'],
+        weaknesses: ['데코레이터 내 조건 분기 중첩 — 단순화 권장'],
+      },
+      {
+        problemNum: 3,
+        title: '문제 3',
+        summary: '파일 처리 로직 함수 분리, 중복 없음. except 포괄적 처리 및 error.log 동시 기록 위험',
+        metrics: [
+          { key: 'DUPLICATIONS',          label: '중복',        result: 'pass',    desc: '파일 처리 로직이 함수로 분리, 중복 없음' },
+          { key: 'CYCLOMATIC_COMPLEXITY', label: '복잡도',      result: 'pass',    desc: '단순 처리 단계, 분기 과도하지 않음' },
+          { key: 'BUGS',                  label: '잠재 버그',   result: 'warning', desc: 'except: 포괄적 처리, 동일 error.log 파일에 동시 기록 위험' },
+          { key: 'CODING_STYLE',          label: '코딩 스타일', result: 'warning', desc: 'defaultdict 미사용 import, 들여쓰기 불일치' },
+        ],
+        strengths: ['중복 없이 함수 분리', '단순한 처리 흐름', '오류 로그 기반 처리'],
+        weaknesses: ['except: 포괄적 예외 처리', 'error.log 동시 기록 시 충돌 위험', 'defaultdict 미사용 import 잔존'],
+      },
+      {
+        problemNum: 4,
+        title: '문제 4',
+        summary: '접근 제어, lock 미정의, wrapper 중복, 조건 분기 여러 갈래, \'ACCESS DENIE\' 오타',
+        metrics: [
+          { key: 'DUPLICATIONS',          label: '중복',        result: 'fail',    desc: 'access_control 내부 wrapper 함수 중복 정의' },
+          { key: 'CYCLOMATIC_COMPLEXITY', label: '복잡도',      result: 'warning', desc: '접근 허용/차단/임계치 등 여러 조건문으로 복잡도 증가' },
+          { key: 'BUGS',                  label: '잠재 버그',   result: 'fail',    desc: 'lock 변수 정의 안됨(런타임 오류), \'ACCESS DENIE\' 오타' },
+          { key: 'CODING_STYLE',          label: '코딩 스타일', result: 'warning', desc: '중첩 함수·람다 혼용, 들여쓰기 불일치' },
+        ],
+        strengths: ['접근 제어 목적 명확', '데코레이터 기반 설계 시도'],
+        weaknesses: ['lock 미정의 — 실행 시 즉시 오류(치명적)', 'wrapper 중복 정의', '조건 분기 분산', '로그 메시지 오타(ACCESS DENIE)'],
+      },
+      {
+        problemNum: 5,
+        title: '문제 5',
+        summary: '철자 오류·이름 불일치 다수로 실행 실패 가능성 높음',
+        metrics: [
+          { key: 'DUPLICATIONS',          label: '중복',        result: 'pass',    desc: '역할별 함수 분리, 중복 없음' },
+          { key: 'CYCLOMATIC_COMPLEXITY', label: '복잡도',      result: 'warning', desc: 'process_combinations에 중첩 반복문 + 파일 저장 혼재' },
+          { key: 'BUGS',                  label: '잠재 버그',   result: 'fail',    desc: 'item[\'prodcut\'] 키 오타, oepn 함수 오타, calcurate_statistics·combinattions_data·stas/stats 이름 불일치, append 위치 오류' },
+          { key: 'CODING_STYLE',          label: '코딩 스타일', result: 'warning', desc: '이름 규칙 불일치(stas/stats), except: 포괄적, 불필요 주석 블록' },
+        ],
+        strengths: ['역할별 함수 분리', '중복 코드 없음'],
+        weaknesses: ['오타 다수 — 실행 불가 수준', 'append 내부 루프 위치 오류', 'process_combinations 과다 책임', 'except: 포괄적 예외 처리'],
+      },
+      {
+        problemNum: 6,
+        title: '문제 6',
+        summary: '중복 적음, 흐름 단순. print vs return 혼용, 빈 리스트 0 나누기, Num_Threads 표기 불일치',
+        metrics: [
+          { key: 'DUPLICATIONS',          label: '중복',        result: 'pass',    desc: '정렬·분할·병합 함수 분리, 중복 없음' },
+          { key: 'CYCLOMATIC_COMPLEXITY', label: '복잡도',      result: 'pass',    desc: '조건 분기 제한적, 전체 흐름 단순' },
+          { key: 'BUGS',                  label: '잠재 버그',   result: 'warning', desc: '정렬 결과 return 없이 print만, 빈 리스트 처리 시 0으로 나누기 위험' },
+          { key: 'CODING_STYLE',          label: '코딩 스타일', result: 'warning', desc: 'Num_Threads 대문자 표기 불일치(PEP 8 snake_case 권고)' },
+        ],
+        strengths: ['함수 단위 분리', '중복 없음', '단순한 전체 흐름'],
+        weaknesses: ['print만 출력 — return 없어 결과 활용 불가', '빈 리스트 시 ZeroDivisionError 위험', 'Num_Threads 표기 불일치'],
+      },
+        ] // end problems
+      }, // end Python track
+    ],
   },
   {
     id: 2,

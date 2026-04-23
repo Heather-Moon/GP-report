@@ -76,11 +76,55 @@ function renderTable() {
           .sort((a,b) => (b.totalScore||0)-(a.totalScore||0))
           .findIndex(x => x.id === e.id) + 1
       : null;
+
+    const trackDetailHTML = e.status === 'completed' && e.tracks.length
+      ? `<td colspan="7" style="padding:0;">
+          <table class="track-detail-table">
+            <thead>
+              <tr>
+                <th>트랙</th>
+                <th>점수</th>
+                <th>합격 여부</th>
+                <th>스킬 확보율</th>
+                <th>획득 스킬</th>
+                <th>소요시간</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${e.tracks.map((t, ti) => {
+                const meta = TRACKS_META[ti];
+                const col  = TRACK_COLORS[ti];
+                const pass = t.score >= 80;
+                const totalSkills = meta.skills.length;
+                const acqSkills   = t.skillLevels.filter(l => l === 'acquired').length;
+                return `<tr>
+                  <td style="font-weight:600;color:var(--text);">${meta.name}</td>
+                  <td style="font-weight:800;color:var(--primary);">${t.score}<span style="font-size:0.72rem;font-weight:400;color:var(--text-sub);margin-left:2px;">점</span></td>
+                  <td><span style="display:inline-block;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap;
+                    background:${pass?'#F0FDF4':'#FEF2F2'};color:${pass?'#16A34A':'#DC2626'};border:1px solid ${pass?'#BBF7D0':'#FECACA'};">${pass?'합격':'불합격'}</span></td>
+                  <td style="font-weight:700;color:${rateColor(t.rate)};">${t.rate}%</td>
+                  <td>
+                    <span style="font-weight:700;color:var(--text);">${acqSkills}</span>
+                    <span style="color:var(--text-mute);font-size:0.78rem;"> / ${totalSkills} 스킬</span>
+                  </td>
+                  <td style="color:var(--text-sub);">${t.time}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </td>`
+      : `<td colspan="7" style="padding:12px 20px;font-size:0.82rem;color:var(--text-mute);">평가 미완료 — 트랙 정보 없음</td>`;
+
     return `
-    <tr>
+    <tr class="examinee-row" data-eid="${e.id}">
       <td>
-        <div style="font-weight:600;">${e.name}</div>
-        <div style="font-size:0.76rem; color:var(--text-sub);">${e.email}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;">
+          <div>
+            <div style="font-weight:600;">${e.name}</div>
+            <div style="font-size:0.76rem; color:var(--text-sub);">${e.email}</div>
+          </div>
+          ${e.status === 'completed' ? `<button class="td-expand-btn" id="expand-btn-${e.id}" onclick="toggleTrackDetail(${e.id})">상세보기</button>` : ''}
+        </div>
       </td>
       <td>${e.status === 'completed'
         ? '<span class="badge badge-complete">완료</span>'
@@ -88,17 +132,15 @@ function renderTable() {
       <td style="color:var(--text-sub); font-size:0.82rem;">${e.date || '-'}</td>
       <td style="font-weight:800; color:var(--primary); font-size:1rem;">${e.totalScore !== null ? e.totalScore + '점' : '-'}</td>
       <td>
-        ${e.rate !== null ? `
-        <div style="display:flex; align-items:center; gap:8px;">
-          <div class="prog-bg" style="width:90px; height:7px;">
-            <div class="prog-fill" style="width:${e.rate}%; background:${rateColor(e.rate)};"></div>
-          </div>
-          <span style="font-size:0.8rem; font-weight:700; color:${rateColor(e.rate)};">${e.rate}%</span>
-        </div>` : '-'}
+        ${e.rate !== null ? `<span style="font-size:0.88rem; font-weight:700; color:${rateColor(e.rate)};">${e.rate}%</span>` : '-'}
       </td>
       <td style="color:var(--text-sub);">${e.time}</td>
-      <td>${e.status === 'completed' ? riskBadgeHTML(e.behaviorRisk) : '-'}</td>
-      <td><button class="td-btn" onclick="openPerson(${e.id})">결과 보기</button></td>
+      <td style="white-space:nowrap;">
+        <button class="td-btn" onclick="openPerson(${e.id})">결과 보기</button>
+      </td>
+    </tr>
+    <tr class="track-detail-row" id="track-detail-${e.id}" style="display:none;">
+      ${trackDetailHTML}
     </tr>`;
   }).join('') || `<tr><td colspan="7" style="text-align:center; color:var(--text-mute); padding:24px;">결과 없음</td></tr>`;
 
@@ -112,6 +154,15 @@ function renderTable() {
       `<button class="pg-btn ${i+1===tableCurrentPage?'active':''}" onclick="setPage(${i+1})">${i+1}</button>`
     ).join('') +
     `<button class="pg-btn" onclick="setPage(${tableCurrentPage+1})" ${tableCurrentPage===pages?'disabled style="opacity:.4"':''}>›</button>`;
+}
+
+function toggleTrackDetail(id) {
+  const row = document.getElementById('track-detail-' + id);
+  const btn = document.getElementById('expand-btn-' + id);
+  if (!row) return;
+  const open = row.style.display === 'none' || row.style.display === '';
+  row.style.display = open ? 'table-row' : 'none';
+  if (btn) btn.textContent = open ? '닫기' : '상세보기';
 }
 
 function setPage(p) {
@@ -151,6 +202,7 @@ function openPerson(id) {
   renderSummaryTab(e);
   if (e.status === 'completed') {
     [0, 1, 2].forEach(ti => renderTrackTab(e, ti));
+    renderBehaviorPrintTab(e);
   } else {
     [1, 2, 3].forEach(i => {
       document.getElementById('ptab-' + i).innerHTML =
@@ -359,19 +411,20 @@ function setMainTab(tab) {
    PRINT
 ══════════════════════════════ */
 window.addEventListener('beforeprint', () => {
-  // 인쇄 전: 탭 인라인 display 해제 (print CSS가 block으로 제어)
   document.querySelectorAll('#page-person .person-tab-content').forEach(t => {
     t.dataset.prevDisplay = t.style.display;
-    t.style.removeProperty('display');
+    t.style.display = 'block';
   });
 });
 
 window.addEventListener('afterprint', () => {
-  // 인쇄 후: 탭 인라인 display 복원
   document.querySelectorAll('#page-person .person-tab-content').forEach(t => {
     t.style.display = t.dataset.prevDisplay || '';
     delete t.dataset.prevDisplay;
   });
+  // ptab-4는 항상 화면에서 숨김 유지
+  const ptab4 = document.getElementById('ptab-4');
+  if (ptab4) ptab4.style.display = 'none';
 });
 
 /* ══════════════════════════════

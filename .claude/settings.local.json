@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(python:*)",
-      "Bash(dir C:\\\\Users\\\\goty0\\\\Desktop\\\\GP Report\\\\GP-report\\\\js:*)"
+      "Bash(dir C:\\\\Users\\\\goty0\\\\Desktop\\\\GP Report\\\\GP-report\\\\js:*)",
+      "PowerShell(Add-Type -AssemblyName \"System.IO.Compression.FileSystem\"; $pdfPath = \"C:\\\\Users\\\\goty0\\\\Desktop\\\\GP Report\\\\Codepresso_ Online Coding Test & Technical Assessment for Skill-based Hiring.pdf\"; [System.IO.File]::Exists\\($pdfPath\\))",
+      "PowerShell(python --version 2>&1; python -c \"import pdfplumber; print\\('ok'\\)\" 2>&1)",
+      "Bash(grep -o '.\\\\{0,200\\\\}정적분석.\\\\{0,200\\\\}' \"C:\\\\Users\\\\goty0\\\\Desktop\\\\GP Report\\\\정적분석.html\")",
+      "Bash(node -e \"const data = require\\('./js/data.js'\\)\")",
+      "Bash(node --input-type=module)",
+      "Bash(node -e ' *)",
+      "Bash(node *)"
     ]
   }
 }

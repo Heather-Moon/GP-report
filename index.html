@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>평가 관리 대시보드 | code.presso</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=20260423f" />
 </head>
 <body>
 <div class="app">
@@ -72,10 +72,13 @@
               <svg id="ins-score-curve" class="chart-svg" height="170" viewBox="0 0 380 170"></svg>
               <div class="kde-legend" style="margin-top:5px; margin-bottom:12px;">
                 <div class="kde-legend-item">
-                  <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
+                  <span class="kde-leg-bar" style="background:rgba(22,163,74,0.22);border:1px solid rgba(22,163,74,0.4);"></span>합격 (80점↑)
                 </div>
                 <div class="kde-legend-item">
-                  <span class="kde-leg-line" style="border-color:#16A34A; border-style:solid;"></span>합격선 (80점)
+                  <span class="kde-leg-bar" style="background:rgba(220,38,38,0.18);border:1px solid rgba(220,38,38,0.35);"></span>불합격
+                </div>
+                <div class="kde-legend-item">
+                  <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
                 </div>
               </div>
             </div>
@@ -86,11 +89,32 @@
           <!-- 소요시간 분포 -->
           <div class="insight-header">소요시간 분포</div>
           <div class="ins-tab-group" id="ins-time-tabs"></div>
-          <svg id="ins-time-chart" class="chart-svg" style="margin-bottom:10px;"></svg>
-          <div class="kde-legend" style="margin-bottom:12px;">
+
+          <div class="time-chart-label">히스토그램 + 확률분포</div>
+          <svg id="ins-time-chart" class="chart-svg" style="margin-bottom:4px;"></svg>
+          <div class="kde-legend" style="margin-bottom:14px;">
+            <div class="kde-legend-item">
+              <span class="kde-leg-bar" style="background:rgba(21,101,192,0.22);border:1px solid rgba(21,101,192,0.4);"></span>히스토그램
+            </div>
+            <div class="kde-legend-item">
+              <span class="kde-leg-line" style="border-color:#1565C0; border-style:solid;"></span>확률 분포
+            </div>
             <div class="kde-legend-item">
               <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
             </div>
+          </div>
+
+          <div class="time-chart-label">버블 차트</div>
+          <svg id="ins-time-bubble" class="chart-svg" style="margin-bottom:4px;"></svg>
+          <div class="time-chart-label">도넛 차트</div>
+          <svg id="ins-time-donut" class="chart-svg" style="margin-bottom:14px;"></svg>
+
+          <div class="time-chart-label">소요시간 vs 점수 산점도</div>
+          <svg id="ins-time-scatter" class="chart-svg" style="margin-bottom:4px;"></svg>
+          <div class="kde-legend" style="margin-bottom:14px;">
+            <div class="kde-legend-item"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16A34A;margin-right:4px;"></span>합격 (80점↑)</div>
+            <div class="kde-legend-item"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#DC2626;margin-right:4px;"></span>불합격</div>
+            <div class="kde-legend-item"><span class="kde-leg-line" style="border-color:#F59E0B;border-style:dashed;"></span>평균 소요시간</div>
           </div>
           <!-- 구분선 -->
           <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
@@ -141,8 +165,7 @@
                 <th>총점</th>
                 <th>스킬 확보율</th>
                 <th>소요시간</th>
-                <th>이상행동</th>
-                <th></th>
+                <th>결과</th>
               </tr>
             </thead>
             <tbody id="examinee-tbody"></tbody>
@@ -193,6 +216,7 @@
       <div id="ptab-1" class="person-tab-content" style="display:none;"></div>
       <div id="ptab-2" class="person-tab-content" style="display:none;"></div>
       <div id="ptab-3" class="person-tab-content" style="display:none;"></div>
+      <div id="ptab-4" class="person-tab-content" style="display:none;"></div>
     </div><!-- /page-person -->
 
 
@@ -300,6 +324,20 @@
           <div class="bm-timeline-list" id="bm-timeline-list"></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── 답안 확인 드로어 ── -->
+  <div id="answers-overlay" class="answers-overlay" style="display:none;" onclick="closeAnswersDrawer(event)">
+    <div class="answers-drawer">
+      <div class="answers-drawer-header">
+        <div>
+          <div class="answers-drawer-title">답안 확인</div>
+          <div class="answers-drawer-track" id="answers-drawer-track"></div>
+        </div>
+        <button class="answers-drawer-close" onclick="closeAnswersDrawer()">✕</button>
+      </div>
+      <div class="answers-drawer-body" id="answers-drawer-body"></div>
     </div>
   </div>
 

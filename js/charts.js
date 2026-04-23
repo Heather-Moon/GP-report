@@ -67,11 +67,6 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
     t.textContent = lbl; svg.appendChild(t);
   });
 
-  // 합격선 (80점) — 초록 실선
-  const passX = sx(80);
-  svg.appendChild(svgEl('line', {x1:passX, y1:padT, x2:passX, y2:H-padB,
-    stroke:'#16A34A', 'stroke-width':'2'}));
-
   // X축
   svg.appendChild(svgEl('line', {x1:padL, y1:H-padB, x2:W-padR, y2:H-padB, stroke:'#D1D5DB','stroke-width':'1'}));
   [0,20,40,60,80,100].forEach(v => {
@@ -80,6 +75,20 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
     const t = svgEl('text', {x:sx(v), y:H-7, 'text-anchor':'middle', 'font-size':'11',
       fill: isMark ? '#6B7280' : '#9CA3AF', 'font-weight': isMark ? '700' : '500'});
     t.textContent = v; svg.appendChild(t);
+  });
+
+  // 히스토그램 막대 (KDE 아래 배경)
+  const nBins = 10, binPx = cW / nBins;
+  const binCounts = Array(nBins).fill(0);
+  scores.forEach(s => { const bi = Math.min(Math.floor(s / 10), nBins - 1); if (bi >= 0) binCounts[bi]++; });
+  const maxBinCount = Math.max(...binCounts, 1);
+  binCounts.forEach((c, i) => {
+    if (c === 0) return;
+    const bH = (c / maxBinCount) * cH * 0.82;
+    const binFill = i >= 8 ? 'rgba(22,163,74,0.22)' : 'rgba(220,38,38,0.18)';
+    const binStroke = i >= 8 ? 'rgba(22,163,74,0.40)' : 'rgba(220,38,38,0.35)';
+    svg.appendChild(svgEl('rect', { x: padL + i * binPx + 1.5, y: padT + cH - bH, width: binPx - 3, height: bH,
+      fill: binFill, stroke: binStroke, 'stroke-width': '0.5', rx: 2 }));
   });
 
   // 채움 영역
@@ -173,14 +182,15 @@ function renderMainScoreHistogram(svgId, scores, avgVal, markerScore) {
     t.textContent = v; svg.appendChild(t);
   }
 
-  // 막대 (점수 구간별 단색)
+  // 막대 (합격 80↑ 초록 / 불합격 빨강)
   counts.forEach((c, i) => {
     if (c === 0) return;
     const x  = padL + i * bW;
     const bH = (c / yMax) * cH;
     const y  = sy(c);
+    const fill = bins[i] >= 80 ? '#16A34A' : '#DC2626';
     svg.appendChild(svgEl('rect', { x: x + 3, y, width: bW - 6, height: bH,
-      fill: '#1565C0', rx: 4, opacity: '0.82' }));
+      fill, rx: 4, opacity: '0.80' }));
   });
 
   // X축 경계 눈금 + 레이블 (짝수 경계만 표시: 0, 20, 40, 60, 80, 100)
@@ -195,6 +205,23 @@ function renderMainScoreHistogram(svgId, scores, avgVal, markerScore) {
     }
   });
 
+  // KDE 확률 분포 곡선 오버레이
+  if (scores.length > 1) {
+    const bwK = Math.max(6, 12 - scores.length * 0.4);
+    const nPts = 120;
+    const kxs = Array.from({length: nPts}, (_, i) => (i / (nPts - 1)) * 100);
+    const kys = kxs.map(x => scores.reduce((s, v) => { const z = (x-v)/bwK; return s + Math.exp(-0.5*z*z); }, 0));
+    const kMax = Math.max(...kys, 0.001);
+    const kx = v => padL + (v / 100) * (W - padL - padR);
+    const ky = d => padT + cH - (d / kMax) * (maxC / yMax) * cH;
+    const fpts = kxs.map((x, i) => `${i===0?'M':'L'}${kx(x).toFixed(1)},${ky(kys[i]).toFixed(1)}`).join(' ');
+    svg.appendChild(svgEl('path', { d: fpts + ` L${kx(100)},${padT+cH} L${kx(0)},${padT+cH} Z`,
+      fill: 'rgba(21,101,192,0.09)', stroke: 'none' }));
+    const lpts = kxs.map((x, i) => `${i===0?'M':'L'}${kx(x).toFixed(1)},${ky(kys[i]).toFixed(1)}`).join(' ');
+    svg.appendChild(svgEl('path', { d: lpts, fill: 'none', stroke: '#1565C0', 'stroke-width': '2.5',
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+  }
+
   // 평균선 — 주황 점선 + 레이블
   if (avgVal != null) {
     const ax = sx(avgVal);
@@ -203,13 +230,6 @@ function renderMainScoreHistogram(svgId, scores, avgVal, markerScore) {
     const at = svgEl('text', { x: ax + 4, y: padT + 11, 'font-size': '9', fill: '#F59E0B', 'font-weight': '700' });
     at.textContent = '평균(' + avgVal + '점)'; svg.appendChild(at);
   }
-
-  // 합격선 (80점) — 초록 실선
-  const passX = sx(80);
-  svg.appendChild(svgEl('line', { x1: passX, y1: padT, x2: passX, y2: H - padB,
-    stroke: '#16A34A', 'stroke-width': '2' }));
-  const pt = svgEl('text', { x: passX + 4, y: padT + 22, 'font-size': '9', fill: '#16A34A', 'font-weight': '700' });
-  pt.textContent = '합격선(80점)'; svg.appendChild(pt);
 
   // 개인 마커 (응시자 개인 페이지용)
   if (markerScore != null) {
@@ -259,6 +279,23 @@ function renderHistogram(svgId, scores, avgVal, medVal, markerScore) {
     tl.textContent = bins[i];
     svg.appendChild(tl);
   });
+
+  // KDE 확률 분포 곡선 오버레이
+  if (scores.length > 1) {
+    const bwK = Math.max(4, 8 - scores.length * 0.2);
+    const nPts = 80;
+    const kxs = Array.from({length: nPts}, (_, i) => 40 + (i / (nPts - 1)) * 60);
+    const kys = kxs.map(x => scores.reduce((s, v) => { const z = (x-v)/bwK; return s + Math.exp(-0.5*z*z); }, 0));
+    const kMax = Math.max(...kys, 0.001);
+    const kx = v => padL + ((v - 40) / 60) * (W - padL - padR);
+    const ky = d => padT + cH - (d / kMax) * cH;
+    const fpts = kxs.map((x, i) => `${i===0?'M':'L'}${kx(x).toFixed(1)},${ky(kys[i]).toFixed(1)}`).join(' ');
+    svg.appendChild(svgEl('path', { d: fpts + ` L${kx(100)},${padT+cH} L${kx(40)},${padT+cH} Z`,
+      fill: 'rgba(21,101,192,0.09)', stroke: 'none' }));
+    const lpts = kxs.map((x, i) => `${i===0?'M':'L'}${kx(x).toFixed(1)},${ky(kys[i]).toFixed(1)}`).join(' ');
+    svg.appendChild(svgEl('path', { d: lpts, fill: 'none', stroke: '#1565C0', 'stroke-width': '1.8',
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+  }
 
   // avg line
   const aX = padL + ((avgVal - 40) / 60) * (W - padL - padR);
@@ -618,6 +655,23 @@ function renderTimeHistogram(svgId, timesInSec, limitSec) {
     }
   }
 
+  // KDE 확률 분포 곡선 오버레이
+  if (validTimes.length > 1) {
+    const bwK = Math.max(limitSec * 0.04, limitSec * 0.09 - validTimes.length * (limitSec * 0.003));
+    const nPts = 120;
+    const kxs = Array.from({length: nPts}, (_, i) => (i / (nPts - 1)) * limitSec);
+    const kys = kxs.map(x => validTimes.reduce((s, v) => { const z = (x-v)/bwK; return s + Math.exp(-0.5*z*z); }, 0));
+    const kMax = Math.max(...kys, 0.001);
+    const kx = v => padL + (v / limitSec) * (W - padL - padR);
+    const ky = d => padT + cH - (d / kMax) * (maxC / yMax) * cH;
+    const fpts = kxs.map((x, i) => `${i===0?'M':'L'}${kx(x).toFixed(1)},${ky(kys[i]).toFixed(1)}`).join(' ');
+    svg.appendChild(svgEl('path', { d: fpts + ` L${kx(limitSec)},${padT+cH} L${kx(0)},${padT+cH} Z`,
+      fill: 'rgba(21,101,192,0.09)', stroke: 'none' }));
+    const lpts = kxs.map((x, i) => `${i===0?'M':'L'}${kx(x).toFixed(1)},${ky(kys[i]).toFixed(1)}`).join(' ');
+    svg.appendChild(svgEl('path', { d: lpts, fill: 'none', stroke: '#1565C0', 'stroke-width': '2.5',
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+  }
+
   // 평균선 — 주황 점선
   if (validTimes.length) {
     const avgSec = validTimes.reduce((s, v) => s + v, 0) / validTimes.length;
@@ -628,6 +682,261 @@ function renderTimeHistogram(svgId, timesInSec, limitSec) {
     const at = svgEl('text', { x: ax + 4, y: padT + 11, 'font-size': '9', fill: '#F59E0B', 'font-weight': '700' });
     at.textContent = '평균(' + avgMin + '분)'; svg.appendChild(at);
   }
+}
+
+/* ══════════════════════════════
+   CHART: 시간 버블(스트립) 차트
+   items: [{name, timeSec}], limitSec: number
+══════════════════════════════ */
+function renderTimeBubble(svgId, items, limitSec) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W = 380, H = 170, padL = 40, padR = 16, padT = 20, padB = 36;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+
+  const cW = W - padL - padR, cH = H - padT - padB;
+  const sx = t => padL + (t / limitSec) * cW;
+  const valid = items.filter(d => d.timeSec > 0);
+
+  // X축
+  svg.appendChild(svgEl('line', { x1: padL, y1: H - padB, x2: W - padR, y2: H - padB, stroke: '#D1D5DB', 'stroke-width': '1' }));
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(pct => {
+    const x = padL + pct * cW;
+    const mins = Math.round(pct * limitSec / 60);
+    svg.appendChild(svgEl('line', { x1: x, y1: H - padB, x2: x, y2: H - padB + 4, stroke: '#D1D5DB', 'stroke-width': '1' }));
+    const t = svgEl('text', { x, y: H - padB + 14, 'text-anchor': 'middle', 'font-size': '9', fill: '#9CA3AF' });
+    t.textContent = mins + '분'; svg.appendChild(t);
+  });
+
+  // 버블 (3-레인 스트립)
+  const R = 7;
+  const sorted = [...valid].sort((a, b) => a.timeSec - b.timeSec);
+  const laneY = [0.28, 0.55, 0.78];
+  sorted.forEach((item, i) => {
+    const cx = sx(item.timeSec);
+    const cy = padT + laneY[i % 3] * cH;
+    svg.appendChild(svgEl('circle', { cx, cy, r: R, fill: '#1565C0', opacity: '0.75',
+      stroke: 'white', 'stroke-width': '1.5' }));
+  });
+
+  // 평균선
+  if (valid.length) {
+    const avgSec = valid.reduce((s, d) => s + d.timeSec, 0) / valid.length;
+    const ax = sx(avgSec);
+    svg.appendChild(svgEl('line', { x1: ax, y1: padT, x2: ax, y2: H - padB,
+      stroke: '#F59E0B', 'stroke-width': '1.8', 'stroke-dasharray': '5,3' }));
+    const at = svgEl('text', { x: ax + 3, y: padT + 18, 'font-size': '8.5', fill: '#F59E0B', 'font-weight': '700' });
+    at.textContent = '평균(' + Math.round(avgSec / 60) + '분)'; svg.appendChild(at);
+  }
+}
+
+/* ══════════════════════════════
+   CHART: 시간 구간 도넛 차트
+   items: [{name, timeSec}], limitSec: number
+══════════════════════════════ */
+function renderTimeZoneDonut(svgId, items, limitSec) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W = 380, H = 170;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+
+  const cx = 85, cy = 83, R = 58, sw = 22;
+  const zones = [
+    { from: 0,    to: 0.40, color: '#1565C0' },
+    { from: 0.40, to: 0.70, color: '#7C3AED' },
+    { from: 0.70, to: 0.90, color: '#0D9488' },
+    { from: 0.90, to: 1.01, color: '#6B7280' },
+  ];
+
+  const valid = items.filter(d => d.timeSec > 0);
+  const total = valid.length || 1;
+  const counts = zones.map(z =>
+    valid.filter(d => { const p = d.timeSec / limitSec; return p >= z.from && p < z.to; }).length
+  );
+
+  // 배경 링 (비어있는 회색)
+  const circ = 2 * Math.PI * R;
+  svg.appendChild(svgEl('circle', { cx, cy, r: R, fill: 'none', stroke: '#F3F4F6', 'stroke-width': sw }));
+
+  // 세그먼트
+  let cumDash = 0;
+  counts.forEach((c, i) => {
+    if (c === 0) { cumDash += (c / total) * circ; return; }
+    const segLen = (c / total) * circ;
+    const gap = circ - segLen;
+    const dashOffset = circ / 4 - cumDash;
+    svg.appendChild(svgEl('circle', { cx, cy, r: R, fill: 'none',
+      stroke: zones[i].color, 'stroke-width': sw,
+      'stroke-dasharray': `${segLen - 2} ${gap + 2}`,
+      'stroke-dashoffset': dashOffset }));
+    cumDash += segLen;
+  });
+
+  // 중앙 텍스트 (평균 소요시간)
+  const avgSec = valid.length ? valid.reduce((s, d) => s + d.timeSec, 0) / valid.length : 0;
+  const avgMin = Math.floor(avgSec / 60), avgS = Math.round(avgSec % 60);
+  const ct = svgEl('text', { x: cx, y: cy - 7, 'text-anchor': 'middle',
+    'font-size': '13', fill: '#111827', 'font-weight': '800' });
+  ct.textContent = `${avgMin}:${String(avgS).padStart(2, '0')}`; svg.appendChild(ct);
+  const cs = svgEl('text', { x: cx, y: cy + 9, 'text-anchor': 'middle',
+    'font-size': '8.5', fill: '#6B7280' });
+  cs.textContent = '평균 소요시간'; svg.appendChild(cs);
+  const cn = svgEl('text', { x: cx, y: cy + 22, 'text-anchor': 'middle',
+    'font-size': '8', fill: '#9CA3AF' });
+  cn.textContent = `(${valid.length}명)`; svg.appendChild(cn);
+
+  // 범례 (오른쪽) — 실제 시간 범위만
+  const legX = 182, legGap = 36;
+  zones.forEach((z, i) => {
+    const y = 22 + i * legGap;
+    svg.appendChild(svgEl('rect', { x: legX, y: y, width: 13, height: 13, rx: 3, fill: z.color }));
+
+    const fromMin = Math.round(z.from * limitSec / 60);
+    const toMin   = Math.round(Math.min(z.to, 1) * limitSec / 60);
+    const rangeStr = z.from === 0 ? `~${toMin}분` : `${fromMin}~${toMin}분`;
+
+    const rng = svgEl('text', { x: legX + 19, y: y + 9, 'dominant-baseline': 'middle',
+      'font-size': '10', fill: '#374151', 'font-weight': '600' });
+    rng.textContent = rangeStr; svg.appendChild(rng);
+
+    const pct = Math.round(counts[i] / total * 100);
+    const cnt = svgEl('text', { x: W - 12, y: y + 9, 'text-anchor': 'end', 'dominant-baseline': 'middle',
+      'font-size': '10', fill: zones[i].color, 'font-weight': '700' });
+    cnt.textContent = `${counts[i]}명  ${pct}%`; svg.appendChild(cnt);
+  });
+}
+
+/* ══════════════════════════════
+   CHART: 소요시간 롤리팝 차트
+   items: [{name, timeSec}], limitSec: number
+══════════════════════════════ */
+function renderTimeLollipop(svgId, items, limitSec) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const valid = [...items.filter(d => d.timeSec > 0)].sort((a, b) => a.timeSec - b.timeSec);
+  if (!valid.length) return;
+
+  const n = valid.length;
+  const rowH = 28, padL = 92, padR = 54, padT = 12, padB = 28;
+  const W = 380, H = n * rowH + padT + padB;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', Math.min(H, 400));
+
+  const cW = W - padL - padR;
+  const sx = t => padL + (t / limitSec) * cW;
+
+  // 배경 구간
+  [
+    { from: 0, to: 0.40, fill: 'rgba(22,163,74,0.05)' },
+    { from: 0.40, to: 0.70, fill: 'rgba(245,158,11,0.05)' },
+    { from: 0.70, to: 0.90, fill: 'rgba(234,88,12,0.06)' },
+    { from: 0.90, to: 1.00, fill: 'rgba(220,38,38,0.07)' },
+  ].forEach(z => svg.appendChild(svgEl('rect', {
+    x: padL + z.from * cW, y: padT,
+    width: (z.to - z.from) * cW, height: n * rowH, fill: z.fill,
+  })));
+
+  // X축 그리드 + 눈금
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(pct => {
+    const x = padL + pct * cW;
+    svg.appendChild(svgEl('line', { x1: x, y1: padT, x2: x, y2: padT + n * rowH,
+      stroke: '#E5E7EB', 'stroke-width': '1', 'stroke-dasharray': '3,3' }));
+    svg.appendChild(svgEl('line', { x1: x, y1: H - padB, x2: x, y2: H - padB + 4,
+      stroke: '#D1D5DB', 'stroke-width': '1' }));
+    const t = svgEl('text', { x, y: H - padB + 14, 'text-anchor': 'middle', 'font-size': '9', fill: '#9CA3AF' });
+    t.textContent = Math.round(pct * limitSec / 60) + '분'; svg.appendChild(t);
+  });
+  svg.appendChild(svgEl('line', { x1: padL, y1: H - padB, x2: W - padR, y2: H - padB, stroke: '#D1D5DB', 'stroke-width': '1' }));
+
+  // 평균선
+  const avgSec = valid.reduce((s, d) => s + d.timeSec, 0) / valid.length;
+  const ax = sx(avgSec);
+  svg.appendChild(svgEl('line', { x1: ax, y1: padT, x2: ax, y2: H - padB,
+    stroke: '#F59E0B', 'stroke-width': '1.5', 'stroke-dasharray': '4,3' }));
+
+  // 롤리팝
+  valid.forEach((item, i) => {
+    const cy = padT + i * rowH + rowH / 2;
+    const cx = sx(item.timeSec);
+    const pct = item.timeSec / limitSec;
+    const col = pct < 0.4 ? '#16A34A' : pct < 0.7 ? '#D97706' : pct < 0.9 ? '#EA580C' : '#DC2626';
+
+    // 이름 (왼쪽)
+    const nl = svgEl('text', { x: padL - 8, y: cy + 1, 'text-anchor': 'end', 'dominant-baseline': 'middle',
+      'font-size': '9', fill: '#374151' });
+    nl.textContent = item.name.length > 8 ? item.name.slice(0, 7) + '…' : item.name;
+    svg.appendChild(nl);
+
+    // 줄기
+    svg.appendChild(svgEl('line', { x1: padL, y1: cy, x2: cx, y2: cy,
+      stroke: col, 'stroke-width': '1.5', opacity: '0.45' }));
+    // 점
+    svg.appendChild(svgEl('circle', { cx, cy, r: 5.5, fill: col, stroke: 'white', 'stroke-width': '1.5' }));
+
+    // 시간 레이블 (오른쪽)
+    const m = Math.floor(item.timeSec / 60), s2 = Math.round(item.timeSec % 60);
+    const tl = svgEl('text', { x: cx + 9, y: cy + 1, 'dominant-baseline': 'middle',
+      'font-size': '8.5', fill: col, 'font-weight': '700' });
+    tl.textContent = `${m}:${String(s2).padStart(2, '0')}`; svg.appendChild(tl);
+  });
+}
+
+/* ══════════════════════════════
+   CHART: 소요시간 vs 점수 산점도
+   items: [{name, timeSec, score}], limitSec: number
+══════════════════════════════ */
+function renderTimeScatter(svgId, items, limitSec) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W = 380, H = 220, padL = 36, padR = 16, padT = 16, padB = 32;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+
+  const valid = items.filter(d => d.timeSec > 0 && d.score != null);
+  if (!valid.length) return;
+
+  const cW = W - padL - padR, cH = H - padT - padB;
+  const sx = t => padL + (t / limitSec) * cW;
+  const sy = s => padT + cH - (s / 100) * cH;
+
+
+  // Y축 그리드 + 눈금
+  [0, 25, 50, 75, 100].forEach(s => {
+    const y = sy(s);
+    svg.appendChild(svgEl('line', { x1: padL, y1: y, x2: W - padR, y2: y,
+      stroke: s === 0 ? '#D1D5DB' : '#F3F4F6', 'stroke-width': '1' }));
+    const t = svgEl('text', { x: padL - 5, y, 'text-anchor': 'end', 'dominant-baseline': 'middle',
+      'font-size': '9', fill: '#9CA3AF' });
+    t.textContent = s; svg.appendChild(t);
+  });
+
+  // X축
+  svg.appendChild(svgEl('line', { x1: padL, y1: H - padB, x2: W - padR, y2: H - padB, stroke: '#D1D5DB', 'stroke-width': '1' }));
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(pct => {
+    const x = padL + pct * cW;
+    svg.appendChild(svgEl('line', { x1: x, y1: H - padB, x2: x, y2: H - padB + 4, stroke: '#D1D5DB', 'stroke-width': '1' }));
+    const t = svgEl('text', { x, y: H - padB + 13, 'text-anchor': 'middle', 'font-size': '9', fill: '#9CA3AF' });
+    t.textContent = Math.round(pct * limitSec / 60) + '분'; svg.appendChild(t);
+  });
+
+
+  // 평균 소요시간 선
+  const avgSec = valid.reduce((s, d) => s + d.timeSec, 0) / valid.length;
+  svg.appendChild(svgEl('line', { x1: sx(avgSec), y1: padT, x2: sx(avgSec), y2: H - padB,
+    stroke: '#F59E0B', 'stroke-width': '1.5', 'stroke-dasharray': '4,3' }));
+  const at = svgEl('text', { x: sx(avgSec) + 3, y: padT + 11, 'font-size': '8', fill: '#F59E0B', 'font-weight': '700' });
+  at.textContent = '평균(' + Math.round(avgSec / 60) + '분)'; svg.appendChild(at);
+
+  // Y축 레이블
+  const yl = svgEl('text', { x: 10, y: padT + cH / 2, 'text-anchor': 'middle',
+    'font-size': '8.5', fill: '#9CA3AF', transform: `rotate(-90,10,${padT + cH / 2})` });
+  yl.textContent = '점수'; svg.appendChild(yl);
+
+  // 점
+  valid.forEach(item => {
+    const cx = sx(item.timeSec), cy2 = sy(item.score);
+    const col = item.score >= 80 ? '#16A34A' : '#DC2626';
+    svg.appendChild(svgEl('circle', { cx, cy: cy2, r: 6, fill: col, opacity: '0.80',
+      stroke: 'white', 'stroke-width': '1.5' }));
+  });
 }
 
 /* ══════════════════════════════

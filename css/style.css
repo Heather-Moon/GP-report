@@ -263,6 +263,31 @@ tbody tr:last-child td { border-bottom: none; }
   transition: background 0.12s;
 }
 .td-btn:hover { background: var(--primary-bg); }
+.td-expand-btn {
+  margin-left: 4px; padding: 5px 8px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: transparent; color: var(--text-sub);
+  font-size: 0.72rem; cursor: pointer; transition: background 0.12s;
+}
+.td-expand-btn:hover { background: var(--bg); }
+.track-detail-row td { padding: 0 !important; }
+.track-detail-table {
+  width: 100%; border-collapse: collapse; font-size: 0.82rem;
+  border-top: 2px solid var(--primary-bg);
+}
+.track-detail-table thead tr { background: #F0F5FF; }
+.track-detail-table th {
+  padding: 10px 16px; text-align: center; font-size: 0.7rem;
+  font-weight: 700; color: var(--text-sub); white-space: nowrap;
+  letter-spacing: 0.03em; text-transform: uppercase;
+}
+.track-detail-table tbody tr { background: #fff; transition: background 0.1s; }
+.track-detail-table tbody tr:hover { background: #F8FBFF; }
+.track-detail-table td {
+  padding: 13px 16px; border-top: 1px solid #F3F4F6;
+  white-space: nowrap; color: var(--text); vertical-align: middle;
+  line-height: 1.5; text-align: center;
+}
 
 /* ── 개인 페이지 헤더 ── */
 .person-header {
@@ -447,6 +472,11 @@ footer {
   content: ''; display: inline-block; width: 3px; height: 13px;
   background: var(--primary); border-radius: 2px; flex-shrink: 0;
 }
+.time-chart-label {
+  font-size: 0.75rem; font-weight: 700; color: var(--text-sub);
+  margin: 0 0 6px; padding: 3px 8px;
+  background: var(--bg); border-radius: 4px; display: inline-block;
+}
 .insight-stats {
   display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 10px;
 }
@@ -621,6 +651,7 @@ footer {
 .kde-legend { display:flex; gap:14px; justify-content:center; margin-top:6px; }
 .kde-legend-item { display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--text-sub); }
 .kde-leg-line { display:inline-block; width:20px; border-top-width:2px; flex-shrink:0; }
+.kde-leg-bar  { display:inline-block; width:14px; height:10px; border-radius:2px; flex-shrink:0; }
 
 /* ── 레이더 (dual) ── */
 .radar-wrap { position:relative; display:inline-block; }
@@ -861,6 +892,158 @@ footer {
 .info-tip strong { color: #fff; font-weight: 600; }
 
 /* ── @media print ── */
+/* ══════════════════════════════
+   답안 확인 드로어
+══════════════════════════════ */
+.answers-open-btn {
+  font-size: 0.76rem; font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-bg);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.answers-open-btn:hover { background: #D6E8FF; }
+
+.answers-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 300;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+.answers-drawer {
+  width: 700px; max-width: 94vw;
+  background: var(--card);
+  height: 100%;
+  display: flex; flex-direction: column;
+  box-shadow: -4px 0 32px rgba(0,0,0,0.18);
+  animation: drawerSlideIn .22s ease;
+  overflow: hidden;
+}
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.answers-drawer-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--card);
+}
+.answers-drawer-title {
+  font-size: 1rem; font-weight: 800; color: var(--text);
+  margin-bottom: 3px;
+}
+.answers-drawer-track {
+  font-size: 0.78rem; color: var(--text-sub);
+}
+.answers-drawer-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; color: var(--text-sub);
+  padding: 2px 4px; border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.answers-drawer-close:hover { background: var(--bg); color: var(--text); }
+.answers-drawer-body {
+  flex: 1; overflow-y: auto;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+/* print-only 섹션은 화면에서 숨김 */
+.print-sa-section { display: none; }
+#ptab-4 { display: none; }
+
+.code-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.code-panel-label {
+  font-size: 0.72rem; font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.answer-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.answer-card:last-child { margin-bottom: 0; }
+
+.answer-card-meta {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.answer-qnum {
+  font-size: 0.82rem; font-weight: 800; color: var(--primary);
+}
+.answer-type-badge {
+  font-size: 0.70rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 99px;
+}
+.answer-skill-tag {
+  font-size: 0.75rem; color: var(--text-sub);
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1px 8px;
+}
+
+.answer-question {
+  font-size: 0.83rem; line-height: 1.65;
+  color: var(--text); margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.answer-options {
+  display: flex; flex-direction: column; gap: 4px;
+  margin-bottom: 8px;
+}
+.answer-option {
+  font-size: 0.80rem; color: var(--text-sub);
+  padding: 4px 10px; border-radius: 6px;
+  border: 1px solid transparent;
+  background: var(--bg);
+}
+.answer-option-selected {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.answer-divider {
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+.answer-response-label {
+  font-size: 0.73rem; font-weight: 700;
+  color: var(--text-mute); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.answer-text {
+  font-size: 0.82rem; line-height: 1.75; color: var(--text-sub);
+}
+.answer-code {
+  font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+  font-size: 0.77rem; line-height: 1.7;
+  background: #F8FAFC;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  white-space: pre;
+  color: #1E293B;
+  margin: 0;
+}
+
 @media print {
   @page {
     margin: 15mm 12mm 20mm;
@@ -881,7 +1064,8 @@ footer {
   .behavior-btn, .table-controls,
   .pagination, footer,
   .ins-tab-group, #ins-time-tabs,
-  #behavior-modal, .person-tab-nav { display: none !important; }
+  #behavior-modal, .person-tab-nav,
+  .answers-open-btn, .answers-overlay { display: none !important; }
 
   /* 레이아웃 */
   .app { padding-top: 0; }
@@ -891,30 +1075,64 @@ footer {
   #page-main, #page-detail { display: none !important; }
   #page-person { display: block !important; }
 
-  /* 모든 탭 콘텐츠 표시 */
+  /* 모든 탭 콘텐츠 표시 — ptab-4는 ID specificity 때문에 명시적으로 표시 */
   .person-tab-content { display: block !important; }
+  #ptab-4 { display: block !important; }
 
-  /* 트랙 탭은 새 페이지에서 시작 */
+  /* 트랙·부정행위 탭은 새 페이지에서 시작 */
   #ptab-1 { break-before: page; }
   #ptab-2 { break-before: page; }
   #ptab-3 { break-before: page; }
+  #ptab-4 { break-before: page; }
 
-  /* 제목 뒤에서 페이지 끊기 방지 */
-  .sec-title, .ss-block-title, .track-desc-header { break-after: avoid; }
+  /* 정적분석 print 섹션 */
+  .print-sa-section { display: block !important; margin-top: 16px; }
 
-  /* 카드 내부 분리 방지 */
-  .compare-card, .comment-box, .track-desc-block,
-  .person-header, .donut-row { break-inside: avoid; }
+  /* 부정행위 분석 */
+  .print-behavior-page { display: block !important; }
+  .sa-detail-toggle { display: none !important; }
 
-  /* 스킬 카드는 카드 안에서 끊기 방지, 카드 사이는 허용 */
-  .skill-detail-list { break-inside: auto; }
-  .skill-detail-card { break-inside: avoid; margin-bottom: 8px; }
+  /* ─ 페이지 끊기 ─
+     compare-card는 break-inside: auto 허용 (큰 카드가 통째로 밀리지 않도록)
+     단, 작은 단위(skill-card, 요약카드 내부 행)는 avoid 유지               */
+  .sec-title, .ss-block-title { break-after: avoid; }
+  .compare-card  { break-inside: auto; }
+  .comment-box   { break-inside: avoid; }
+  .donut-row, .person-header { break-inside: avoid; }
+  .skill-detail-list  { break-inside: auto; }
+  .skill-detail-card  { break-inside: avoid; }
+  .track-stat-grid    { break-inside: avoid; }
+  .print-sa-section > div { break-inside: avoid; }
 
-  /* 그림자 제거, 테두리 유지 */
-  .compare-card, .comment-box, .skill-detail-card,
-  .insight-card, .table-card, .track-desc-block {
+  /* ─ 간격 축소 ─ */
+  .compare-card {
+    margin-bottom: 8px !important;
+    padding: 10px 12px !important;
     box-shadow: none;
     border: 1px solid var(--border);
+  }
+  .comment-box {
+    margin-bottom: 8px !important;
+    padding: 10px 14px !important;
+    box-shadow: none;
+    border: 1px solid var(--border);
+  }
+  .skill-detail-card {
+    margin-bottom: 6px !important;
+    padding: 8px 10px !important;
+    box-shadow: none;
+    border: 1px solid var(--border);
+  }
+  .sec-title { margin-bottom: 6px !important; margin-top: 12px !important; }
+  .ss-block-title { margin-bottom: 8px !important; }
+  .ss-divider { margin: 8px 0 !important; }
+  .kde-outer { gap: 6px !important; }
+  .radar-center-wrap { gap: 4px !important; }
+  .skill-detail-list { gap: 0 !important; }
+
+  /* 그림자 제거 */
+  .insight-card, .table-card, .track-desc-block {
+    box-shadow: none; border: 1px solid var(--border);
   }
 
   /* 트랙 설명 완전히 표시 */
