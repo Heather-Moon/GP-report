@@ -255,6 +255,7 @@ function renderTimeTab(i) {
   renderTimeBubble('ins-time-bubble', items, limitSec);
   renderTimeZoneDonut('ins-time-donut', items, limitSec);
   renderTimeScatter('ins-time-scatter', items, limitSec);
+  renderTimeHeatmap('ins-time-heatmap', items, limitSec);
 }
 
 /* ══════════════════════════════

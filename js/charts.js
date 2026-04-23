@@ -919,6 +919,139 @@ function renderTimeScatter(svgId, items, limitSec) {
 }
 
 /* ══════════════════════════════
+   CHART: TIME HEATMAP (소요시간 × 점수 구간 밀도)
+   items: [{timeSec, score}], limitSec: number
+══════════════════════════════ */
+function renderTimeHeatmap(svgId, items, limitSec) {
+  const svg = clearSvg(svgId); if (!svg) return;
+  const W = 420, H = 220, padL = 42, padR = 90, padT = 20, padB = 36;
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  const valid = items.filter(d => d.timeSec != null && d.score != null);
+  if (!valid.length) return;
+
+  const xBins = 8, yBins = 5;
+  const xStep = limitSec / xBins;
+  const yRanges = [[0,20],[20,40],[40,60],[60,80],[80,100]];
+
+  // 셀 카운트
+  const grid = Array.from({length: yBins}, () => Array(xBins).fill(0));
+  valid.forEach(({ timeSec, score }) => {
+    const xi = Math.min(Math.floor(timeSec / xStep), xBins - 1);
+    const yi = score === 100 ? yBins - 1 : yRanges.findIndex(([lo, hi]) => score >= lo && score < hi);
+    if (xi >= 0 && yi >= 0) grid[yi][xi]++;
+  });
+  const maxCount = Math.max(...grid.flat(), 1);
+
+  const cW = W - padL - padR, cH = H - padT - padB;
+  const cellW = cW / xBins, cellH = cH / yBins;
+
+  // 셀 렌더 (숫자 없음)
+  grid.forEach((row, yi) => {
+    row.forEach((count, xi) => {
+      const x = padL + xi * cellW;
+      const y = padT + (yBins - 1 - yi) * cellH;
+      const intensity = count / maxCount;
+      const isPass = yRanges[yi][0] >= 80;
+      const baseR = isPass ? 22 : 21, baseG = isPass ? 163 : 101, baseB = isPass ? 74 : 192;
+      const alpha = count === 0 ? 0.04 : 0.08 + intensity * 0.72;
+      svg.appendChild(svgEl('rect', { x: x+1, y: y+1, width: cellW-2, height: cellH-2,
+        fill: `rgba(${baseR},${baseG},${baseB},${alpha.toFixed(2)})`, rx: 3 }));
+    });
+  });
+
+  // 격자선
+  for (let xi = 0; xi <= xBins; xi++) {
+    const x = padL + xi * cellW;
+    svg.appendChild(svgEl('line', { x1:x, y1:padT, x2:x, y2:H-padB, stroke:'#E5E7EB', 'stroke-width':'1' }));
+  }
+  for (let yi = 0; yi <= yBins; yi++) {
+    const y = padT + yi * cellH;
+    svg.appendChild(svgEl('line', { x1:padL, y1:y, x2:padL+cW, y2:y, stroke:'#E5E7EB', 'stroke-width':'1' }));
+  }
+
+  // 합격선 (80점) 강조
+  const passY = padT + (yBins - yRanges.findIndex(([lo])=>lo>=80)) * cellH;
+  svg.appendChild(svgEl('line', { x1:padL, y1:passY, x2:padL+cW, y2:passY,
+    stroke:'#16A34A', 'stroke-width':'1.8', 'stroke-dasharray':'4,3' }));
+
+  // X축 레이블
+  const toMin = s => Math.round(s/60);
+  for (let xi = 0; xi <= xBins; xi++) {
+    const x = padL + xi * cellW;
+    const t = svgEl('text', { x, y: H-padB+12, 'text-anchor':'middle', 'font-size':'9', fill:'#6B7280' });
+    t.textContent = toMin(xi * xStep) + '분'; svg.appendChild(t);
+  }
+
+  // Y축 레이블
+  yRanges.forEach(([lo, hi], yi) => {
+    const y = padT + (yBins - 1 - yi) * cellH + cellH/2;
+    const t = svgEl('text', { x: padL-6, y, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':'9', fill:'#6B7280' });
+    t.textContent = `${lo}~${hi}`; svg.appendChild(t);
+  });
+
+  // 축 레이블
+  const xl = svgEl('text', { x: padL + cW/2, y: H-2, 'text-anchor':'middle', 'font-size':'9', fill:'#9CA3AF' });
+  xl.textContent = '소요시간'; svg.appendChild(xl);
+  const yl = svgEl('text', { x: 8, y: padT + cH/2, 'text-anchor':'middle', 'dominant-baseline':'middle',
+    'font-size':'9', fill:'#9CA3AF', transform:`rotate(-90,8,${padT+cH/2})` });
+  yl.textContent = '점수'; svg.appendChild(yl);
+
+  // 오른쪽 범례
+  const lx = padL + cW + 12;
+
+  // 색상 구분 범례
+  const categories = [
+    { label: '합격 구간', r:22, g:163, b:74 },
+    { label: '불합격 구간', r:21, g:101, b:192 },
+  ];
+  categories.forEach(({ label, r, g, b }, i) => {
+    const ly = padT + i * 22;
+    svg.appendChild(svgEl('rect', { x: lx, y: ly, width: 12, height: 12,
+      fill: `rgba(${r},${g},${b},0.65)`, rx: 2 }));
+    const t = svgEl('text', { x: lx+16, y: ly+6, 'dominant-baseline':'middle', 'font-size':'9', fill:'#374151' });
+    t.textContent = label; svg.appendChild(t);
+  });
+
+  // 밀도 그라디언트 범례 (합격 / 불합격 각각)
+  const gradY = padT + 54, gradH = (cH - 54) / 2 - 6, gradW = 10;
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+  const gradConfigs = [
+    { id: svgId+'-grad-pass', darkColor: 'rgba(22,163,74,0.80)',  label: '합격',   offsetY: 0 },
+    { id: svgId+'-grad-fail', darkColor: 'rgba(21,101,192,0.80)', label: '불합격', offsetY: gradH + 14 },
+  ];
+
+  gradConfigs.forEach(({ id, darkColor, label, offsetY }) => {
+    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    grad.setAttribute('id', id);
+    grad.setAttribute('x1','0'); grad.setAttribute('y1','1');
+    grad.setAttribute('x2','0'); grad.setAttribute('y2','0');
+    [['0%','rgba(100,100,100,0.06)'],['100%', darkColor]].forEach(([offset, color]) => {
+      const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop.setAttribute('offset', offset); stop.setAttribute('stop-color', color);
+      grad.appendChild(stop);
+    });
+    defs.appendChild(grad);
+
+    const gy = gradY + offsetY;
+    svg.appendChild(svgEl('rect', { x: lx, y: gy, width: gradW, height: gradH,
+      fill: `url(#${id})`, rx: 2 }));
+    svg.appendChild(svgEl('rect', { x: lx, y: gy, width: gradW, height: gradH,
+      fill: 'none', stroke: '#E5E7EB', 'stroke-width': '0.8', rx: 2 }));
+
+    const tTop = svgEl('text', { x: lx+gradW+4, y: gy, 'dominant-baseline':'middle', 'font-size':'8', fill:'#6B7280' });
+    tTop.textContent = '많음'; svg.appendChild(tTop);
+    const tBot = svgEl('text', { x: lx+gradW+4, y: gy+gradH, 'dominant-baseline':'middle', 'font-size':'8', fill:'#6B7280' });
+    tBot.textContent = '적음'; svg.appendChild(tBot);
+    const tLbl = svgEl('text', { x: lx+gradW+4, y: gy+gradH/2, 'dominant-baseline':'middle', 'font-size':'8', fill:'#9CA3AF' });
+    tLbl.textContent = label; svg.appendChild(tLbl);
+  });
+
+  defs.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'desc')); // flush
+  svg.appendChild(defs);
+}
+
+/* ══════════════════════════════
    CHART: DUAL RADAR (나 vs 전체 평균)
    labels: string[], meVals: number[], avgVals: number[], color: string
    tooltipId: 툴팁 div id
