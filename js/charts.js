@@ -52,21 +52,6 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
   const sx = x => padL + ((x-xMin)/(xMax-xMin))*cW;
   const sy = y => padT + cH - (y/maxY)*cH;
 
-  // 점수 구간 배경 (불합격: 좌측 끝~80점 / 합격: 80점~우측 끝)
-  svg.appendChild(svgEl('rect', { x:padL,   y:padT, width:sx(80)-padL,   height:cH, fill:'rgba(220,38,38,0.07)'  }));
-  svg.appendChild(svgEl('rect', { x:sx(80), y:padT, width:W-padR-sx(80), height:cH, fill:'rgba(22,163,74,0.08)'  }));
-
-  // 구간 레이블 — 차트 중간 높이에 배치
-  const midY = padT + cH * 0.72;
-  [
-    ['불합격', sx(40), 'rgba(220,38,38,0.45)'],
-    ['합격',   sx(90), 'rgba(22,163,74,0.55)'],
-  ].forEach(([lbl, xv, fill]) => {
-    const t = svgEl('text', {x:xv, y:midY, 'text-anchor':'middle',
-      'font-size':'13', fill, 'font-weight':'700', 'letter-spacing':'1'});
-    t.textContent = lbl; svg.appendChild(t);
-  });
-
   // X축
   svg.appendChild(svgEl('line', {x1:padL, y1:H-padB, x2:W-padR, y2:H-padB, stroke:'#D1D5DB','stroke-width':'1'}));
   [0,20,40,60,80,100].forEach(v => {
@@ -90,12 +75,6 @@ function renderKDECurve(svgId, scores, avgVal, medVal, markerScore, color) {
     svg.appendChild(svgEl('rect', { x: padL + i * binPx + 1.5, y: padT + cH - bH, width: binPx - 3, height: bH,
       fill: binFill, stroke: binStroke, 'stroke-width': '0.5', rx: 2 }));
   });
-
-  // 채움 영역
-  const fillD = [`M${sx(xs[0])},${sy(0)}`];
-  xs.forEach((x,i) => fillD.push(`L${sx(x)},${sy(ys[i])}`));
-  fillD.push(`L${sx(xs[nPts-1])},${sy(0)} Z`);
-  svg.appendChild(svgEl('path', {d:fillD.join(' '), fill:hexAlpha(col, 0.22), stroke:'none'}));
 
   // 커브 선
   const lineD = xs.map((x,i) => `${i===0?'M':'L'}${sx(x).toFixed(1)},${sy(ys[i]).toFixed(1)}`).join(' ');
