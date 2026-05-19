@@ -251,11 +251,7 @@ function renderTimeTab(i) {
     })).sort((a, b) => a.timeSec - b.timeSec);
   }
 
-  renderTimeHistogram('ins-time-chart', items.map(d => d.timeSec), limitSec);
-  renderTimeBubble('ins-time-bubble', items, limitSec);
-  renderTimeZoneDonut('ins-time-donut', items, limitSec);
   renderTimeScatter('ins-time-scatter', items, limitSec);
-  renderTimeHeatmap('ins-time-heatmap', items, limitSec);
 }
 
 /* ══════════════════════════════
@@ -418,37 +414,33 @@ function renderSummaryTab(e) {
       <div class="ss-divider"></div>
       <!-- Row 2: 순위 + 소요시간 + 부정행위 지표 -->
       <div style="display:grid; grid-template-columns:repeat(3,1fr);" class="summary-meta-grid">
-        <div class="ss-card-flat">
+        <div class="ss-card-flat" style="display:flex;flex-direction:column;align-items:center;">
           <div class="ss-val">${rank}<small>/${n}명</small></div>
           <div class="ss-sub">${getPercentile(e.totalScore, totalScores)}</div>
-          <div class="ss-label">순위</div>
+          <div class="ss-label" style="margin-top:auto;">순위</div>
         </div>
-        <div class="ss-card-flat">
+        <div class="ss-card-flat" style="display:flex;flex-direction:column;align-items:center;">
           <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${e.time || '-'}<br><small style="font-size:0.6em; color:var(--text-mute);">/ ${timeLimitHMS}</small></div>
-          <div class="ss-label">소요시간</div>
+          <div class="ss-label" style="margin-top:auto;">소요시간 / 제한시간</div>
         </div>
-        <div class="ss-card-flat">
+        <div class="ss-card-flat" style="display:flex;flex-direction:column;align-items:center;">
           <div class="ss-val" style="font-size:1rem;">${e.behaviorRisk ? riskBadgeHTML(e.behaviorRisk, true) : '-'}</div>
-          <span onclick="toggleBehaviorPanel()" style="font-size:0.72rem; color:var(--primary); cursor:pointer; font-weight:600; opacity:0.8; margin-bottom:4px; display:inline-block;">행동 분석 →</span>
-          <div class="ss-label" style="display:flex;align-items:center;gap:4px;justify-content:center;">부정행위 지표 ${tooltipIcon('시험 중 감지된 이상행동을 종합한 위험도 지표입니다.<br><strong style=\\"color:#86efac;\\">정상</strong> 위험 이벤트 0건 + 주의 1건 이하<br><strong style=\\"color:#fcd34d;\\">주의</strong> 위험 이벤트 1~2건 또는 주의 2건 이상<br><strong style=\\"color:#fca5a5;\\">위험</strong> 위험 이벤트 3건 이상')}</div>
+          <span onclick="toggleBehaviorPanel()" class="no-print" style="font-size:0.72rem; color:var(--primary); cursor:pointer; font-weight:600; opacity:0.8; margin-bottom:4px; display:inline-block;">행동 분석 →</span>
+          <div class="ss-label" style="margin-top:auto;display:flex;align-items:center;gap:4px;justify-content:center;">부정행위 지표 ${tooltipIcon('시험 중 감지된 이상행동을 종합한 위험도 지표입니다.<br><strong style=\\"color:#86efac;\\">정상</strong> 위험 이벤트 0건 + 주의 1건 이하<br><strong style=\\"color:#fcd34d;\\">주의</strong> 위험 이벤트 1~2건 또는 주의 2건 이상<br><strong style=\\"color:#fca5a5;\\">위험</strong> 위험 이벤트 3건 이상')}</div>
         </div>
       </div>
     </div>
 
     <div class="compare-card" style="margin-bottom:16px;">
-      <div class="ss-block-title" style="display:flex;align-items:center;gap:6px;">점수 분포 ${tooltipIcon('전체 응시자의 점수 분포를 커브 그래프로 시각화합니다. 점선(황색)은 평균, 실선(초록)은 합격선(80점)을 나타내며, 커브 위 색상 점과 점수 박스가 본인 점수의 위치입니다.')}</div>
-      <div class="kde-outer">
+      <div class="kde-outer" style="margin-top:12px;">
         <div class="kde-graph-area">
           <svg id="p-sum-kde" class="chart-svg" height="160" viewBox="0 0 360 160"></svg>
           <div class="kde-legend">
             <div class="kde-legend-item">
-              <span class="kde-leg-bar" style="background:rgba(22,163,74,0.22);border:1px solid rgba(22,163,74,0.4);"></span>합격 (80점↑)
+              <span class="kde-leg-bar" style="background:rgba(22,163,74,0.22);border:1px solid rgba(22,163,74,0.4);"></span>합격
             </div>
             <div class="kde-legend-item">
               <span class="kde-leg-bar" style="background:rgba(220,38,38,0.18);border:1px solid rgba(220,38,38,0.35);"></span>불합격
-            </div>
-            <div class="kde-legend-item">
-              <span class="kde-leg-line" style="border-color:#1565C0; border-style:solid;"></span>확률 분포
             </div>
             <div class="kde-legend-item">
               <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
@@ -469,20 +461,35 @@ function renderSummaryTab(e) {
             <div class="kde-stat-lbl">표준편차</div>
           </div>
         </div>
+        <div class="kde-stats-panel" style="border-left:none;">
+          <div class="kde-stat">
+            <div class="kde-stat-val">${totalScores[totalScores.length - 1]}점</div>
+            <div class="kde-stat-lbl">최고점수</div>
+          </div>
+          <div class="kde-stat">
+            <div class="kde-stat-val">${totalScores[0]}점</div>
+            <div class="kde-stat-lbl">최저점수</div>
+          </div>
+        </div>
       </div>
       <div class="ss-divider"></div>
-      <div class="ss-block-title" style="display:flex;align-items:center;gap:6px;">획득 역량 ${tooltipIcon('응시자가 획득한 역량 수를 전체 역량 수 대비 도넛 차트로 표시합니다.')}</div>
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:12px;">
+        <div class="ss-block-title" style="margin-bottom:0;">획득 역량 ${tooltipIcon('응시자가 획득한 역량 수를 전체 역량 수 대비 도넛 차트로 표시합니다.')}</div>
+        <div style="font-size:0.68rem; color:var(--text-mute);">획득한 역량 수 / 전체 역량 수</div>
+      </div>
       <div class="donut-row">
-        <div class="donut-item">
+        <div class="donut-item" style="justify-content:flex-start;">
           <svg id="p-sum-donut-all" width="84" height="84" viewBox="0 0 84 84"></svg>
-          <div class="donut-item-label" style="color:${scoreCol};">전체</div>
+          <div class="donut-item-label" style="color:${scoreCol}; height:2.4em; display:flex; align-items:center; justify-content:center;">전체</div>
         </div>
         <div class="donut-separator"></div>
         ${tracks.map((t, ti) => {
           const shortName = t.name.replace('클라우드 & 분산 시스템 아키텍처','클라우드 & 분산 시스템');
-          return `<div class="donut-item">
+          const tAcq = t.skills.filter(s => s.level === 'acquired').length;
+          const tTotal = t.skills.length;
+          return `<div class="donut-item" style="justify-content:flex-start;">
             <svg id="p-sum-donut-${ti}" width="84" height="84" viewBox="0 0 84 84"></svg>
-            <div class="donut-item-label" style="color:${t.color};">${shortName}</div>
+            <div class="donut-item-label" style="color:${t.color}; height:2.4em; display:flex; align-items:center; justify-content:center;">${shortName}</div>
           </div>
           ${ti < tracks.length - 1 ? '<div class="donut-separator"></div>' : ''}`;
         }).join('')}
@@ -610,40 +617,76 @@ function renderTrackTab(e, trackIdx) {
     }).join('');
 
     const probPanelsHTML = probs.map((p, pi) => {
-      const res = saProbOverall(p);
-      const rm  = SA_RM[res];
-      const pC  = p.metrics.filter(m=>m.result==='pass').length;
-      const wC  = p.metrics.filter(m=>m.result==='warning').length;
-      const fC  = p.metrics.filter(m=>m.result==='fail').length;
-      const metricsHTML = p.metrics.map(m => {
-        const mr = SA_RM[m.result] || SA_RM.warning;
-        return `<div style="display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);">
-          <span style="width:8px;height:8px;border-radius:50%;background:${mr.dot};margin-top:5px;flex-shrink:0;"></span>
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
-              <span style="font-size:0.81rem;font-weight:700;color:var(--text);">${SA_ML[m.key]||m.label}</span>
-              <span style="padding:1px 8px;border-radius:99px;font-size:0.71rem;font-weight:700;background:${mr.bg};color:${mr.color};">${mr.label}</span>
-            </div>
-            <div style="font-size:0.79rem;color:var(--text-sub);line-height:1.6;">${m.desc}</div>
-          </div>
+      const RS2 = { pass:'#166534', warning:'#92400E', fail:'#991B1B' };
+      const RL2 = { pass:'등과', warning:'주의', fail:'실패' };
+      const secHdr = (title) =>
+        `<div style="background:#F1F5F9;padding:6px 12px;font-size:0.76rem;font-weight:700;color:var(--text);border-top:1px solid var(--border);">${title}</div>`;
+      const bulletList = (items, color) =>
+        items.map(s => `<div style="font-size:0.78rem;color:${color||'var(--text-sub)'};line-height:1.55;padding:1px 0;">• ${s}</div>`).join('');
+
+      const metricTableHTML = (p.metrics && p.metrics.length) ? (() => {
+        const RC = { pass:'#16A34A', warning:'#D97706', fail:'#DC2626' };
+        const RL = { pass:'통과', warning:'주의', fail:'실패', na:'계산X' };
+        const rows = p.metrics.map((m, mi) => {
+          const accentColor = RC[m.result] || '#9CA3AF';
+          const rowBg = mi % 2 === 0 ? '#fff' : '#F9FAFB';
+          const c = m.counts || { pass: m.result==='pass'?1:0, warning: m.result==='warning'?1:0, fail: m.result==='fail'?1:0, na: 0 };
+          const countRow = `<span style="font-size:0.65rem;color:#9CA3AF;margin-top:4px;display:block;">
+            통과 <b style="color:#16A34A;">${c.pass}</b>&nbsp;·&nbsp;
+            주의 <b style="color:#D97706;">${c.warning}</b>&nbsp;·&nbsp;
+            실패 <b style="color:#DC2626;">${c.fail}</b>&nbsp;·&nbsp;
+            계산X <b style="color:#9CA3AF;">${c.na}</b>
+          </span>`;
+          // detailDescs: [{result, desc}, ...] 배열 또는 단일 detailDesc 문자열 지원
+          const descs = m.detailDescs
+            ? m.detailDescs
+            : (m.detailDesc ? [{result: m.result, desc: m.detailDesc}] : [{result: m.result, desc: m.desc||''}]);
+          const descHTML = descs.map((d, di) => {
+            const dColor = RC[d.result] || '#6B7280';
+            const dLabel = RL[d.result] || d.result;
+            return `<div style="display:flex;gap:8px;align-items:flex-start;${di>0?'margin-top:7px;padding-top:7px;border-top:1px solid #F3F4F6;':''}">
+              <span style="flex-shrink:0;font-size:0.70rem;font-weight:700;color:${dColor};background:${dColor}18;padding:1px 6px;border-radius:3px;margin-top:1px;">${dLabel}</span>
+              <span style="font-size:0.78rem;color:#374151;line-height:1.55;">${d.desc}</span>
+            </div>`;
+          }).join('');
+          return `
+          <tr style="border-bottom:1px solid #E5E7EB;background:${rowBg};">
+            <td style="padding:9px 6px;text-align:center;vertical-align:top;font-size:0.75rem;color:#9CA3AF;width:32px;padding-top:11px;">${mi+1}</td>
+            <td style="padding:9px 12px;vertical-align:top;width:190px;border-right:1px solid #E5E7EB;">
+              <div style="font-size:0.78rem;font-weight:700;color:var(--text);">${m.key}</div>
+              ${countRow}
+            </td>
+            <td style="padding:9px 12px;vertical-align:top;">${descHTML}</td>
+          </tr>`;
+        }).join('');
+        return `
+        <div style="margin-top:12px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#F1F5F9;border-bottom:1px solid var(--border);">
+                <th style="padding:7px 6px;text-align:center;font-size:0.71rem;font-weight:600;color:#6B7280;width:32px;">#</th>
+                <th style="padding:7px 12px;text-align:left;font-size:0.71rem;font-weight:600;color:#374151;width:190px;">정적 분석 항목</th>
+                <th style="padding:7px 12px;text-align:left;font-size:0.71rem;font-weight:600;color:#374151;">설명</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
         </div>`;
-      }).join('');
-      const swHTML = (p.strengths&&p.strengths.length)||(p.weaknesses&&p.weaknesses.length) ? `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
-          ${p.strengths&&p.strengths.length?`<div style="background:#F0FDF4;border-radius:8px;padding:10px 12px;"><div style="font-size:0.74rem;font-weight:700;color:#166534;margin-bottom:5px;">강점</div>${p.strengths.map(s=>`<div style="font-size:0.77rem;color:#166534;line-height:1.6;">• ${s}</div>`).join('')}</div>`:''}
-          ${p.weaknesses&&p.weaknesses.length?`<div style="background:#FEF2F2;border-radius:8px;padding:10px 12px;"><div style="font-size:0.74rem;font-weight:700;color:#991B1B;margin-bottom:5px;">개선 필요</div>${p.weaknesses.map(s=>`<div style="font-size:0.77rem;color:#991B1B;line-height:1.6;">• ${s}</div>`).join('')}</div>`:''}
-        </div>` : '';
-      return `<div id="${saUid}_panel_${pi}" style="${pi!==0?'display:none;':''}">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <span style="font-size:0.88rem;font-weight:800;color:var(--text);">${p.title}</span>
-          <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:99px;font-size:0.73rem;font-weight:700;background:${rm.bg};color:${rm.color};">
-            <span style="width:5px;height:5px;border-radius:50%;background:${rm.dot};flex-shrink:0;"></span>${rm.label}
-          </span>
-          <span style="margin-left:auto;font-size:0.73rem;color:var(--text-mute);">통과 ${pC} · 주의 ${wC} · 실패 ${fC}</span>
-        </div>
-        <div style="font-size:0.80rem;color:var(--text-sub);margin-bottom:8px;line-height:1.6;">${p.summary}</div>
-        <div>${metricsHTML}</div>
-        ${swHTML}
+      })() : '';
+
+      return `<div id="${saUid}_panel_${pi}" style="${pi!==0?'display:none;':''}border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div style="background:#F1F5F9;padding:7px 12px;font-size:0.76rem;font-weight:700;color:var(--text);">SW 품질 분석 결과 요약</div>
+        <div style="padding:8px 12px;font-size:0.78rem;color:var(--text-sub);line-height:1.55;">${p.summary}</div>
+        ${p.strengths&&p.strengths.length ? `
+        ${secHdr('강점')}
+        <div style="padding:7px 12px;">${bulletList(p.strengths)}</div>` : ''}
+        ${p.weaknesses&&p.weaknesses.length ? `
+        ${secHdr('보완점')}
+        <div style="padding:7px 12px;">${bulletList(p.weaknesses)}</div>` : ''}
+        ${p.improvements&&p.improvements.length ? `
+        ${secHdr('개선 권장 사항')}
+        <div style="padding:7px 12px;">${bulletList(p.improvements)}</div>` : ''}
+        ${metricTableHTML}
       </div>`;
     }).join('');
 
@@ -657,8 +700,10 @@ function renderTrackTab(e, trackIdx) {
       </div>`;
   } else {
     saStatHTML = `
-      <div class="ss-val" style="color:var(--text-mute);">-</div>
-      <div class="ss-label">정적분석</div>`;
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+        <div style="font-size:0.82rem;color:var(--text-mute);">해당 사항 없음</div>
+      </div>
+      <div class="ss-label" style="margin-top:auto;">정적분석</div>`;
   }
 
   el.innerHTML = `
@@ -690,12 +735,12 @@ function renderTrackTab(e, trackIdx) {
           <div class="ss-label">역량 획득률</div>
         </div>
       </div>
-      <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:0;">
-        <div class="ss-card-flat" style="border-right:1px solid var(--border); padding-right:16px;">
+      <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:0; align-items:stretch;">
+        <div class="ss-card-flat" style="border-right:1px solid var(--border); padding-right:16px; display:flex; flex-direction:column; align-items:center;">
           <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${track.time}<br><small style="font-size:0.6em;color:var(--text-mute);">/ ${e.time}</small></div>
-          <div class="ss-label">소요시간</div>
+          <div class="ss-label" style="margin-top:auto;">소요시간</div>
         </div>
-        <div class="ss-card-flat" style="padding-left:16px;">
+        <div class="ss-card-flat" style="padding-left:16px; display:flex; flex-direction:column; align-items:center;">
           ${saStatHTML}
         </div>
       </div>
@@ -704,19 +749,15 @@ function renderTrackTab(e, trackIdx) {
     ${saDetailHTML}
 
     <div class="compare-card" style="margin-bottom:16px;">
-      <div class="ss-block-title" style="display:flex;align-items:center;gap:6px;">점수 분포 ${tooltipIcon('해당 트랙 응시자의 점수 분포를 커브 그래프로 시각화합니다. 점선(황색)은 평균, 실선(초록)은 합격선(80점)을 나타내며, 커브 위 색상 점과 점수 박스가 본인 점수의 위치입니다.')}</div>
-      <div class="kde-outer">
+      <div class="kde-outer" style="margin-top:14px;">
         <div class="kde-graph-area">
           <svg id="${kdeId}" class="chart-svg" height="160" viewBox="0 0 360 160"></svg>
           <div class="kde-legend">
             <div class="kde-legend-item">
-              <span class="kde-leg-bar" style="background:rgba(22,163,74,0.22);border:1px solid rgba(22,163,74,0.4);"></span>합격 (80점↑)
+              <span class="kde-leg-bar" style="background:rgba(22,163,74,0.22);border:1px solid rgba(22,163,74,0.4);"></span>합격
             </div>
             <div class="kde-legend-item">
               <span class="kde-leg-bar" style="background:rgba(220,38,38,0.18);border:1px solid rgba(220,38,38,0.35);"></span>불합격
-            </div>
-            <div class="kde-legend-item">
-              <span class="kde-leg-line" style="border-color:#1565C0; border-style:solid;"></span>확률 분포
             </div>
             <div class="kde-legend-item">
               <span class="kde-leg-line" style="border-color:#F59E0B; border-style:dashed;"></span>평균
@@ -735,6 +776,16 @@ function renderTrackTab(e, trackIdx) {
           <div class="kde-stat">
             <div class="kde-stat-val">${std}점</div>
             <div class="kde-stat-lbl">표준편차</div>
+          </div>
+        </div>
+        <div class="kde-stats-panel" style="border-left:none;">
+          <div class="kde-stat">
+            <div class="kde-stat-val">${trackScores[n - 1]}점</div>
+            <div class="kde-stat-lbl">최고점수</div>
+          </div>
+          <div class="kde-stat">
+            <div class="kde-stat-val">${trackScores[0]}점</div>
+            <div class="kde-stat-lbl">최저점수</div>
           </div>
         </div>
       </div>
@@ -870,73 +921,74 @@ function buildStaticAnalysisPrintHTML(saEntry) {
   if (!saEntry) return '';
   const probs = saEntry.problems;
 
-  function probOverall(p) {
-    return p.metrics.some(m => m.result === 'fail') ? 'fail'
-         : p.metrics.some(m => m.result === 'warning') ? 'warning' : 'pass';
-  }
+  const RC = { pass:'#16A34A', warning:'#D97706', fail:'#DC2626' };
+  const RL = { pass:'통과', warning:'주의', fail:'실패' };
 
-  const totalPass = probs.reduce((s,p) => s + p.metrics.filter(m=>m.result==='pass').length, 0);
-  const totalWarn = probs.reduce((s,p) => s + p.metrics.filter(m=>m.result==='warning').length, 0);
-  const totalFail = probs.reduce((s,p) => s + p.metrics.filter(m=>m.result==='fail').length, 0);
-  const totalAll  = totalPass + totalWarn + totalFail;
-  const passRate  = totalAll ? Math.round(totalPass / totalAll * 100) : 0;
-  const rateColor = passRate >= 70 ? '#16A34A' : passRate >= 50 ? '#D97706' : '#DC2626';
+  const secHdr = (title) =>
+    `<div style="background:#F1F5F9;padding:6px 12px;font-size:0.76rem;font-weight:700;color:var(--text);border-top:1px solid var(--border);">${title}</div>`;
+
+  const bulletList = (items) =>
+    items.map(s => `<div style="font-size:0.78rem;color:var(--text-sub);line-height:1.55;padding:1px 0;">• ${s}</div>`).join('');
 
   const probsHTML = probs.map(p => {
-    const res = probOverall(p);
-    const rm  = _SA_RM[res];
-    const pC  = p.metrics.filter(m=>m.result==='pass').length;
-    const wC  = p.metrics.filter(m=>m.result==='warning').length;
-    const fC  = p.metrics.filter(m=>m.result==='fail').length;
+    // 상세 지표 테이블
+    const metricRows = (p.metrics || []).map((m, mi) => {
+      const accentColor = RC[m.result] || '#9CA3AF';
+      const rowBg = mi % 2 === 0 ? '#fff' : '#F9FAFB';
+      const c = m.counts || { pass: m.result==='pass'?1:0, warning: m.result==='warning'?1:0, fail: m.result==='fail'?1:0, na: 0 };
+      const countStr = `통과 <b style="color:#16A34A;">${c.pass}</b> · 주의 <b style="color:#D97706;">${c.warning}</b> · 실패 <b style="color:#DC2626;">${c.fail}</b> · 계산X <b style="color:#9CA3AF;">${c.na}</b>`;
 
-    const metricsHTML = p.metrics.map(m => {
-      const mr = _SA_RM[m.result] || _SA_RM.warning;
-      return `<div style="background:${mr.bg};border-radius:6px;padding:6px 10px;">
-        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
-          <span style="width:6px;height:6px;border-radius:50%;background:${mr.dot};flex-shrink:0;"></span>
-          <span style="font-size:0.75rem;font-weight:700;color:${mr.color};">${mr.label}</span>
-        </div>
-        <div style="font-size:0.72rem;font-weight:600;color:var(--text);margin-bottom:1px;">${_SA_ML[m.key]||m.label}</div>
-        <div style="font-size:0.71rem;color:var(--text-sub);line-height:1.4;">${m.desc}</div>
-      </div>`;
+      const descs = m.detailDescs
+        ? m.detailDescs
+        : (m.detailDesc ? [{result: m.result, desc: m.detailDesc}] : [{result: m.result, desc: m.desc||''}]);
+      const descHTML = descs.map((d, di) => {
+        const dColor = RC[d.result] || '#6B7280';
+        const dLabel = RL[d.result] || d.result;
+        return `<div style="display:flex;gap:8px;align-items:flex-start;${di>0?'margin-top:6px;padding-top:6px;border-top:1px solid #F3F4F6;':''}">
+          <span style="flex-shrink:0;font-size:0.68rem;font-weight:700;color:${dColor};background:${dColor}18;padding:1px 6px;border-radius:3px;margin-top:1px;">${dLabel}</span>
+          <span style="font-size:0.77rem;color:#374151;line-height:1.5;">${d.desc}</span>
+        </div>`;
+      }).join('');
+
+      return `<tr style="border-bottom:1px solid #E5E7EB;background:${rowBg};">
+        <td style="padding:8px 6px;text-align:center;vertical-align:top;font-size:0.74rem;color:#9CA3AF;width:28px;padding-top:10px;">${mi+1}</td>
+        <td style="padding:8px 11px;vertical-align:top;width:175px;border-right:1px solid #E5E7EB;">
+          <div style="font-size:0.77rem;font-weight:700;color:var(--text);">${m.key}</div>
+          <span style="font-size:0.63rem;color:#9CA3AF;margin-top:3px;display:block;">${countStr}</span>
+        </td>
+        <td style="padding:8px 11px;vertical-align:top;">${descHTML}</td>
+      </tr>`;
     }).join('');
 
-    const swHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
-        ${p.strengths&&p.strengths.length ? `<div style="background:#F0FDF4;border-radius:6px;padding:7px 10px;">
-          <div style="font-size:0.71rem;font-weight:700;color:#166534;margin-bottom:4px;">강점</div>
-          ${p.strengths.map(s=>`<div style="font-size:0.71rem;color:#166534;line-height:1.5;">• ${s}</div>`).join('')}
-        </div>` : ''}
-        ${p.weaknesses&&p.weaknesses.length ? `<div style="background:#FEF2F2;border-radius:6px;padding:7px 10px;">
-          <div style="font-size:0.71rem;font-weight:700;color:#991B1B;margin-bottom:4px;">개선 필요</div>
-          ${p.weaknesses.map(s=>`<div style="font-size:0.71rem;color:#991B1B;line-height:1.5;">• ${s}</div>`).join('')}
-        </div>` : ''}
-      </div>`;
+    const metricTableHTML = metricRows ? `
+      <div style="margin-top:10px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#F1F5F9;border-bottom:1px solid var(--border);">
+              <th style="padding:6px;text-align:center;font-size:0.69rem;font-weight:600;color:#6B7280;width:28px;">#</th>
+              <th style="padding:6px 11px;text-align:left;font-size:0.69rem;font-weight:600;color:#374151;width:175px;">정적 분석 항목</th>
+              <th style="padding:6px 11px;text-align:left;font-size:0.69rem;font-weight:600;color:#374151;">설명</th>
+            </tr>
+          </thead>
+          <tbody>${metricRows}</tbody>
+        </table>
+      </div>` : '';
 
-    return `<div style="border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;break-inside:avoid;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-        <span style="font-size:0.84rem;font-weight:800;color:var(--text);">${p.title}</span>
-        <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:0.71rem;font-weight:700;background:${rm.bg};color:${rm.color};">
-          <span style="width:5px;height:5px;border-radius:50%;background:${rm.dot};flex-shrink:0;"></span>${rm.label}
-        </span>
-        <span style="margin-left:auto;font-size:0.71rem;color:var(--text-mute);">통과 ${pC} · 주의 ${wC} · 실패 ${fC}</span>
+    return `
+    <div style="margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden;break-inside:avoid;">
+      <div style="background:#F1F5F9;padding:8px 12px;">
+        <div style="font-size:0.88rem;font-weight:800;color:var(--text);">제출 코드 정적분석 결과 — ${p.title}</div>
       </div>
-      <div style="font-size:0.78rem;color:var(--text-sub);margin-bottom:8px;line-height:1.5;">${p.summary}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${metricsHTML}</div>
-      ${swHTML}
+      <div style="background:#F1F5F9;padding:6px 12px;font-size:0.76rem;font-weight:700;color:var(--text);border-top:1px solid var(--border);">SW 품질 분석 결과 요약</div>
+      <div style="padding:8px 12px;font-size:0.78rem;color:var(--text-sub);line-height:1.55;">${p.summary}</div>
+      ${p.strengths&&p.strengths.length ? secHdr('강점') + `<div style="padding:7px 12px;">${bulletList(p.strengths)}</div>` : ''}
+      ${p.weaknesses&&p.weaknesses.length ? secHdr('보완점') + `<div style="padding:7px 12px;">${bulletList(p.weaknesses)}</div>` : ''}
+      ${p.improvements&&p.improvements.length ? secHdr('개선 권장 사항') + `<div style="padding:7px 12px;">${bulletList(p.improvements)}</div>` : ''}
+      <div style="padding:0 12px 12px;">${metricTableHTML}</div>
     </div>`;
   }).join('');
 
-  return `
-  <div class="print-sa-section">
-    <div class="sec-title" style="margin-top:0;">정적분석 결과</div>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 14px;background:var(--bg);border-radius:8px;">
-      <span style="font-size:1.1rem;font-weight:900;color:${rateColor};">${passRate}%</span>
-      <span style="font-size:0.78rem;color:var(--text-sub);">통과율</span>
-      <span style="margin-left:auto;font-size:0.78rem;color:var(--text-sub);">통과 ${totalPass} · 주의 ${totalWarn} · 실패 ${totalFail}</span>
-    </div>
-    ${probsHTML}
-  </div>`;
+  return `<div class="print-sa-section">${probsHTML}</div>`;
 }
 
 /* ══════════════════════════════
@@ -944,20 +996,15 @@ function buildStaticAnalysisPrintHTML(saEntry) {
 ══════════════════════════════ */
 const BEHAVIOR_GRADE_INFO = [
   { grade: 5, name: '부정행위 없음',
-    desc: '평가 도중 의심스러운 행동이나 부정행위 기록 없이, 응시자는 모든 규정을 철저히 준수했습니다.',
-    color: '#166534', bg: '#F0FDF4', border: '#16A34A' },
-  { grade: 4, name: '경미한 의심 행동',
-    desc: '평가 도중 약간의 의심스러운 행동이 있었으나, 명백한 부정행위로 단정할 수 없으며, 전반적으로 규정을 잘 준수했습니다.',
-    color: '#92400E', bg: '#FFFBEB', border: '#D97706' },
+    desc: '평가 도중 의심스러운 행동이나 부정행위 기록 없이, 모든 규정을 철저히 준수했습니다.' },
+  { grade: 4, name: '경미한 의심',
+    desc: '약간의 의심스러운 행동이 감지되었으나, 명백한 부정행위로 단정할 수 없는 수준입니다.' },
   { grade: 3, name: '의심스러운 행동',
-    desc: '평가 도중 부정행위로 의심될 만한 행동이 확인되었으며, 추가적인 수동 검증이 필요합니다.',
-    color: '#92400E', bg: '#FFFBEB', border: '#D97706' },
-  { grade: 2, name: '명백한 부정행위 시도',
-    desc: '평가 도중 부정행위를 시도한 명확한 증거가 확인되었으나, 성공적으로 이루어지지는 않았습니다.',
-    color: '#991B1B', bg: '#FEF2F2', border: '#DC2626' },
+    desc: '부정행위로 의심될 만한 복수의 행동이 확인되었으며, 추가적인 수동 검증이 반드시 필요합니다.' },
+  { grade: 2, name: '명백한 시도',
+    desc: '부정행위를 시도한 명확한 증거가 확인되었습니다.' },
   { grade: 1, name: '부정행위 확인',
-    desc: '평가 도중 명백한 부정행위가 발생했으며, 그로 인해 테스트 결과의 신뢰성이 크게 손상되었습니다.',
-    color: '#991B1B', bg: '#FEF2F2', border: '#DC2626' },
+    desc: '명백한 부정행위가 발생하여 테스트 결과의 신뢰성이 상실되었습니다.' },
 ];
 
 function getBehaviorGrade(risk) {
@@ -975,85 +1022,56 @@ function renderBehaviorPrintTab(e) {
   if (!el) return;
 
   const currentGrade = getBehaviorGrade(e.behaviorRisk);
-  const gi = BEHAVIOR_GRADE_INFO.find(g => g.grade === currentGrade);
 
   const events = (e.behaviorEvents != null)
     ? e.behaviorEvents
     : (e.behaviorRisk && e.behaviorRisk.level !== 'normal' ? (typeof BEHAVIOR_EVENTS !== 'undefined' ? BEHAVIOR_EVENTS : []) : []);
 
-  const SEV = {
-    high:   { label: '위험', dot: '#DC2626', bg: '#FEF2F2', color: '#991B1B' },
-    medium: { label: '주의', dot: '#D97706', bg: '#FFFBEB', color: '#92400E' },
-    low:    { label: '참고', dot: '#1565C0', bg: '#EBF3FF', color: '#1565C0' },
-  };
-
-  const reasonHTML = currentGrade === 5
-    ? `<div style="font-size:0.82rem;color:var(--text-sub);line-height:1.7;">본 평가에서 부정행위가 확인되지 않았습니다.</div>`
-    : events.length === 0
-      ? `<div style="font-size:0.82rem;color:var(--text-sub);">기록된 이벤트가 없습니다.</div>`
-      : `<table style="width:100%;border-collapse:collapse;font-size:0.79rem;">
-          <thead>
-            <tr style="background:var(--bg);">
-              <th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--text-sub);border-bottom:1px solid var(--border);">시간</th>
-              <th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--text-sub);border-bottom:1px solid var(--border);">유형</th>
-              <th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--text-sub);border-bottom:1px solid var(--border);">내용</th>
-              <th style="padding:6px 10px;text-align:center;font-weight:700;color:var(--text-sub);border-bottom:1px solid var(--border);">등급</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${events.map((ev, i) => {
-              const s = SEV[ev.severity] || SEV.low;
-              return `<tr style="border-bottom:1px solid #E5E7EB;background:${i%2===0?'#ffffff':'#F9FAFB'};">
-                <td style="padding:6px 10px;color:#6B7280;white-space:nowrap;">${ev.time}</td>
-                <td style="padding:6px 10px;font-weight:600;">${ev.label}</td>
-                <td style="padding:6px 10px;color:#6B7280;">${ev.detail}</td>
-                <td style="padding:6px 10px;text-align:center;">
-                  <span style="display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:99px;font-size:0.70rem;font-weight:700;background:${s.bg};color:${s.color};">
-                    <span style="width:5px;height:5px;border-radius:50%;background:${s.dot};flex-shrink:0;"></span>${s.label}
-                  </span>
-                </td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>`;
+  // 관찰된 행동 요약
+  const behaviorBoxHTML = (() => {
+    if (currentGrade === 5 || events.length === 0) {
+      return `<div style="color:var(--text-mute);font-size:0.84rem;">부정행위가 확인되지 않았습니다.</div>`;
+    }
+    const counts = {};
+    events.forEach(ev => { counts[ev.label] = (counts[ev.label] || 0) + 1; });
+    const lines = Object.entries(counts).map(([label, cnt]) =>
+      `<div style="font-size:0.84rem;color:var(--text);line-height:2;">${label} ${cnt}회</div>`
+    ).join('');
+    return lines;
+  })();
 
   const tableRowsHTML = BEHAVIOR_GRADE_INFO.map(g => {
     const isCurrent = g.grade === currentGrade;
-    return `<tr style="border-bottom:1px solid var(--border);${isCurrent ? `background:${g.bg};` : ''}">
-      <td style="padding:14px 16px;text-align:center;font-size:1rem;font-weight:800;color:${isCurrent?g.color:'var(--text-sub)'};">${g.grade}</td>
-      <td style="padding:14px 16px;font-weight:700;font-size:0.88rem;color:${isCurrent?g.color:'var(--text)'};">
-        ${g.name}${isCurrent ? ' <span style="font-size:0.75rem;font-weight:400;opacity:0.7;">← 현재</span>' : ''}
-      </td>
-      <td style="padding:14px 16px;font-size:0.82rem;line-height:1.65;color:${isCurrent?g.color:'var(--text-sub)'};">
-        ${g.desc}
-        ${isCurrent ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid ${g.border}30;">
-          <div style="font-size:0.77rem;font-weight:700;margin-bottom:6px;">• 사유</div>
-          ${reasonHTML}
-        </div>` : ''}
-      </td>
+    const blue = '#1565C0';
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:14px 16px;text-align:center;font-size:0.95rem;font-weight:800;color:${isCurrent ? blue : 'var(--text-sub)'};">${g.grade}</td>
+      <td style="padding:14px 16px;font-weight:700;font-size:0.88rem;color:${isCurrent ? blue : 'var(--text)'};">${g.name}</td>
+      <td style="padding:14px 16px;font-size:0.82rem;line-height:1.65;color:${isCurrent ? blue : 'var(--text-sub)'};">${g.desc}</td>
     </tr>`;
   }).join('');
 
   el.innerHTML = `
   <div class="print-behavior-page">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--primary);">
-      <div>
-        <div style="font-size:1.1rem;font-weight:900;color:var(--text);">부정행위 분석 결과</div>
-        <div style="font-size:0.82rem;color:var(--text-sub);margin-top:3px;">${e.name} · ${e.email}</div>
-      </div>
-      <div>${riskBadgeHTML(e.behaviorRisk, true)}</div>
+    <div style="margin-bottom:4px;">
+      <div style="font-size:1.3rem;font-weight:900;color:var(--text);">평가 결과 개인 리포트</div>
     </div>
+    <div style="font-size:0.82rem;color:var(--text-sub);margin-bottom:20px;">무결성 등급 설명</div>
 
-    <table style="width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:0;">
+    <table style="width:100%;border-collapse:collapse;border:1px solid var(--border);margin-bottom:28px;">
       <thead>
-        <tr style="background:var(--bg);">
-          <th style="padding:10px 16px;text-align:center;font-size:0.78rem;font-weight:700;color:var(--text-sub);border-bottom:1px solid var(--border);width:48px;">#</th>
-          <th style="padding:10px 16px;text-align:left;font-size:0.78rem;font-weight:700;color:var(--text-sub);border-bottom:1px solid var(--border);width:160px;">등급</th>
-          <th style="padding:10px 16px;text-align:left;font-size:0.78rem;font-weight:700;color:var(--text-sub);border-bottom:1px solid var(--border);">설명</th>
+        <tr style="background:#F8FAFF;">
+          <th style="padding:10px 16px;text-align:center;font-size:0.78rem;font-weight:700;color:#1565C0;border-bottom:1px solid var(--border);width:60px;">점수</th>
+          <th style="padding:10px 16px;text-align:center;font-size:0.78rem;font-weight:700;color:#1565C0;border-bottom:1px solid var(--border);width:140px;">판정 명칭</th>
+          <th style="padding:10px 16px;text-align:center;font-size:0.78rem;font-weight:700;color:#1565C0;border-bottom:1px solid var(--border);">의미 및 상세 설명</th>
         </tr>
       </thead>
       <tbody>${tableRowsHTML}</tbody>
     </table>
+
+    <div style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px;">평가자의 관찰된 행동</div>
+    <div style="border:1px solid var(--border);border-radius:8px;padding:16px 20px;min-height:80px;background:#fff;">
+      ${behaviorBoxHTML}
+    </div>
   </div>`;
 }
 

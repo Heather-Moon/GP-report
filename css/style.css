@@ -1045,6 +1045,8 @@ footer {
 }
 
 @media print {
+  .no-print { display: none !important; }
+
   @page {
     margin: 15mm 12mm 20mm;
     size: A4 portrait;

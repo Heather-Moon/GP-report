@@ -384,15 +384,14 @@ function renderDonut(svgId, acquired, total, colorAcq, colorMis) {
     'stroke-dashoffset': circ/4,
     'stroke-linecap':'round' });
   svg.appendChild(arc);
-  // center text
-  const pv = svgEl('text', { x:cx, y:cy-4, 'text-anchor':'middle', 'dominant-baseline':'middle',
-    'font-size':'13', fill:'#111827', 'font-weight':'800' });
-  pv.textContent = Math.round(pct*100)+'%';
-  svg.appendChild(pv);
-  const sub = svgEl('text', { x:cx, y:cy+10, 'text-anchor':'middle', 'dominant-baseline':'middle',
-    'font-size':'8', fill:'#6B7280' });
+  const sub = svgEl('text', { x:cx, y:cy-4, 'text-anchor':'middle', 'dominant-baseline':'middle',
+    'font-size':'13', fill:'#6B7280', 'font-weight':'800' });
   sub.textContent = `${acquired}/${total}`;
   svg.appendChild(sub);
+  const pv = svgEl('text', { x:cx, y:cy+10, 'text-anchor':'middle', 'dominant-baseline':'middle',
+    'font-size':'8', fill:'#111827' });
+  pv.textContent = Math.round(pct*100)+'%';
+  svg.appendChild(pv);
 }
 
 /* ══════════════════════════════
