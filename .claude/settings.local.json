@@ -9,7 +9,8 @@
       "Bash(node -e \"const data = require\\('./js/data.js'\\)\")",
       "Bash(node --input-type=module)",
       "Bash(node -e ' *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\goty0\\\\Desktop\\\\GP Report\\\\js\\\\data.js\" | Measure-Object -Line\\).Lines)"
     ]
   }
 }

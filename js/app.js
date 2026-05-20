@@ -185,6 +185,9 @@ function openPerson(id) {
   selectedExaminee = EXAMINEES.find(x => x.id === id);
   const e = selectedExaminee;
 
+  // PDF 표지 생성
+  renderPrintCover(e);
+
   // 헤더 채우기
   document.getElementById('p-avatar').textContent = e.name[1] || e.name[0];
   document.getElementById('p-name').textContent = e.name;
@@ -193,6 +196,19 @@ function openPerson(id) {
     ? '<span class="badge badge-complete no-print">평가 완료</span>'
     : '<span class="badge" style="background:#F3F4F6;color:var(--text-sub);">미완료</span>';
   document.getElementById('p-date').textContent = '📅 ' + e.date;
+
+  const pdfBtn = document.getElementById('pdf-btn');
+  if (e.status !== 'completed') {
+    pdfBtn.disabled = true;
+    pdfBtn.style.opacity = '0.4';
+    pdfBtn.style.cursor = 'not-allowed';
+    pdfBtn.onclick = null;
+  } else {
+    pdfBtn.disabled = false;
+    pdfBtn.style.opacity = '';
+    pdfBtn.style.cursor = '';
+    pdfBtn.onclick = () => window.print();
+  }
 
   // 탭 초기화
   setPersonTab(0);
@@ -328,7 +344,7 @@ function openDetail(idx) {
   const skillRates2 = computeSkillAcqRates();
   const groupItems = t.skills.map((s, si) => ({
     label: s.name,
-    me:    s.level === 'acquired' ? 100 : s.level === 'partial' ? 50 : 0,
+    me:    s.score != null ? Math.round(s.score) : (s.level === 'acquired' ? 100 : s.level === 'partial' ? 50 : 0),
     avg:   skillRates2[idx][si],
   }));
   renderGroupBar('d-group-bar', groupItems);
@@ -425,6 +441,97 @@ window.addEventListener('afterprint', () => {
   const ptab4 = document.getElementById('ptab-4');
   if (ptab4) ptab4.style.display = 'none';
 });
+
+/* ══════════════════════════════
+   PDF 표지
+══════════════════════════════ */
+function renderPrintCover(e) {
+  const el = document.getElementById('print-cover');
+  if (!el) return;
+
+  const trackRows = TRACKS_META.map((t, i) =>
+    `<tr>
+      <td style="padding:9px 16px;font-size:0.82rem;font-weight:600;color:#1E3A8A;width:140px;border-bottom:1px solid #E2E8F0;">평가 트랙 ${i + 1}</td>
+      <td style="padding:9px 16px;font-size:0.82rem;color:#1E293B;border-bottom:1px solid #E2E8F0;">${t.name} <span style="color:#64748B;font-size:0.78rem;">— ${t.level}</span></td>
+    </tr>`
+  ).join('');
+
+  el.innerHTML = `
+  <div class="print-cover-page">
+
+    <!-- 상단 컬러 바 -->
+    <div style="height:6px;background:linear-gradient(90deg,#1565C0 0%,#42A5F5 100%);margin-bottom:48px;border-radius:2px;"></div>
+
+    <!-- 브랜드 -->
+    <div style="font-size:0.82rem;font-weight:700;color:#1565C0;letter-spacing:0.5px;margin-bottom:56px;">code.presso</div>
+
+    <!-- 메인 제목 -->
+    <div style="margin-bottom:52px;">
+      <div style="font-size:0.78rem;font-weight:600;color:#9CA3AF;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Individual Report</div>
+      <div style="font-size:2.8rem;font-weight:900;color:#111827;line-height:1.15;letter-spacing:-1.5px;">평가 결과<br>개인 리포트</div>
+    </div>
+
+    <!-- 응시자 정보 -->
+    <div style="margin-bottom:40px;">
+      <table style="border-collapse:collapse;">
+        <tr>
+          <td style="font-size:0.80rem;font-weight:600;color:#9CA3AF;padding:5px 2px 5px 0;white-space:nowrap;vertical-align:middle;">이름</td>
+          <td style="font-size:1.1rem;font-weight:800;color:#111827;padding:5px 0;vertical-align:middle;">${e.name}</td>
+        </tr>
+        <tr>
+          <td style="font-size:0.80rem;font-weight:600;color:#9CA3AF;padding:5px 2px 5px 0;white-space:nowrap;vertical-align:middle;">이메일</td>
+          <td style="font-size:0.84rem;color:#374151;padding:5px 0;vertical-align:middle;">${e.email}</td>
+        </tr>
+        <tr>
+          <td style="font-size:0.80rem;font-weight:600;color:#9CA3AF;padding:5px 2px 5px 0;white-space:nowrap;vertical-align:middle;">소속</td>
+          <td style="font-size:0.84rem;color:#374151;padding:5px 0;vertical-align:middle;">${e.organization || '-'}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 평가 정보 -->
+    <div style="border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;">
+      <div style="background:#1565C0;padding:12px 20px;">
+        <span style="font-size:0.84rem;font-weight:700;color:#fff;letter-spacing:0.3px;">평가 정보</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tbody>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:11px 20px;font-size:0.80rem;font-weight:600;color:#1565C0;width:130px;white-space:nowrap;">평가명</td>
+            <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${EVALUATION.title}</td>
+          </tr>
+          ${TRACKS_META.map((t, i) => `
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:11px 20px;font-size:0.80rem;font-weight:600;color:#1565C0;white-space:nowrap;">트랙 ${i+1}</td>
+            <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${t.name}&nbsp;<span style="color:#9CA3AF;font-size:0.75rem;">· ${t.level}</span></td>
+          </tr>`).join('')}
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:11px 20px;font-size:0.80rem;font-weight:600;color:#1565C0;">평가 기간</td>
+            <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${EVALUATION.period || '-'}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F3F4F6;">
+            <td style="padding:11px 20px;font-size:0.80rem;font-weight:600;color:#1565C0;">평가 완료일</td>
+            <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${e.date !== '-' ? e.date : '-'}</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 20px;font-size:0.80rem;font-weight:600;color:#1565C0;">소요 시간</td>
+            <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${e.time !== '-' ? e.time : '-'}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 하단 여백 -->
+    <div style="flex:1;"></div>
+
+    <!-- 푸터 -->
+    <div style="margin-top:48px;padding-top:16px;border-top:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:0.72rem;color:#9CA3AF;">본 리포트는 code.presso 역량 진단 시스템에서 자동 생성되었습니다.</span>
+      <span style="font-size:0.72rem;color:#9CA3AF;">${new Date().toLocaleDateString('ko-KR')}</span>
+    </div>
+
+  </div>`;
+}
 
 /* ══════════════════════════════
    INIT

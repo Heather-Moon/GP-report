@@ -1044,8 +1044,21 @@ footer {
   margin: 0;
 }
 
+/* 표지 — 웹에서는 숨김 */
+#print-cover { display: none; }
+
 @media print {
   .no-print { display: none !important; }
+
+  /* 표지 */
+  #print-cover { display: block !important; }
+  .print-cover-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 247mm;
+    padding: 0;
+    break-after: page;
+  }
 
   @page {
     margin: 15mm 12mm 20mm;

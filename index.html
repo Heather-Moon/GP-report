@@ -164,6 +164,9 @@
          PAGE 2: 평가자 개인 페이지
     ══════════════════════════════════ -->
     <div id="page-person" class="page">
+      <!-- PDF 표지 (print 전용) -->
+      <div id="print-cover"></div>
+
       <button class="back-btn" onclick="goMain('examinees')">← 목록으로</button>
 
       <!-- 응시자 헤더 -->
@@ -177,7 +180,7 @@
             <span id="p-date"></span>
           </div>
         </div>
-        <button class="behavior-btn" onclick="window.print()">PDF 발급</button>
+        <button id="pdf-btn" class="behavior-btn" onclick="window.print()">PDF 발급</button>
       </div>
 
       <!-- 행동 분석 패널 (제거됨 — 모달로 대체) -->
@@ -322,6 +325,7 @@
 
 </div><!-- /app -->
 
+<script src="js/data_example.js?v=20260417a"></script>
 <script src="js/data.js?v=20260417a"></script>
 <script src="js/charts.js?v=20260417a"></script>
 <script src="js/render.js?v=20260417a"></script>

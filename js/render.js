@@ -423,10 +423,16 @@ function renderSummaryTab(e) {
           <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${e.time || '-'}<br><small style="font-size:0.6em; color:var(--text-mute);">/ ${timeLimitHMS}</small></div>
           <div class="ss-label" style="margin-top:auto;">소요시간 / 제한시간</div>
         </div>
-        <div class="ss-card-flat" style="display:flex;flex-direction:column;align-items:center;">
-          <div class="ss-val" style="font-size:1rem;">${e.behaviorRisk ? riskBadgeHTML(e.behaviorRisk, true) : '-'}</div>
-          <span onclick="toggleBehaviorPanel()" class="no-print" style="font-size:0.72rem; color:var(--primary); cursor:pointer; font-weight:600; opacity:0.8; margin-bottom:4px; display:inline-block;">행동 분석 →</span>
-          <div class="ss-label" style="margin-top:auto;display:flex;align-items:center;gap:4px;justify-content:center;">부정행위 지표 ${tooltipIcon('시험 중 감지된 이상행동을 종합한 위험도 지표입니다.<br><strong style=\\"color:#86efac;\\">정상</strong> 위험 이벤트 0건 + 주의 1건 이하<br><strong style=\\"color:#fcd34d;\\">주의</strong> 위험 이벤트 1~2건 또는 주의 2건 이상<br><strong style=\\"color:#fca5a5;\\">위험</strong> 위험 이벤트 3건 이상')}</div>
+        <div class="ss-card-flat" style="display:flex;flex-direction:column;align-items:center;">${(() => {
+          const grade = e.behaviorRisk ? getBehaviorGrade(e.behaviorRisk) : 5;
+          const gradeColor = grade === 5 ? '#22C55E' : grade === 4 ? '#84CC16' : grade === 3 ? '#F59E0B' : grade === 2 ? '#F97316' : '#EF4444';
+          return `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:auto 0;">
+            <div class="ss-val" style="font-size:1.5rem;font-weight:900;color:${gradeColor};line-height:1.2;">${grade}<small style="font-size:0.5em;color:var(--text-mute);font-weight:500;"> / 5</small></div>
+            <div class="ss-label" style="display:flex;align-items:center;gap:4px;justify-content:center;">무결성 등급 ${tooltipIcon('시험 중 감지된 이상행동을 종합한 무결성 등급입니다.<br><strong style=\\"color:#86efac;\\">5등급</strong> 부정행위 없음<br><strong style=\\"color:#86efac;\\">4등급</strong> 경미한 의심<br><strong style=\\"color:#fcd34d;\\">3등급</strong> 의심스러운 행동<br><strong style=\\"color:#fca5a5;\\">2등급</strong> 명백한 시도<br><strong style=\\"color:#fca5a5;\\">1등급</strong> 부정행위 확인')}</div>
+          </div>
+          <span onclick="toggleBehaviorPanel()" class="no-print" style="font-size:0.72rem; color:var(--primary); cursor:pointer; font-weight:600; opacity:0.8; margin-top:6px; display:inline-block;">행동 분석 →</span>`;
+        })()}
         </div>
       </div>
     </div>
@@ -552,7 +558,7 @@ function renderTrackTab(e, trackIdx) {
   const skillRates = computeSkillAcqRates();
   const trackSkillRates = skillRates[trackIdx];
 
-  const meVals  = track.skills.map(s => s.level === 'acquired' ? 100 : s.level === 'partial' ? 50 : 0);
+  const meVals  = track.skills.map(s => s.score != null ? Math.round(s.score) : (s.level === 'acquired' ? 100 : s.level === 'partial' ? track.rate : 0));
   const avgVals = trackSkillRates;
 
   const timeLimitHMS = TRACKS_META[trackIdx].timeLimit || '0:00:00';
@@ -597,7 +603,7 @@ function renderTrackTab(e, trackIdx) {
     saStatHTML = `
       <div class="ss-val" style="color:${saColor};">${saRate}<small>%</small></div>
       <div class="ss-sub" style="font-size:0.7rem;">통과 ${saPass} · 주의 ${saWarn} · 실패 ${saFail}</div>
-      <div style="margin-top:8px;">
+      <div class="no-print" style="margin-top:8px;">
         <button id="${saUid}_toggle" class="sa-detail-toggle" onclick="toggleStaticDetail('${saUid}')"
           style="font-size:0.73rem;font-weight:700;color:var(--primary);background:none;border:1px solid var(--primary);border-radius:6px;padding:3px 10px;cursor:pointer;">
           세부 결과 ▾
@@ -675,6 +681,10 @@ function renderTrackTab(e, trackIdx) {
       })() : '';
 
       return `<div id="${saUid}_panel_${pi}" style="${pi!==0?'display:none;':''}border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div style="background:#F1F5F9;padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.88rem;font-weight:800;color:var(--text);">${p.title}</span>
+          ${p.fileName ? `<span style="font-size:0.73rem;font-weight:500;color:var(--text-sub);background:#E2E8F0;border-radius:4px;padding:1px 7px;">${p.fileName}</span>` : ''}
+        </div>
         <div style="background:#F1F5F9;padding:7px 12px;font-size:0.76rem;font-weight:700;color:var(--text);">SW 품질 분석 결과 요약</div>
         <div style="padding:8px 12px;font-size:0.78rem;color:var(--text-sub);line-height:1.55;">${p.summary}</div>
         ${p.strengths&&p.strengths.length ? `
@@ -736,9 +746,9 @@ function renderTrackTab(e, trackIdx) {
         </div>
       </div>
       <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:0; align-items:stretch;">
-        <div class="ss-card-flat" style="border-right:1px solid var(--border); padding-right:16px; display:flex; flex-direction:column; align-items:center;">
-          <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${track.time}<br><small style="font-size:0.6em;color:var(--text-mute);">/ ${e.time}</small></div>
-          <div class="ss-label" style="margin-top:auto;">소요시간</div>
+        <div class="ss-card-flat" style="border-right:1px solid var(--border); padding-right:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+          <div class="ss-val" style="font-size:1.25rem; line-height:1.3;">${track.time}</div>
+          <div class="ss-label">트랙 별 소요시간</div>
         </div>
         <div class="ss-card-flat" style="padding-left:16px; display:flex; flex-direction:column; align-items:center;">
           ${saStatHTML}
@@ -975,16 +985,20 @@ function buildStaticAnalysisPrintHTML(saEntry) {
       </div>` : '';
 
     return `
-    <div style="margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden;break-inside:avoid;">
-      <div style="background:#F1F5F9;padding:8px 12px;">
-        <div style="font-size:0.88rem;font-weight:800;color:var(--text);">제출 코드 정적분석 결과 — ${p.title}</div>
+    <div style="margin-bottom:24px;break-inside:avoid;">
+      <div class="sec-title" style="margin-bottom:6px;">제출 코드 정적분석 결과</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:0.92rem;font-weight:800;color:var(--text);">${p.title}</span>
+        ${p.fileName ? `<span style="font-size:0.75rem;font-weight:500;color:var(--text-sub);background:#E2E8F0;border-radius:4px;padding:1px 7px;">${p.fileName}</span>` : ''}
       </div>
-      <div style="background:#F1F5F9;padding:6px 12px;font-size:0.76rem;font-weight:700;color:var(--text);border-top:1px solid var(--border);">SW 품질 분석 결과 요약</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <div style="background:#F1F5F9;padding:6px 12px;font-size:0.76rem;font-weight:700;color:var(--text);">SW 품질 분석 결과 요약</div>
       <div style="padding:8px 12px;font-size:0.78rem;color:var(--text-sub);line-height:1.55;">${p.summary}</div>
       ${p.strengths&&p.strengths.length ? secHdr('강점') + `<div style="padding:7px 12px;">${bulletList(p.strengths)}</div>` : ''}
       ${p.weaknesses&&p.weaknesses.length ? secHdr('보완점') + `<div style="padding:7px 12px;">${bulletList(p.weaknesses)}</div>` : ''}
       ${p.improvements&&p.improvements.length ? secHdr('개선 권장 사항') + `<div style="padding:7px 12px;">${bulletList(p.improvements)}</div>` : ''}
       <div style="padding:0 12px 12px;">${metricTableHTML}</div>
+      </div>
     </div>`;
   }).join('');
 
@@ -1027,26 +1041,28 @@ function renderBehaviorPrintTab(e) {
     ? e.behaviorEvents
     : (e.behaviorRisk && e.behaviorRisk.level !== 'normal' ? (typeof BEHAVIOR_EVENTS !== 'undefined' ? BEHAVIOR_EVENTS : []) : []);
 
-  // 관찰된 행동 요약
-  const behaviorBoxHTML = (() => {
+  // 현재 등급 행에 표시할 사유
+  const reasonHTML = (() => {
     if (currentGrade === 5 || events.length === 0) {
-      return `<div style="color:var(--text-mute);font-size:0.84rem;">부정행위가 확인되지 않았습니다.</div>`;
+      return '본 평가에서 부정행위가 확인되지 않았습니다.';
     }
     const counts = {};
     events.forEach(ev => { counts[ev.label] = (counts[ev.label] || 0) + 1; });
-    const lines = Object.entries(counts).map(([label, cnt]) =>
-      `<div style="font-size:0.84rem;color:var(--text);line-height:2;">${label} ${cnt}회</div>`
+    return Object.entries(counts).map(([label, cnt]) =>
+      `<div>• ${label} ${cnt}회</div>`
     ).join('');
-    return lines;
   })();
 
   const tableRowsHTML = BEHAVIOR_GRADE_INFO.map(g => {
     const isCurrent = g.grade === currentGrade;
     const blue = '#1565C0';
+    const reasonBlock = isCurrent
+      ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #DBEAFE;font-size:0.78rem;color:${blue};line-height:1.8;"><span style="font-weight:700;">사유</span>&nbsp;&nbsp;${reasonHTML}</div>`
+      : '';
     return `<tr style="border-bottom:1px solid var(--border);">
       <td style="padding:14px 16px;text-align:center;font-size:0.95rem;font-weight:800;color:${isCurrent ? blue : 'var(--text-sub)'};">${g.grade}</td>
       <td style="padding:14px 16px;font-weight:700;font-size:0.88rem;color:${isCurrent ? blue : 'var(--text)'};">${g.name}</td>
-      <td style="padding:14px 16px;font-size:0.82rem;line-height:1.65;color:${isCurrent ? blue : 'var(--text-sub)'};">${g.desc}</td>
+      <td style="padding:14px 16px;font-size:0.82rem;line-height:1.65;color:${isCurrent ? blue : 'var(--text-sub)'};">${g.desc}${reasonBlock}</td>
     </tr>`;
   }).join('');
 
@@ -1068,10 +1084,6 @@ function renderBehaviorPrintTab(e) {
       <tbody>${tableRowsHTML}</tbody>
     </table>
 
-    <div style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px;">평가자의 관찰된 행동</div>
-    <div style="border:1px solid var(--border);border-radius:8px;padding:16px 20px;min-height:80px;background:#fff;">
-      ${behaviorBoxHTML}
-    </div>
   </div>`;
 }
 
