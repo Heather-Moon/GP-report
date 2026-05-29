@@ -449,6 +449,18 @@ function renderPrintCover(e) {
   const el = document.getElementById('print-cover');
   if (!el) return;
 
+  const tlH = (EVALUATION.timeLimit.match(/(\d+)시간/) || ['','0'])[1];
+  const tlM = (EVALUATION.timeLimit.match(/(\d+)분/)   || ['','0'])[1];
+  const timeLimitHMS = `${tlH}:${String(tlM).padStart(2,'0')}:00`;
+
+  // e.time("2:19:30") → "2시간 19분"
+  const timeKorean = (() => {
+    if (!e.time || e.time === '-') return '-';
+    const [h, m] = e.time.split(':').map(Number);
+    return `${h}시간 ${m}분`;
+  })();
+  const timeLimitKorean = EVALUATION.timeLimit;
+
   const trackRows = TRACKS_META.map((t, i) =>
     `<tr>
       <td style="padding:9px 16px;font-size:0.82rem;font-weight:600;color:#1E3A8A;width:140px;border-bottom:1px solid #E2E8F0;">평가 트랙 ${i + 1}</td>
@@ -467,7 +479,6 @@ function renderPrintCover(e) {
 
     <!-- 메인 제목 -->
     <div style="margin-bottom:52px;">
-      <div style="font-size:0.78rem;font-weight:600;color:#9CA3AF;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Individual Report</div>
       <div style="font-size:2.8rem;font-weight:900;color:#111827;line-height:1.15;letter-spacing:-1.5px;">평가 결과<br>개인 리포트</div>
     </div>
 
@@ -492,7 +503,7 @@ function renderPrintCover(e) {
     <!-- 평가 정보 -->
     <div style="border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;">
       <div style="background:#1565C0;padding:12px 20px;">
-        <span style="font-size:0.84rem;font-weight:700;color:#fff;letter-spacing:0.3px;">평가 정보</span>
+        <span style="font-size:0.84rem;font-weight:700;color:#fff;letter-spacing:0.3px;">평가 개요(Assessment Overview)</span>
       </div>
       <table style="width:100%;border-collapse:collapse;">
         <tbody>
@@ -514,8 +525,8 @@ function renderPrintCover(e) {
             <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${e.date !== '-' ? e.date : '-'}</td>
           </tr>
           <tr>
-            <td style="padding:11px 20px;font-size:0.80rem;font-weight:600;color:#1565C0;">소요 시간</td>
-            <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${e.time !== '-' ? e.time : '-'}</td>
+            <td style="padding:11px 20px;font-size:0.80rem;font-weight:600;color:#1565C0;white-space:nowrap;">소요시간 / 제한시간</td>
+            <td style="padding:11px 20px;font-size:0.80rem;color:#111827;">${timeKorean} / ${timeLimitKorean}</td>
           </tr>
         </tbody>
       </table>
