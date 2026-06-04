@@ -120,12 +120,10 @@ function renderScoreCurve(i) {
 
   if (i === 0) {
     const stats = computeStats();
-    statsEl.innerHTML = [
-      { lbl: '평균',    val: stats.avg+'점',              color: '#1565C0' },
-      { lbl: '중앙값',  val: stats.median+'점',           color: '#7C3AED' },
-      { lbl: '범위',    val: stats.min+'~'+stats.max+'점' },
-      { lbl: '표준편차', val: 'σ '+stats.std },
-    ].map(s=>`<div class="ins-stat"><span class="ins-stat-lbl">${s.lbl}</span><span class="ins-stat-val"${s.color?' style="color:'+s.color+';"':''}>${s.val}</span></div>`).join('');
+    const stat = (lbl, val) => `<div class="kde-stat"><div class="kde-stat-val">${val}</div><div class="kde-stat-lbl">${lbl}</div></div>`;
+    statsEl.innerHTML =
+      `<div class="kde-stats-panel">${stat('평균', stats.avg+'점')}${stat('중앙값', stats.median+'점')}${stat('표준편차', 'σ '+stats.std)}</div>` +
+      `<div class="kde-stats-panel" style="border-left:none;">${stat('최고점수', stats.max+'점')}${stat('최저점수', stats.min+'점')}</div>`;
     renderMainScoreHistogram('ins-score-curve', stats.scores, stats.avg, null);
   } else {
     const trackIdx = i - 1;
@@ -137,12 +135,10 @@ function renderScoreCurve(i) {
     const median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
     const col = trackColor(avg);
     const std = Math.round(Math.sqrt(trackScores.reduce((s,v)=>s+(v-avg)**2,0)/trackScores.length)*10)/10;
-    statsEl.innerHTML = [
-      { lbl: '평균',    val: avg+'점',                        color: col },
-      { lbl: '중앙값',  val: median+'점',                     color: '#7C3AED' },
-      { lbl: '범위',    val: sorted[0]+'~'+sorted[n-1]+'점' },
-      { lbl: '표준편차', val: 'σ '+std },
-    ].map(s=>`<div class="ins-stat"><span class="ins-stat-lbl">${s.lbl}</span><span class="ins-stat-val"${s.color?' style="color:'+s.color+';"':''}>${s.val}</span></div>`).join('');
+    const stat = (lbl, val) => `<div class="kde-stat"><div class="kde-stat-val">${val}</div><div class="kde-stat-lbl">${lbl}</div></div>`;
+    statsEl.innerHTML =
+      `<div class="kde-stats-panel">${stat('평균', avg+'점')}${stat('중앙값', median+'점')}${stat('표준편차', 'σ '+std)}</div>` +
+      `<div class="kde-stats-panel" style="border-left:none;">${stat('최고점수', sorted[n-1]+'점')}${stat('최저점수', sorted[0]+'점')}</div>`;
     renderMainScoreHistogram('ins-score-curve', trackScores, avg, null);
   }
 }

@@ -67,8 +67,8 @@
           <div class="insight-header">점수 분포 <span class="info-icon">?<span class="info-tip">전체 응시자의 점수를 히스토그램으로 시각화합니다. 점선(황색)은 평균, 실선(초록)은 합격선(80점)을 나타냅니다.</span></span></div>
           <div class="ins-tab-group" id="ins-score-tabs"></div>
           <!-- 차트(좌) + 통계(우) -->
-          <div style="display:flex; gap:8px; align-items:flex-start;">
-            <div style="flex:1; min-width:0;">
+          <div style="display:flex; gap:0; align-items:center; justify-content:center;">
+            <div class="kde-graph-area">
               <svg id="ins-score-curve" class="chart-svg" height="170" viewBox="0 0 380 170"></svg>
               <div class="kde-legend" style="margin-top:5px; margin-bottom:12px;">
                 <div class="kde-legend-item">
@@ -82,7 +82,7 @@
                 </div>
               </div>
             </div>
-            <div id="ins-score-stats" style="display:flex; flex-direction:column; gap:10px; min-width:110px; padding-top:6px;"></div>
+            <div id="ins-score-stats" style="display:flex;"></div>
           </div>
           <!-- 구분선 -->
           <div style="border-top:1px solid var(--border); margin:0 0 16px;"></div>
